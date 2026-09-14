@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Circle, Cloud, Cpu, Database, Gauge, LockKeyhole, MessageSquare, Radio, RefreshCw, Send, ShieldCheck, Wifi } from 'lucide-react';
+import { CheckCircle2, Circle, Cloud, Cpu, Database, Gauge, LockKeyhole, Radio, RefreshCw, Send, ShieldCheck, Wifi } from 'lucide-react';
 
 type Check={id:string;label:string;detail:string;ok:boolean|null};
 
@@ -12,7 +12,7 @@ export default function BetaHardwarePage(){
   {id:'auth',label:'Device authentication',detail:'Device tokens are protected and scoped.',ok:null},
  ]);
  const [loading,setLoading]=useState(false); const [result,setResult]=useState('');
- const run=async()=>{setLoading(true);setResult('');try{const r=await fetch('/api/v1/health',{cache:'no-store'});const d=await r.json();setChecks(c=>c.map(x=>x.id==='web'?{...x,ok:r.ok}:{...x,ok:x.id==='db'?d.database?.ok??d.db?.ok??null:x.id==='mqtt'?d.mqtt?.ok??d.mqtt?.configured??null:x.id==='auth'?true:x.ok}));setResult(r.ok?'Health endpoint reachable. Complete the NodeMCU checks with a real device.':'Health endpoint returned an error.')}catch(e){setChecks(c=>c.map(x=>x.id==='web'?{...x,ok:false}:x));setResult('Could not reach the SYLVIA health endpoint.')}finally{setLoading(false)}};
+ const run=async()=>{setLoading(true);setResult('');try{const r=await fetch('/api/v1/health',{cache:'no-store'});const d=await r.json();const database=d.checks?.database;const mqtt=d.checks?.mqtt;setChecks(c=>c.map(x=>x.id==='web'?{...x,ok:r.ok}:{...x,ok:x.id==='db'?Boolean(database?.configured&&database?.connected):x.id==='mqtt'?Boolean(mqtt?.configured):x.id==='auth'?true:x.ok}));setResult(r.ok?'Health endpoint reachable. Complete the NodeMCU checks with a real device.':'Health endpoint returned an error.')}catch(e){setChecks(c=>c.map(x=>x.id==='web'?{...x,ok:false}:x));setResult('Could not reach the SYLVIA health endpoint.')}finally{setLoading(false)}};
  useEffect(()=>{run()},[]);
  return <main className="apiPage betaPage"><div className="hero"><div><span className="eyebrow">SYLVIA v0.50 HARDWARE BETA</span><h1>Hosted hardware test center.</h1><p>Use this page to validate the hosted cloud path before connecting a physical NodeMCU/ESP8266.</p></div><div className="heroActions"><button className="primary" onClick={run} disabled={loading}><RefreshCw size={14}/>{loading?'Checking…':'Run preflight'}</button></div></div>
  <div className="stats"><Stat icon={<Cloud/>} label="Hosted" value="Beta"/><Stat icon={<Radio/>} label="Transport" value="MQTT / TLS"/><Stat icon={<Cpu/>} label="Target" value="NodeMCU"/><Stat icon={<ShieldCheck/>} label="Security" value="Token + TLS"/></div>
