@@ -4,6 +4,8 @@ import { mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
+const DEPLOYMENT_MARKER = 'v050-beta2-ec2a216';
+
 function present(name: string): boolean {
   const value = process.env[name];
   return typeof value === 'string' && value.trim().length > 0;
@@ -43,7 +45,8 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.50.0-beta.1',
+    version: '0.50.0-beta.2',
+    deployment: DEPLOYMENT_MARKER,
     checks: { database: db, mqtt },
     diagnostics: {
       databaseUrlResolved: Boolean(getDatabaseUrl()),
