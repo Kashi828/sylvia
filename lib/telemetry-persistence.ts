@@ -1,8 +1,8 @@
-import { getDb } from "./db";
+import { getPool } from "./db";
 import { addTelemetrySample, getTelemetry, type TelemetrySample } from "./telemetry-store";
 
 export async function persistTelemetry(sample: TelemetrySample) {
-  const db = getDb?.();
+  const db = getPool();
   if (!db) return addTelemetrySample(sample);
 
   try {
@@ -19,13 +19,12 @@ export async function persistTelemetry(sample: TelemetrySample) {
     );
     return sample;
   } catch {
-    // Keep the beta usable when the database schema/config is unavailable.
     return addTelemetrySample(sample);
   }
 }
 
 export async function loadPersistedTelemetry(deviceId?: string, streamId?: string) {
-  const db = getDb?.();
+  const db = getPool();
   if (!db) return getTelemetry(deviceId, streamId);
 
   try {
