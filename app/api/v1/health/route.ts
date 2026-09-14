@@ -15,7 +15,7 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.49.0-beta.1',
+    version: '0.50.0-beta.1',
     checks: { database: db, mqtt },
     timestamp: new Date().toISOString(),
   }, { status: ready ? 200 : 503 });
