@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';
+import {addEvent,findDevice,validBearer} from '@/lib/store';
+export async function POST(request:Request){if(!validBearer(request))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});const body=await request.json().catch(()=>({}));const device=findDevice(Number(body.deviceId));if(!device)return NextResponse.json({ok:false,error:'Device not found'},{status:404});const command=String(body.command||'');if(!command)return NextResponse.json({ok:false,error:'command is required'},{status:400});addEvent('zyra.command',`ZYRA requested command: ${command}`,device.id);return NextResponse.json({ok:true,accepted:true,deviceId:device.id,command,status:'queued',timestamp:new Date().toISOString()},{status:202})}

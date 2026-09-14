@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';
+import {addEvent,findDevice,validBearer} from '@/lib/store';
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;if(!validBearer(request,Number(id)))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});const d=findDevice(Number(id));if(!d)return NextResponse.json({ok:false,error:'Device not found'},{status:404});d.online=true;d.lastSeen=new Date().toISOString();addEvent('device.heartbeat',`${d.name} heartbeat received`,d.id);return NextResponse.json({ok:true,deviceId:d.id,online:true,lastSeen:d.lastSeen})}

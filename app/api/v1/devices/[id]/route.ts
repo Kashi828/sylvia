@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';
+import {findDevice,findStream,validBearer,publicDevice} from '@/lib/store';
+export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;if(!validBearer(request,Number(id)))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});const device=findDevice(Number(id));if(!device)return NextResponse.json({ok:false,error:'Device not found'},{status:404});return NextResponse.json({ok:true,device:publicDevice(device),datastreams:[1,2,3,4,5,6].map(id=>findStream(id)).filter((s): s is NonNullable<typeof s> => Boolean(s)).filter(s=>s.deviceId===device.id)})}

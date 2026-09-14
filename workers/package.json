@@ -1,0 +1,7 @@
+{
+  "name": "sylvia-mqtt-bridge",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node mqtt-bridge.mjs" },
+  "dependencies": { "mqtt": "^5.10.4" }
+}

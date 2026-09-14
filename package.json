@@ -1,0 +1,27 @@
+{
+  "name": "sylvia-iot",
+  "private": true,
+  "version": "0.50.0-beta.1",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:migrate": "node scripts.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "0.468.0",
+    "next": "16.3.4",
+    "pg": "^8.16.3",
+    "mqtt": "^5.10.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
