@@ -31,7 +31,7 @@ bool SylviaClient::reconnect() {
   String clientId = String("sylvia-") + _deviceId;
   if (!_mqtt.connect(clientId.c_str(), _deviceId.c_str(), _token.c_str())) return false;
   _mqtt.subscribe(topic("command").c_str(), 1);
-  StaticJsonDocument<192> heartbeat; heartbeat["online"] = true; heartbeat["token"] = _token; heartbeat["firmware"] = "esp8266-sdk-0.49";
+  StaticJsonDocument<192> heartbeat; heartbeat["online"] = true; heartbeat["token"] = _token; heartbeat["firmware"] = "esp8266-sdk-0.50";
   String hb; serializeJson(heartbeat, hb);
   _mqtt.publish(topic("heartbeat").c_str(), hb.c_str(), true);
   return true;
