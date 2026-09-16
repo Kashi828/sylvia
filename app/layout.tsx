@@ -1,5 +1,6 @@
 import './globals.css';
 import './sylvia-theme.css';
+import './sylvia-ui-fix.css';
 import type {Metadata} from 'next';
 
 export const metadata: Metadata = {
