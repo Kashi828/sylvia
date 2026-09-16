@@ -12,6 +12,7 @@ const features = [
 
 export default function LaunchPage() {
   const [open, setOpen] = useState(false);
+  const consoleHref = '/console';
   return (
     <main className="launchPage">
       <nav className="launchNav">
@@ -21,7 +22,7 @@ export default function LaunchPage() {
           <a href="#developers" onClick={() => setOpen(false)}>Developers</a>
           <a href="#hardware" onClick={() => setOpen(false)}>Hardware</a>
           <a href="/beta" onClick={() => setOpen(false)}>Hardware Beta</a>
-          <a className="navCta" href="/?console=1">Open Console <ArrowRight size={15}/></a>
+          <a className="navCta" href={consoleHref} onClick={() => setOpen(false)}>Open Console <ArrowRight size={15}/></a>
         </div>
         <button className="menuButton" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X/> : <Menu/>}</button>
       </nav>
@@ -33,7 +34,7 @@ export default function LaunchPage() {
           <h1>Build the connected world.<br/><em>Without the complexity.</em></h1>
           <p>SYLVIA gives developers one clean platform to connect devices, stream telemetry, build dashboards and automate real-world systems.</p>
           <div className="heroActions">
-            <a className="launchPrimary" href="/?console=1">Start building <ArrowRight size={17}/></a>
+            <a className="launchPrimary" href={consoleHref}>Start building <ArrowRight size={17}/></a>
             <a className="launchSecondary" href="#developers">Explore the platform</a>
           </div>
           <div className="heroMeta"><span><Radio size={14}/> MQTT / REST</span><span><Cpu size={14}/> ESP8266 / ESP32</span><span><LockKeyhole size={14}/> TLS-ready</span></div>
@@ -50,7 +51,7 @@ export default function LaunchPage() {
 
       <section className="launchBand" id="hardware"><div><span className="launchEyebrow">DEVELOPER FIRST</span><h2>Your hardware. Your data. Your cloud.</h2><p>Use a simple device SDK, MQTT or REST APIs. Keep your architecture open and your hardware independent.</p></div><div className="codeCard"><div><span>// ESP8266 / ESP32</span><b>Sylvia.virtualWrite(0, temperature);</b><b>Sylvia.run();</b></div></div></section>
 
-      <section className="launchFinal"><span className="launchEyebrow">SYLVIA</span><h2>Make your next device<br/><em>feel like software.</em></h2><a className="launchPrimary" href="/?console=1">Open SYLVIA Console <ArrowRight size={17}/></a></section>
+      <section className="launchFinal"><span className="launchEyebrow">SYLVIA</span><h2>Make your next device<br/><em>feel like software.</em></h2><a className="launchPrimary" href={consoleHref}>Open SYLVIA Console <ArrowRight size={17}/></a></section>
       <footer><span>© 2026 SYLVIA</span><span>Open IoT platform · Hosted beta</span></footer>
     </main>
   );
