@@ -2,17 +2,15 @@ import { Pool, QueryResultRow } from 'pg';
 
 let pool: Pool | null = null;
 
-/** Resolve the runtime Postgres URL without exposing its value. */
+/**
+ * SYLVIA now uses the Postgres database provisioned by Supabase.
+ * Vercel's Supabase integration exposes this as POSTGRES_URL.
+ * Keep a single canonical runtime database variable so the old database
+ * configuration cannot silently reconnect to a previous provider.
+ */
 export function getDatabaseUrl(): string | null {
-  const candidates = [
-    process.env.DATABASE_URL,
-    process.env.DATABASE_URL_UNPOOLED,
-    process.env.POSTGRES_URL,
-    process.env.POSTGRES_PRISMA_URL,
-    process.env.POSTGRES_URL_NON_POOLING,
-  ];
-  const value = candidates.find((candidate) => typeof candidate === 'string' && candidate.trim().length > 0);
-  return value ? value.trim() : null;
+  const value = process.env.POSTGRES_URL;
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 export function databaseConfigured(): boolean {
@@ -22,19 +20,25 @@ export function databaseConfigured(): boolean {
 export function getPool(): Pool | null {
   const connectionString = getDatabaseUrl();
   if (!connectionString) return null;
+
   if (!pool) {
     pool = new Pool({
       connectionString,
       max: 5,
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 10000,
+      ssl: { rejectUnauthorized: false },
     });
   }
+
   return pool;
 }
 
-export async function query<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []) {
+export async function query<T extends QueryResultRow = QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+) {
   const p = getPool();
-  if (!p) throw new Error('DATABASE_URL is not configured');
+  if (!p) throw new Error('POSTGRES_URL is not configured for the Supabase database');
   return p.query<T>(text, params);
 }
