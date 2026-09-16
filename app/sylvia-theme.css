@@ -1,0 +1,27 @@
+/* SYLVIA console theme — matches the public launch experience */
+.dark{min-height:100vh;background:#07090d;color:#f5f7fb;color-scheme:dark;--syl-bg:#07090d;--syl-surface:#0c1016;--syl-surface-2:#11161e;--syl-border:rgba(255,255,255,.09);--syl-border-soft:rgba(255,255,255,.06);--syl-text:#f5f7fb;--syl-muted:#8d98aa;--syl-dim:#687487;--syl-blue:#91a8ff;--syl-green:#6ee7b7}
+.dark header{height:76px;background:#07090d;border-bottom:1px solid var(--syl-border);color:var(--syl-text);padding:0 30px}
+.dark header .logo{background:#11161e;border:1px solid rgba(255,255,255,.16);color:#fff}
+.dark header .brand b{color:#fff}.dark header .brand span{color:#687487}.dark .accountStrip,.dark .status{color:#788497}
+.dark .layout{background:#07090d}.dark aside{background:#0a0d12;border-right:1px solid var(--syl-border)}
+.dark nav button{color:#7f8b9e}.dark nav button:hover{background:rgba(255,255,255,.04);color:#dfe6f1}.dark nav button.active{background:rgba(145,168,255,.12);color:#a9bbff}
+.dark .sideNote{border-top-color:var(--syl-border-soft)}.dark .sideNote b{color:#dfe6f1}.dark .sideNote span,.dark .sideNote small{color:#687487}.dark .reset{color:#7f8b9e;background:transparent;border-color:var(--syl-border)}
+.dark .content{color:var(--syl-text)}.dark h1,.dark h2,.dark h3,.dark h4,.dark strong,.dark b{color:var(--syl-text)}.dark .eyebrow{color:#91a8ff}.dark .muted,.dark .sectionHead span,.dark .card p,.dark .rule p,.dark .activityRow p{color:#788497}
+.dark .hero{background:linear-gradient(145deg,#0d1219,#090c11);border:1px solid var(--syl-border);box-shadow:0 25px 80px rgba(0,0,0,.22);border-radius:16px}
+.dark .stats .stat,.dark .stat,.dark .card,.dark .panel,.dark .streamTable,.dark .apiBox,.dark .builder,.dark .modal,.dark .studioWidget,.dark .templateCard,.dark .templateGrid .card,.dark .liveCard{background:#0c1016;border-color:var(--syl-border)}
+.dark .stat span,.dark .apiBox span,.dark .streamRow small,.dark .card footer,.dark .widgetHead small{color:#687487}
+.dark .stat strong{color:#fff}.dark .deviceIcon{background:#141a23;color:#a9b9db;border:1px solid var(--syl-border-soft)}
+.dark .primary{background:#fff;color:#080a0e;border:1px solid #fff}.dark .primary:hover{background:#e9edf5}.dark .secondary{background:#11161e;color:#dfe6f1;border-color:var(--syl-border)}.dark .secondary:hover{background:#171d27}
+.dark .linkButton{color:#9bb0ff}.dark .bar{background:#1a212b}.dark .bar span{background:#91a8ff}.dark .online{color:#6ee7b7}.dark .offline{color:#687487}
+.dark .streamRow{border-top-color:var(--syl-border-soft)}.dark .streamHeader{background:#10151d;color:#687487}.dark .pill{background:#171d27;color:#b9c4d5;border:1px solid var(--syl-border-soft)}.dark .trash{color:#687487}.dark .trash:hover{color:#dfe6f1}
+.dark .rule,.dark .activityRow{border-bottom-color:var(--syl-border-soft)}.dark .ruleNum{background:rgba(145,168,255,.12);color:#a9bbff}.dark .enabled{background:rgba(110,231,183,.1);color:#6ee7b7}
+.dark .settingsPanel label,.dark .form label{color:#aeb8c8}.dark .settingsPanel input,.dark .settingsPanel select,.dark .form input,.dark .form select,.dark .premiumField,.dark .roleSelect,.dark .compactInput,.dark .commandInput input{background:#0a0e14;color:#f5f7fb;border-color:var(--syl-border);caret-color:#91a8ff}.dark input::placeholder{color:#566174}.dark option{background:#0c1016;color:#f5f7fb}
+.dark .overlay{background:rgba(0,0,0,.72)}.dark .builderHead,.dark .modalHead{border-bottom-color:var(--syl-border-soft)}.dark .builderHead span,.dark .modalHint{color:#788497}.dark .iconButton{background:#151b24;color:#aeb8c8;border:1px solid var(--syl-border)}.dark .iconButton:hover{background:#1b222d;color:#fff}
+.dark .toolbar button:not(.saveButton){background:#11161e;color:#bfc8d7;border-color:var(--syl-border)}.dark .saveButton{background:#fff;color:#080a0e}.dark .canvas{background:#090d13;border-color:var(--syl-border)}.dark .builderCard{background:#0d1219;border-color:var(--syl-border)}
+.dark .builderEmpty,.dark .dashboardEmpty,.dark .emptyLive{color:#687487}.dark .studioWidgetHead small{color:#687487}.dark .widgetKicker{color:#91a8ff}.dark .gauge{border-color:#252d39}.dark .gaugeValue,.dark .bigValue{color:#fff}.dark .gaugeValue small,.dark .bigValue small{color:#687487}
+.dark .switch{background:#29313d}.dark .switch.on{background:#91a8ff}.dark .switch.on i{background:#080a0e}.dark .toast{background:#f5f7fb;color:#080a0e;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.dark .connectionSteps>div,.dark .endpoint,.dark .provisionBox,.dark .stateSyncBadge,.dark .commandHint,.dark .apiTitle,.dark .keyRow{border-color:var(--syl-border-soft);background:#0d1219;color:#dfe6f1}.dark .connectionSteps span{color:#91a8ff}.dark .connectionSteps small,.dark .endpoint small,.dark .commandHint span{color:#687487}.dark .endpointDot{background:#6ee7b7;box-shadow:0 0 12px rgba(110,231,183,.35)}
+.dark .themeToggle{background:#11161e!important;color:#dfe6f1!important;border-color:var(--syl-border)!important}.dark .themeToggle:hover{background:#171d27!important}
+.dark .codeBlock,.dark pre{background:#06080c!important;border-color:var(--syl-border)!important;color:#dfe6f1}.dark .mono{color:#b9c6dd}.dark table{color:#dfe6f1}.dark td,.dark th{border-color:var(--syl-border-soft)}
+.dark ::selection{background:rgba(145,168,255,.3);color:#fff}.dark button:disabled{opacity:.45}.dark a{color:#a9bbff}
+@media(max-width:800px){.dark header{padding:0 16px}.dark aside{background:#090c11;border-bottom-color:var(--syl-border)}}
