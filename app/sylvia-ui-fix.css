@@ -1,0 +1,127 @@
+/* SYLVIA UI system refresh — consolidates legacy console surfaces into one layout language. */
+.layout{--ui-bg:#f5f7fb;--ui-surface:#fff;--ui-surface-2:#fafbfc;--ui-border:#e6eaf0;--ui-border-soft:#edf0f4;--ui-text:#111827;--ui-muted:#667085;--ui-dim:#98a2b3;--ui-accent:#2563eb;--ui-radius:14px;min-width:0}
+.layout,.layout *{min-width:0}
+.layout aside{position:sticky;top:0;height:calc(100vh - 72px);min-width:0;overflow-y:auto;overscroll-behavior:contain}
+.layout nav button{width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .16s ease,color .16s ease,transform .16s ease}
+.layout nav button:active{transform:translateY(1px)}
+.content{min-width:0}
+.content>*{min-width:0}
+.top,.sectionHead,.cardTop,.studioWidgetHead,.builderHead,.modalHead,.visualTop{min-width:0}
+.top>*,.sectionHead>*,.cardTop>*,.studioWidgetHead>*,.builderHead>*,.modalHead>*{min-width:0}
+.actions,.heroActions,.buttonRow,.formActions,.toolbar{min-width:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.actions>*,.heroActions>*{flex:0 0 auto}
+.stats,.grid,.deviceGrid,.widgetGrid,.studioGrid,.templateGrid,.apiGrid,.liveGrid,.settingsGrid,.connectionSteps{align-items:stretch}
+.stat,.card,.panel,.widget,.studioWidget,.templateCard,.liveCard,.apiBox,.apiTitle,.endpoint,.provisionBox,.stateSyncBadge,.commandHint,.keyRow,.builderCard{min-width:0;overflow:hidden}
+.card,.panel,.stat,.widget,.studioWidget,.templateCard,.liveCard,.apiBox,.apiTitle,.endpoint,.provisionBox,.stateSyncBadge,.commandHint,.keyRow{border-radius:var(--ui-radius);box-shadow:none}
+.card p,.panel p,.stat span,.apiBox span,.streamRow small,.card footer,.widgetHead small,.rule p,.activityRow p{line-height:1.5}
+.card h3,.widgetHead,.studioWidgetHead,.templateCard h3,.sectionHead h2,.top h1{overflow-wrap:anywhere}
+.card .value,.bigValue,.gaugeValue{font-variant-numeric:tabular-nums}
+.primary,.secondary,.linkButton,.iconButton,.trash,.saveButton,.toolbar button{flex:0 0 auto;min-height:38px}
+.primary,.secondary,.saveButton{justify-content:center}
+.primary{box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.secondary{box-shadow:none}
+.streamTable{width:100%;max-width:100%;overflow:auto;overscroll-behavior:contain}
+.streamRow{min-width:700px}
+.streamRow>*{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.streamRow input,.streamRow select,.apiBox,.endpoint,.keyRow{max-width:100%}
+.apiBox,.keyRow{gap:12px;flex-wrap:wrap}
+.apiBox .secondary,.keyRow .secondary{margin-left:auto}
+.rule{min-width:0}
+.rule>div:nth-child(2){min-width:0;flex:1}
+.rule p{overflow-wrap:anywhere}
+.enabled{white-space:nowrap;flex:0 0 auto}
+.activityRow{min-width:0}
+.activityRow>div:nth-child(2){min-width:0;flex:1}
+.activityRow>span:last-child{white-space:nowrap;flex:0 0 auto}
+.settingsPanel,.form{min-width:0}
+.settingsPanel label,.form label{min-width:0}
+.settingsPanel input,.settingsPanel select,.form input,.form select,.premiumField,.roleSelect,.compactInput,.commandInput input{width:100%;max-width:100%;min-width:0}
+.overlay{overscroll-behavior:contain}
+.builder,.modal{display:flex;flex-direction:column;min-height:0}
+.builderHead,.modalHead{flex:0 0 auto}
+.builderBody,.form{min-width:0}
+.builderBody{overflow:visible}
+.canvas{min-width:0;align-items:stretch}
+.builderCard{min-height:160px}
+.builderCard>.widget{min-width:0}
+.connectionSteps>div{min-width:0;overflow:hidden}
+.connectionSteps small,.endpoint small,.commandHint span{overflow-wrap:anywhere}
+.codeBlock,pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.toast{z-index:1000}
+
+/* Dark console: same geometry, launch-page visual language. */
+.dark .layout{--ui-bg:#07090d;--ui-surface:#0c1016;--ui-surface-2:#10151d;--ui-border:rgba(255,255,255,.09);--ui-border-soft:rgba(255,255,255,.06);--ui-text:#f5f7fb;--ui-muted:#8d98aa;--ui-dim:#687487;--ui-accent:#91a8ff;background:var(--ui-bg)}
+.dark .layout aside{background:#0a0d12;border-right:1px solid var(--ui-border)}
+.dark .layout nav button{color:#7f8b9e}
+.dark .layout nav button:hover{background:rgba(255,255,255,.045);color:#e7ebf3}
+.dark .layout nav button.active{background:rgba(145,168,255,.13);color:#a9bbff}
+.dark .layout .content{background:var(--ui-bg)}
+.dark .layout .top,.dark .layout .sectionHead{color:var(--ui-text)}
+.dark .layout .stat,.dark .layout .card,.dark .layout .panel,.dark .layout .widget,.dark .layout .studioWidget,.dark .layout .templateCard,.dark .layout .liveCard,.dark .layout .apiBox,.dark .layout .apiTitle,.dark .layout .endpoint,.dark .layout .provisionBox,.dark .layout .stateSyncBadge,.dark .layout .commandHint,.dark .layout .keyRow,.dark .layout .streamTable,.dark .layout .builder,.dark .layout .modal{background:var(--ui-surface);border-color:var(--ui-border);box-shadow:none}
+.dark .layout .stat,.dark .layout .card,.dark .layout .panel,.dark .layout .widget,.dark .layout .studioWidget,.dark .layout .templateCard,.dark .layout .liveCard{min-height:0}
+.dark .layout .stat{padding:18px 20px}
+.dark .layout .card{padding:20px}
+.dark .layout .builderCard{background:#0d1219;border-color:var(--ui-border)}
+.dark .layout .canvas{background:#090d13;border-color:var(--ui-border)}
+.dark .layout .streamHeader{background:#10151d;color:#687487}
+.dark .layout .streamRow{border-top-color:var(--ui-border-soft)}
+.dark .layout .pill{background:#171d27;color:#b9c4d5;border-color:var(--ui-border-soft)}
+.dark .layout .rule,.dark .layout .activityRow{border-bottom-color:var(--ui-border-soft)}
+.dark .layout .iconButton{background:#151b24;color:#aeb8c8;border-color:var(--ui-border)}
+.dark .layout .iconButton:hover{background:#1b222d;color:#fff}
+.dark .layout input,.dark .layout select,.dark .layout .premiumField,.dark .layout .roleSelect,.dark .layout .compactInput,.dark .layout .commandInput input{background:#0a0e14;color:#f5f7fb;border-color:var(--ui-border)}
+.dark .layout option{background:#0c1016;color:#f5f7fb}
+.dark .layout .toolbar button:not(.saveButton),.dark .layout .secondary{background:#11161e;color:#dfe6f1;border-color:var(--ui-border)}
+.dark .layout .toolbar button:not(.saveButton):hover,.dark .layout .secondary:hover{background:#171d27}
+.dark .layout .primary,.dark .layout .saveButton{background:#fff;color:#080a0e;border-color:#fff}
+.dark .layout .primary:hover,.dark .layout .saveButton:hover{background:#e9edf5}
+.dark .layout .linkButton,.dark .layout a{color:#a9bbff}
+.dark .layout .bar{background:#1a212b}
+.dark .layout .bar span{background:#91a8ff}
+.dark .layout .online{color:#6ee7b7}
+.dark .layout .offline,.dark .layout .muted,.dark .layout .sectionHead span,.dark .layout .card p,.dark .layout .stat span,.dark .layout .rule p,.dark .layout .activityRow p,.dark .layout .apiBox span,.dark .layout .card footer,.dark .layout .widgetHead small{color:#788497}
+.dark .layout .deviceIcon{background:#141a23;color:#a9b9db;border-color:var(--ui-border-soft)}
+.dark .layout .enabled{background:rgba(110,231,183,.1);color:#6ee7b7}
+.dark .layout .ruleNum{background:rgba(145,168,255,.12);color:#a9bbff}
+.dark .layout .gauge{border-color:#252d39}
+.dark .layout .switch{background:#29313d}
+.dark .layout .switch.on{background:#91a8ff}
+.dark .layout .switch.on i{background:#080a0e}
+.dark .overlay{background:rgba(0,0,0,.72)}
+
+/* Light console: remove legacy high-contrast/default form treatment while keeping a clean day mode. */
+:not(.dark) .layout .card,.layout .panel,.layout .stat,.layout .widget,.layout .studioWidget,.layout .templateCard,.layout .liveCard,.layout .apiBox,.layout .apiTitle,.layout .endpoint,.layout .provisionBox,.layout .stateSyncBadge,.layout .commandHint,.layout .keyRow,.layout .streamTable{background:var(--ui-surface);border-color:var(--ui-border);box-shadow:none}
+.layout .secondary{background:var(--ui-surface);color:#344054;border-color:#d8dee8}
+.layout .primary{background:var(--ui-accent);color:#fff;border-color:var(--ui-accent)}
+.layout .primary:hover{background:#1d4ed8}
+.layout .linkButton{color:var(--ui-accent)}
+.layout .bar span{background:var(--ui-accent)}
+.layout .settingsPanel input,.layout .settingsPanel select,.layout .form input,.layout .form select{box-shadow:inset 0 0 0 1px rgba(16,24,40,.01)}
+
+@media(max-width:1100px){
+  .layout aside{height:auto;position:relative}
+  .dark .layout{grid-template-columns:220px minmax(0,1fr)}
+  .stats,.deviceGrid,.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .widgetGrid,.studioGrid,.templateGrid,.apiGrid,.liveGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .connectionSteps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr!important}
+  .layout aside{height:auto;position:relative;overflow:visible}
+  .layout nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .layout nav button{justify-content:center;padding:10px 9px}
+  .content{padding:24px 16px 42px!important}
+  .stats,.deviceGrid,.grid,.widgetGrid,.studioGrid,.templateGrid,.apiGrid,.liveGrid,.settingsGrid,.connectionSteps{grid-template-columns:1fr}
+  .top,.sectionHead{align-items:flex-start!important;flex-direction:column}
+  .actions,.heroActions,.buttonRow{width:100%}
+  .apiBox,.keyRow{align-items:flex-start}
+  .apiBox .secondary,.keyRow .secondary{margin-left:0}
+  .streamRow{min-width:700px}
+}
+@media(max-width:520px){
+  .content{padding-left:12px!important;padding-right:12px!important}
+  .stats{grid-template-columns:1fr}
+  .layout nav{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .heroActions .primary,.heroActions .secondary{width:100%;justify-content:center}
+  .formActions>*{flex:1 1 140px}
+}
