@@ -4,7 +4,7 @@ import { mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v050-beta2-ec2a216';
+const DEPLOYMENT_MARKER = 'v0.51-supabase-db';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -23,13 +23,7 @@ export async function GET() {
   const mqtt = mqttStatus();
   const ready = db.configured && db.connected && mqtt.configured;
 
-  const databaseEnv = [
-    'DATABASE_URL',
-    'DATABASE_URL_UNPOOLED',
-    'POSTGRES_URL',
-    'POSTGRES_PRISMA_URL',
-    'POSTGRES_URL_NON_POOLING',
-  ].filter(present);
+  const databaseEnv = ['POSTGRES_URL'].filter(present);
 
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
@@ -45,10 +39,11 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.50.0-beta.2',
+    version: '0.51.0-beta.1',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, mqtt },
     diagnostics: {
+      databaseProvider: 'supabase-postgres',
       databaseUrlResolved: Boolean(getDatabaseUrl()),
       databaseEnv,
       mqttEnv,
