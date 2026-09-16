@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { databaseConfigured, getDatabaseUrl, query } from '@/lib/db';
-import { mqttStatus } from '@/lib/mqtt-transport';
+import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.51-supabase-db-diagnostics';
+const DEPLOYMENT_MARKER = 'v0.51-supabase-mqtt-health';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -27,17 +27,18 @@ function safeDatabaseTarget(): { host: string | null; port: string | null; datab
   }
 }
 
-function safeDatabaseError(error: unknown): { code: string | null; message: string | null } {
+function safeError(error: unknown): { code: string | null; message: string | null } {
   if (!(error instanceof Error)) {
-    return { code: null, message: 'Unknown database connection error' };
+    return { code: null, message: 'Unknown connection error' };
   }
 
   const candidate = error as Error & { code?: string };
-  let message = candidate.message || 'Database connection failed';
+  let message = candidate.message || 'Connection failed';
 
   // Never return credentials accidentally embedded in a connection-related error.
   message = message.replace(/postgres(?:ql)?:\/\/[^\s]+/gi, 'postgresql://[redacted]');
   message = message.replace(/password=[^\s&]+/gi, 'password=[redacted]');
+  message = message.replace(/mqtts?:\/\/[^\s]+/gi, 'mqtt://[redacted]');
 
   return {
     code: typeof candidate.code === 'string' ? candidate.code : null,
@@ -50,6 +51,10 @@ export async function GET() {
     code: null,
     message: null,
   };
+  let mqttError: { code: string | null; message: string | null } = {
+    code: null,
+    message: null,
+  };
 
   const db = { configured: databaseConfigured(), connected: false };
   if (db.configured) {
@@ -57,12 +62,21 @@ export async function GET() {
       await query('select 1');
       db.connected = true;
     } catch (error) {
-      databaseError = safeDatabaseError(error);
+      databaseError = safeError(error);
     }
   }
 
-  const mqtt = mqttStatus();
-  const ready = db.configured && db.connected && mqtt.configured;
+  let mqtt = mqttStatus();
+  if (mqtt.configured && !mqtt.connected) {
+    try {
+      await ensureMqtt();
+    } catch (error) {
+      mqttError = safeError(error);
+    }
+    mqtt = mqttStatus();
+  }
+
+  const ready = db.configured && db.connected && mqtt.configured && mqtt.connected;
 
   const databaseEnv = ['POSTGRES_URL'].filter(present);
 
@@ -74,13 +88,14 @@ export async function GET() {
     'SYLVIA_MQTT_TLS',
     'SYLVIA_MQTT_CA_FILE',
     'SYLVIA_MQTT_CONNECT_TIMEOUT_MS',
+    'SYLVIA_MQTT_TOPIC_PREFIX',
   ].filter(present);
 
   return NextResponse.json({
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.51.0-beta.1',
+    version: '0.51.0-beta.2',
     deployment: DEPLOYMENT_MARKER,
     checks: {
       database: db,
@@ -93,6 +108,7 @@ export async function GET() {
       databaseEnv,
       databaseError,
       mqttEnv,
+      mqttError,
       nodeEnv: process.env.NODE_ENV || 'unknown',
     },
     timestamp: new Date().toISOString(),
