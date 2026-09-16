@@ -1,7 +1,9 @@
 import './globals.css';
 import './sylvia-theme.css';
 import './sylvia-ui-fix.css';
+import './sylvia-premium.css';
 import type {Metadata} from 'next';
+import ClientUIEnhancer from '@/components/ClientUIEnhancer';
 
 export const metadata: Metadata = {
   title: 'SYLVIA — IoT Platform',
@@ -9,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body><ClientUIEnhancer />{children}</body></html>;
 }
