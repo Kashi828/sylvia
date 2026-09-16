@@ -1,0 +1,167 @@
+/* SYLVIA premium UX layer — applied after the legacy theme. */
+
+:root{
+  --sylvia-bg:#06080c;
+  --sylvia-surface:#0b1017;
+  --sylvia-surface-2:#101722;
+  --sylvia-surface-3:#141b26;
+  --sylvia-border:rgba(255,255,255,.085);
+  --sylvia-border-strong:rgba(255,255,255,.14);
+  --sylvia-text:#f5f7fb;
+  --sylvia-muted:#8290a5;
+  --sylvia-blue:#7f9cff;
+  --sylvia-blue-strong:#9bb1ff;
+  --sylvia-green:#57e3aa;
+  --sylvia-radius:16px;
+}
+
+/* Browser chrome */
+html{scroll-behavior:smooth;background:var(--sylvia-bg)}
+body{background:var(--sylvia-bg);color:var(--sylvia-text)}
+*{scrollbar-width:thin;scrollbar-color:#2a3442 transparent}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#2a3442;border:2px solid transparent;background-clip:padding-box;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:#3c4a5d;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-corner{background:transparent}
+
+/* Console geometry */
+.dark .layout{grid-template-columns:248px minmax(0,1fr);gap:0;background:var(--sylvia-bg)}
+.dark .layout aside{background:#090d13;border-right:1px solid var(--sylvia-border);padding:16px 12px}
+.dark .layout .content{max-width:1500px;padding:34px 42px 72px}
+.dark .layout .hero{padding:30px 28px;border:1px solid var(--sylvia-border);background:linear-gradient(145deg,#0b1017,#0a0f15);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.dark .layout .hero h1{letter-spacing:-.035em}
+.dark .layout .sectionHead{margin-top:4px;gap:24px}
+.dark .layout .deviceGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.dark .layout .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.dark .layout .card,.dark .layout .panel,.dark .layout .stat{background:var(--sylvia-surface);border:1px solid var(--sylvia-border);border-radius:var(--sylvia-radius);box-shadow:none}
+.dark .layout .card:hover,.dark .layout .panel:hover{border-color:var(--sylvia-border-strong)}
+.dark .layout .card{padding:20px}
+.dark .layout .stat{padding:18px 20px}
+.dark .layout .sectionHead h2{letter-spacing:-.018em}
+
+/* Inputs and premium closed-state dropdowns */
+.dark .layout input,.dark .layout select,.dark .layout textarea,
+.dark .layout .premiumField,.dark .layout .roleSelect,.dark .layout .compactInput,
+.dark .layout .commandInput input{
+  min-height:44px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;
+  background:linear-gradient(180deg,#0d131c,#0a0f16);
+  color:#f5f7fb;
+  padding:0 14px;
+  font:inherit;
+  outline:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease,transform .16s ease;
+}
+.dark .layout select{
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:42px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238e9bb0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"),linear-gradient(180deg,#0d131c,#0a0f16);
+  background-repeat:no-repeat;
+  background-position:right 13px center,center;
+}
+.dark .layout input:hover,.dark .layout select:hover,.dark .layout textarea:hover{border-color:rgba(155,177,255,.28);background-color:#0e141d}
+.dark .layout input:focus,.dark .layout select:focus,.dark .layout textarea:focus{border-color:rgba(145,168,255,.72);box-shadow:0 0 0 3px rgba(127,156,255,.12),inset 0 1px 0 rgba(255,255,255,.025)}
+.dark .layout select option{background:#0d131b;color:#f5f7fb}
+.dark .layout select:disabled{opacity:.5;cursor:not-allowed}
+
+/* The native option popup is platform-owned, but the control itself is no longer browser-default. */
+.layout select{cursor:pointer;color:var(--sylvia-text)}
+.layout label{gap:8px}
+.layout label>span,.layout label{color:#cbd5e3}
+
+/* Modal system — fixes collisions shown in device/datastream dialogs. */
+.overlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:28px;background:rgba(2,4,7,.74);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:auto}
+.modal{width:min(760px,calc(100vw - 48px));max-height:min(86vh,820px);overflow:auto;padding:28px;background:#0b1017!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:20px!important;box-shadow:0 35px 100px rgba(0,0,0,.58)!important}
+.modalHead{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px}
+.modalHead>div{min-width:0;display:grid;gap:8px}
+.modalHead h2{margin:0;font-size:26px;line-height:1.1;letter-spacing:-.03em}
+.modalHead .eyebrow{margin:0}
+.modalHead .iconButton{width:40px;height:40px;min-width:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:0 0 auto}
+.modalHint{margin:-6px 0 22px;color:var(--sylvia-muted);line-height:1.6}
+.modal .form{display:grid;gap:18px}
+.modal .form>label{display:grid;gap:8px}
+.modal .form>label>input,.modal .form>label>select{width:100%}
+.modal .form .conditionRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.modal .form .conditionRow>label{display:grid;gap:8px}
+.modal .full{width:100%;min-height:44px}
+
+/* Datastream dialog */
+.detailGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.detailGrid>div{min-width:0;padding:14px 15px;border:1px solid var(--sylvia-border);border-radius:12px;background:#0d131c;display:grid;gap:6px}
+.detailGrid span{font-size:12px;color:#728097;text-transform:uppercase;letter-spacing:.06em}
+.detailGrid b{display:block;min-width:0;line-height:1.45;overflow-wrap:anywhere}
+.detailGrid .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#b7c4d8;word-break:break-word}
+.modal .buttonRow{display:flex;align-items:center;gap:10px;margin-top:16px}
+.modal .buttonRow .compactInput{flex:1 1 160px}
+.modal .buttonRow .primary{flex:0 0 auto}
+
+/* Device Control Center */
+.deviceControlHeader{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px;padding:14px;border:1px solid var(--sylvia-border);border-radius:14px;background:#0d131c}
+.detailHero{display:flex;align-items:center;gap:14px;min-width:0}
+.detailHero>div:last-child{min-width:0;display:grid;gap:3px}
+.detailHero b,.detailHero span{display:block;overflow-wrap:anywhere}
+.detailHero span{color:#7f8da1;font-size:13px}
+.deviceIcon.big{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#151d29;border:1px solid rgba(255,255,255,.09);flex:0 0 auto}
+.power{width:42px;height:42px;border-radius:12px;border:1px solid var(--sylvia-border);background:#141b25;color:#8693a8;display:grid;place-items:center;transition:.16s ease}
+.power.on{color:#72ebb6;border-color:rgba(87,227,170,.28);background:rgba(87,227,170,.07)}
+.deviceTabs{display:flex;gap:6px;padding:5px;border:1px solid var(--sylvia-border);border-radius:12px;background:#090e15;margin-bottom:16px}
+.deviceTabs button{border:0;background:transparent;color:#8090a5;padding:10px 13px;border-radius:9px;font:inherit;cursor:pointer}
+.deviceTabs button.active{background:#171f2b;color:#eef3fb;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.stateSyncBadge{display:flex;align-items:center;gap:9px;min-width:0;padding:12px 13px;margin-bottom:12px;border:1px solid var(--sylvia-border);border-radius:12px;background:#0c1219}
+.stateSyncBadge b{font-size:13px}.stateSyncBadge small{margin-left:auto;color:#6f7d91}
+.liveDot{width:8px;height:8px;border-radius:50%;background:var(--sylvia-green);box-shadow:0 0 0 4px rgba(87,227,170,.08);flex:0 0 auto}.liveDot.offline{background:#657286;box-shadow:none}
+.premiumDetailGrid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px}
+.provisionBox{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:10px;padding:14px 15px;background:#0d131c;border:1px solid var(--sylvia-border);border-radius:12px}
+.provisionBox>div{min-width:0;display:grid;gap:5px}.provisionBox b{font-size:12px;color:#7f8da1;text-transform:uppercase;letter-spacing:.055em}.provisionBox span{display:block;min-width:0}.provisionBox .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#bbc6d7;word-break:break-word}
+.controlList{display:grid;gap:10px}.controlRow{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 14px;border:1px solid var(--sylvia-border);border-radius:12px;background:#0d131c}.controlRow>div:first-child{min-width:0;display:grid;gap:4px}.controlRow>div:first-child span{font-size:12px;color:#75839a}.controlInput{display:flex;align-items:center;gap:8px;flex:0 1 360px}.controlInput input{min-width:0;flex:1}
+.commandPanel{display:grid;gap:15px}.commandPreset{display:flex;flex-wrap:wrap;gap:8px}.commandInput{display:grid;gap:8px}.commandInput>span{font-size:12px;color:#8b98ab}.commandInput>div{display:flex;gap:8px}.commandInput input{flex:1;min-width:0}.commandHint{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--sylvia-border);background:#0d131c;border-radius:12px;color:#8090a4}.commandHint span{line-height:1.55}
+
+/* Fix flex/grid collisions in cards and event/notification rows. */
+.alertRule,.alertEvent,.subscriptionRow,.notificationItem,.keyRow,.activityRow,.rule,.endpoint,.integrationCard{display:grid;align-items:center;gap:14px}
+.alertRule{grid-template-columns:auto minmax(0,1fr) auto auto auto auto}
+.alertMain,.subscriptionMain,.notificationBody,.integrationCard>div:not(.integrationIcon){min-width:0;display:grid;gap:4px}
+.alertMain span,.subscriptionMain span,.notificationBody p,.integrationCard span{overflow-wrap:anywhere;line-height:1.45}
+.alertEvent{grid-template-columns:minmax(0,1fr) auto}
+.subscriptionRow{grid-template-columns:auto minmax(0,1fr) auto auto auto}
+.notificationItem{grid-template-columns:auto minmax(0,1fr) auto}
+.notificationToolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px;border:1px solid var(--sylvia-border);border-radius:11px;background:#0b1118;margin-bottom:12px}
+.notificationToolbar button{border:0;background:transparent;color:#7f8da1;padding:8px 11px;border-radius:8px;font:inherit;cursor:pointer}.notificationToolbar button.selected{background:#182131;color:#edf2f8}
+.notificationPrefs{display:grid;gap:10px}.notificationToggle{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 13px;border:1px solid var(--sylvia-border);border-radius:12px;background:#0d131c}.notificationToggle>span{display:grid;gap:3px}.notificationToggle small{color:#76859b}
+
+/* Step cards: number, title and body are independent columns instead of colliding inline text. */
+.connectionSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.connectionSteps>div{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;row-gap:4px;padding:15px 16px!important;border:1px solid var(--sylvia-border);border-radius:12px;background:#0d131c;min-width:0}
+.connectionSteps>div>span{grid-row:1 / span 2;color:var(--sylvia-blue-strong);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}
+.connectionSteps>div>b{grid-column:2;line-height:1.2}
+.connectionSteps>div>small{grid-column:2;color:#78879c;line-height:1.5;overflow-wrap:anywhere}
+
+/* Timeline / event header structure */
+.eventCenter,.notificationCenter,.alertsPage,.apiPage,.livePage{display:grid;gap:20px}
+.eventStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.eventStats>div{padding:17px 18px;border:1px solid var(--sylvia-border);border-radius:14px;background:#0b1118;display:grid;gap:7px}.eventStats strong{font-size:24px;letter-spacing:-.02em}.eventStats span{color:#7d8ba0;font-size:12px}
+.eventToolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:3px}.eventToolbar .filterLabel{display:flex;align-items:center;gap:7px;color:#8d9aae;margin-right:2px}
+.eventToolbar select{min-width:180px}
+.eventPanel{padding:20px}.eventEmpty,.notificationEmpty,.emptyLive,.dashboardEmpty,.emptyMini{display:grid!important;place-items:center;gap:8px;text-align:center;padding:36px 20px;color:#7d8ba0}.eventEmpty b,.notificationEmpty b,.emptyLive b,.dashboardEmpty b{color:#e9eef6}.eventTimeline{display:grid;gap:0;margin-top:12px}.eventItem{display:grid;grid-template-columns:auto minmax(0,1fr);gap:13px;padding:16px 4px;border-top:1px solid var(--sylvia-border)}.eventItem:first-child{border-top:0}.eventBody{min-width:0;display:grid;gap:8px}.eventTop{display:flex;justify-content:space-between;gap:14px}.eventTop time{color:#6f7d91;font-size:12px;white-space:nowrap}.eventBody p{margin:0;color:#99a6b8;line-height:1.5;overflow-wrap:anywhere}.eventMeta{display:flex;flex-wrap:wrap;gap:6px}.eventMeta span{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#141b25;color:#8492a8;font-size:11px}.eventSync{display:inline-flex;align-items:center;gap:6px;color:#728197}
+
+/* Home enhancement injected by ClientUIEnhancer */
+.sylviaOverviewExtras{display:grid;gap:16px;margin-top:4px;padding:22px;border:1px solid var(--sylvia-border);border-radius:18px;background:linear-gradient(150deg,#0b1017,#090e14);box-shadow:0 18px 55px rgba(0,0,0,.14)}
+.sylviaOverviewExtrasHead{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}.sylviaOverviewExtrasHead>div{min-width:0}.sylviaOverviewExtrasHead h2{margin:7px 0 6px;font-size:22px;letter-spacing:-.02em}.sylviaOverviewExtrasHead p{margin:0;color:#7e8ca1;max-width:760px;line-height:1.55}.sylviaQuickGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sylviaQuickCard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;text-align:left;padding:14px;border:1px solid var(--sylvia-border);border-radius:13px;background:#0d141d;color:#ecf1f7;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease}.sylviaQuickCard:hover{transform:translateY(-1px);border-color:rgba(145,168,255,.24);background:#111923}.sylviaQuickCard>span:nth-child(2){min-width:0;display:grid;gap:4px}.sylviaQuickCard small{color:#76859b;overflow-wrap:anywhere;line-height:1.35}.sylviaQuickCard em{font-style:normal;color:#98aaff;font-size:11px}.sylviaQuickIcon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#151e2b;border:1px solid rgba(255,255,255,.07);color:#a7b8ff;font-size:12px;font-weight:700}.sylviaFabricGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.sylviaFabricCard{padding:15px;border:1px solid var(--sylvia-border);border-radius:13px;background:#0a1017;display:grid;gap:7px}.sylviaFabricTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.sylviaFabricIcon{font-size:10px;font-weight:800;letter-spacing:.04em;color:#a9b8d4}.sylviaFabricCard b{font-size:13px}.sylviaFabricCard small{color:#76859b;line-height:1.45}.sylviaFabricState{font-size:11px;color:#6fe6b3}.sylviaFabricState::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#57e3aa;vertical-align:middle;margin-right:6px;box-shadow:0 0 0 3px rgba(87,227,170,.08)}
+
+@media(max-width:1100px){
+  .dark .layout .content{padding:28px 26px 60px}
+  .dark .layout .deviceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dark .layout .stats,.eventStats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sylviaQuickGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sylviaFabricGrid{grid-template-columns:1fr}
+  .premiumDetailGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .dark .layout{grid-template-columns:1fr!important}.dark .layout aside{position:relative;height:auto;overflow:visible}.dark .layout .content{padding:20px 16px 48px}
+  .dark .layout .deviceGrid,.dark .layout .stats,.connectionSteps,.eventStats,.sylviaQuickGrid,.premiumDetailGrid,.detailGrid{grid-template-columns:1fr}
+  .modal{width:min(100%,calc(100vw - 24px));max-height:90vh;padding:22px}.modal .form .conditionRow{grid-template-columns:1fr}
+  .deviceControlHeader,.provisionBox,.controlRow{align-items:flex-start}.provisionBox{flex-direction:column}.provisionBox .secondary{width:100%;justify-content:center}.controlRow{flex-direction:column}.controlInput{width:100%;max-width:none}.commandInput>div{flex-direction:column}.commandInput .primary{width:100%;justify-content:center}.eventTop{flex-direction:column;gap:5px}.subscriptionRow,.alertRule,.notificationItem,.alertEvent{grid-template-columns:1fr}.subscriptionRow>*,.alertRule>*,.notificationItem>*,.alertEvent>*{justify-self:start}.notificationToolbar{overflow:auto;flex-wrap:nowrap}
+}
