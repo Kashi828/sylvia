@@ -4,19 +4,8 @@ export type ServerDevice={id:number;name:string;type:string;tokenHash:string;tok
 export type ServerStream={id:number;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number|boolean;updatedAt:string};
 
 const seed=(token:string)=>({tokenHash:hashDeviceToken(token),tokenPreview:tokenFingerprint(token)});
-const initialDevices:ServerDevice[]=[
- {id:1,name:'Living Room',type:'Virtual ESP32',...seed('syl_dev_living_7f3a'),online:true,temperature:24.6,battery:87,lastSeen:new Date().toISOString()},
- {id:2,name:'Workshop',type:'Virtual ESP32',...seed('syl_dev_workshop_81b2'),online:true,temperature:31.2,battery:64,lastSeen:new Date().toISOString()},
- {id:3,name:'Garden',type:'Smart Sensor',...seed('syl_dev_garden_4a19'),online:false,temperature:27.8,battery:42,lastSeen:new Date(Date.now()-125000).toISOString()}
-];
-const initialStreams:ServerStream[]=[
- {id:1,name:'Temperature',deviceId:1,type:'Number',unit:'°C',value:24.6,updatedAt:new Date().toISOString()},
- {id:2,name:'Battery',deviceId:1,type:'Number',unit:'%',value:87,updatedAt:new Date().toISOString()},
- {id:3,name:'Online',deviceId:1,type:'Boolean',unit:'',value:true,updatedAt:new Date().toISOString()},
- {id:4,name:'Temperature',deviceId:2,type:'Number',unit:'°C',value:31.2,updatedAt:new Date().toISOString()},
- {id:5,name:'Battery',deviceId:2,type:'Number',unit:'%',value:64,updatedAt:new Date().toISOString()},
- {id:6,name:'Temperature',deviceId:3,type:'Number',unit:'°C',value:27.8,updatedAt:new Date().toISOString()}
-];
+const initialDevices:ServerDevice[]=[];
+const initialStreams:ServerStream[]=[];
 
 type DeviceCommand={id:string;deviceId:number;command:string;payload:unknown;createdAt:string;deliveredAt?:string;ackedAt?:string;result?:unknown};
 type Store={devices:ServerDevice[];streams:ServerStream[];events:{id:number;type:string;deviceId?:number;streamId?:number;message:string;createdAt:string}[];commands:Record<number,DeviceCommand[]>;inflight:Record<string,DeviceCommand>};
@@ -39,6 +28,21 @@ export function validBearer(requestOrToken:Request|string, deviceId?:number){
 }
 export function findDeviceByToken(token:string){return authenticateDeviceToken(token)}
 export function issueDeviceToken(){return generateDeviceToken()}
+export function createDevice(name:string,type:string){
+  const token=generateDeviceToken();
+  const device:ServerDevice={
+    id:Date.now()+Math.floor(Math.random()*1000),
+    name:name.trim(),
+    type:type.trim()||'ESP32 Device',
+    ...seed(token),
+    online:false,
+    temperature:0,
+    battery:0,
+    lastSeen:new Date(0).toISOString(),
+  };
+  store.devices.push(device);
+  return {device,token};
+}
 export function rotateDeviceToken(deviceId:number){const device=findDevice(deviceId);if(!device)return null;const token=generateDeviceToken();device.tokenHash=hashDeviceToken(token);device.tokenPreview=tokenFingerprint(token);return {device,token}}
 export function publicDevice(device:ServerDevice){const {tokenHash,...safe}=device;return safe}
 export function queueCommand(deviceId:number,command:string,payload:unknown=null){const item={id:`cmd_${Date.now()}_${Math.floor(Math.random()*9999)}`,deviceId,command,payload,createdAt:new Date().toISOString()};(store.commands[deviceId]??=[]).push(item);return item}
