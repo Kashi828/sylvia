@@ -61,6 +61,31 @@ export default function Home(){
    setSchedules(readStore('sylvia.schedules',seedSchedules)); setApiKeys(readStore('sylvia.apiKeys',seedApiKeys)); setWebhooks(readStore('sylvia.webhooks',seedWebhooks)); setProjectName(readStore('sylvia.projectName','SYLVIA Cloud Project')); setDarkMode(readStore('sylvia.darkMode',false)); setHydrated(true);
    setZyraConfig(readStore('sylvia.zyra',seedZyra)); setMembers(readStore('sylvia.members',seedMembers)); setCurrentRole(readStore('sylvia.currentRole','Owner')); setHistory(readStore('sylvia.history',{}));
  },[]);
+ useEffect(()=>{
+   if(!hydrated)return;
+   let active=true;
+   const syncFleet=async()=>{
+     try{
+       const response=await fetch('/api/v1/fleet',{cache:'no-store'});
+       if(!response.ok)return;
+       const data=await response.json();
+       const fleet=Array.isArray(data?.devices)?data.devices:[];
+       if(!active)return;
+       setDevices(current=>current.map(device=>{
+         const remote=fleet.find((item:{deviceId?:string})=>String(item.deviceId)===String(device.id));
+         if(!remote)return device;
+         return {
+           ...device,
+           online:remote.lifecycle==='online',
+           lastSeen:remote.lastSeen?Date.parse(String(remote.lastSeen)):device.lastSeen,
+         };
+       }));
+     }catch{}
+   };
+   void syncFleet();
+   const timer=setInterval(syncFleet,5000);
+   return()=>{active=false;clearInterval(timer)};
+ },[hydrated]);
  useEffect(()=>{if(hydrated)writeStore('sylvia.devices',devices)},[devices,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.templates',templates)},[templates,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.streams',streams)},[streams,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.widgets',widgets)},[widgets,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.rules',rules)},[rules,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.schedules',schedules)},[schedules,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.apiKeys',apiKeys)},[apiKeys,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.webhooks',webhooks)},[webhooks,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.projectName',projectName)},[projectName,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.darkMode',darkMode)},[darkMode,hydrated]);
  useEffect(()=>{if(hydrated)writeStore('sylvia.zyra',zyraConfig)},[zyraConfig,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.members',members)},[members,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.currentRole',currentRole)},[currentRole,hydrated]); useEffect(()=>{if(hydrated)writeStore('sylvia.history',history)},[history,hydrated]);
 
@@ -158,7 +183,7 @@ function LiveMonitor({devices,streams,apiKeys,setNotice}:{devices:Device[];strea
 }
 
 function DeviceCard({d,onInspect}:{d:Device;onInspect:()=>void}){return <article className="card clickable" onClick={onInspect}><div className="cardTop"><div className="deviceIcon"><Cpu size={19}/></div><span className={d.online?'online':'offline'}>{d.online?<Wifi size={14}/>:<WifiOff size={14}/>} {d.online?'Online':'Offline'}</span></div><h3>{d.name}</h3><p>{d.type}</p><div className="value">{d.online?d.temperature.toFixed(1):'—'}<small>{d.online?' °C':''}</small></div><div className="bar"><span style={{width:`${d.battery}%`}}/></div><footer><span>{d.online?`Battery ${d.battery}%`:'Awaiting telemetry'}</span><span>{d.online?'Telemetry live':'Waiting for connection'}</span></footer></article>}
-function DevicesPanel({devices,templates,onAdd,onInspect,onToggle}:{devices:Device[];templates:Template[];onAdd:()=>void;onInspect:(d:Device)=>void;onToggle:(id:number)=>void}){return <><div className="sectionHead"><div><h2>Devices</h2><span>Register devices and connect ESP32, ESP8266, Arduino, Raspberry Pi or gateways.</span></div><div className="buttonRow"><button className="primary" onClick={onAdd}><Plus size={14}/> Register device</button></div></div><div className="deviceGrid">{devices.map(d=><DeviceCard key={d.id} d={d} onInspect={()=>onInspect(d)}/>)}</div><div className="panel"><div className="sectionHead"><div><h2>Device connection model</h2><span>Every device gets a unique token and template.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Provision</b><small>Choose a template and generate an identity token.</small></div><div><span>02</span><b>Connect</b><small>Use REST today or MQTT in the next backend milestone.</small></div><div><span>03</span><b>Stream</b><small>Publish values into datastreams and dashboards.</small></div><div><span>04</span><b>Automate</b><small>Rules, events and webhooks react to telemetry.</small></div></div></div></>}
+function DevicesPanel({devices,templates,onAdd,onInspect,onToggle}:{devices:Device[];templates:Template[];onAdd:()=>void;onInspect:(d:Device)=>void;onToggle:(id:number)=>void}){return <><div className="sectionHead"><div><h2>Devices</h2><span>Register devices and connect ESP32, ESP8266, Arduino, Raspberry Pi or gateways.</span></div><div className="buttonRow"><button className="primary" onClick={onAdd}><Plus size={14}/> Register device</button></div></div><div className="deviceGrid">{devices.length?devices.map(d=><DeviceCard key={d.id} d={d} onInspect={()=>onInspect(d)}/>):<div className="panel emptyDeviceState"><Cpu size={22}/><div><b>No devices registered</b><span>Register your first hardware device to receive live telemetry and commands.</span></div><button className="primary" onClick={onAdd}><Plus size={14}/> Register device</button></div>}</div><div className="panel"><div className="sectionHead"><div><h2>Device connection model</h2><span>Every device gets a unique token and template.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Provision</b><small>Choose a template and generate an identity token.</small></div><div><span>02</span><b>Connect</b><small>Use REST today or MQTT in the next backend milestone.</small></div><div><span>03</span><b>Stream</b><small>Publish values into datastreams and dashboards.</small></div><div><span>04</span><b>Automate</b><small>Rules, events and webhooks react to telemetry.</small></div></div></div></>}
 function TemplatesPanel({templates,devices,onAdd}:{templates:Template[];devices:Device[];onAdd:()=>void}){return <><div className="sectionHead"><div><h2>Device templates</h2><span>Define reusable device types, protocols and connection intent.</span></div><button className="primary" onClick={onAdd}><Plus size={14}/> New template</button></div><div className="templateGrid">{templates.map(t=><article className="card" key={t.id}><div className="templateIcon"><Boxes size={19}/></div><h3>{t.name}</h3><p>{t.description}</p><div className="templateMeta"><span>{t.protocol}</span><span>{devices.filter(d=>d.templateId===t.id).length} devices</span></div></article>)}</div></>}
 function Datastreams({streams,devices,onDelete,onAdd,onSelect}:{streams:Stream[];devices:Device[];onDelete:(id:number)=>void;onAdd:()=>void;onSelect:(s:Stream)=>void}){return <><div className="sectionHead"><div><h2>Datastream registry</h2><span>Channels are the core data model behind dashboards, automations and APIs.</span></div><button className="primary" onClick={onAdd}><Plus size={15}/> New datastream</button></div><div className="streamTable"><div className="streamRow streamHeader"><span>Name</span><span>Device</span><span>Type</span><span>Value</span><span/></div>{streams.map(s=><div className="streamRow clickable" key={s.id} onClick={()=>onSelect(s)}><div><b>{s.name}</b><small>{s.unit||'No unit'}</small></div><span>{devices.find(d=>d.id===s.deviceId)?.name||'Unknown'}</span><span className="pill">{s.type}</span><strong>{String(s.value)} {s.unit}</strong><button className="trash" onClick={e=>{e.stopPropagation();onDelete(s.id)}}><Trash2 size={15}/></button></div>)}</div></>}
 function DashboardPanel({widgets,streams,onAdd,onDelete,onUpdate}:{widgets:Widget[];streams:Stream[];onAdd:(k:Widget['kind'])=>void;onDelete:(id:number)=>void;onUpdate:(id:number,patch:Partial<Widget>)=>void}){
