@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.51.0-beta.2 — Real Device Console Foundation**
+**v0.51.0-beta.3 — Persistent Hardware Foundation**
 
 SYLVIA now starts without seeded/fake devices. The main console is the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -55,3 +55,10 @@ MQTT remains independent and continues to use the existing `SYLVIA_MQTT_*` varia
 - The console synchronizes hardware presence from the fleet registry.
 - Light-mode UI fixes are isolated from the established dark-mode theme.
 - ESP8266/NodeMCU support remains the next real-hardware validation path; physical hardware testing is intentionally manual.
+
+
+### v0.51.0-beta.3
+
+The persistent hardware path has been aligned around the PostgreSQL device registry. The main console can reload registered devices from the database, real device registration returns a unique token, and MQTT telemetry/heartbeat authentication can resolve database-backed devices without seeded simulator data.
+
+Physical NodeMCU testing is intentionally the next manual validation step after the hosted MQTT broker and database are ready.
