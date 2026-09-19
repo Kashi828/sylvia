@@ -1,4 +1,4 @@
-# SYLVIA Device SDK — v0.16 Beta
+# SYLVIA Device SDK — v0.51.0-beta.3
 
 SYLVIA now has a Blynk-style device programming model while remaining SYLVIA-native.
 
@@ -35,4 +35,4 @@ void loop() {
 }
 ```
 
-The beta SDK uses HTTPS/REST and now supports bidirectional command delivery. Firmware can register `Sylvia.onCommand(...)`; `Sylvia.run()` polls pending commands every 2 seconds. Commands are queued server-side and removed when delivered. The application-level device API is intentionally transport-neutral so MQTT can be added underneath it later.
+The current ESP8266/NodeMCU SDK uses MQTT/TLS for the hosted hardware path. Firmware identifies itself with a device ID and device token, validates the broker certificate, publishes telemetry and heartbeat messages, receives commands, and sends command acknowledgements. Keep the device token and broker CA private.
