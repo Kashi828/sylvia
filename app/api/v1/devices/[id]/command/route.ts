@@ -3,6 +3,8 @@ import { addEvent, queueCommand, markCommandInFlight, validBearer, publicDevice,
 import { findPersistentDeviceByToken } from "@/lib/persistent-devices";
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
+import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { findPersistentDeviceById } from "@/lib/persistent-devices";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,30); if(limited)return limited;
@@ -11,11 +13,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(!Number.isFinite(numericId)) return NextResponse.json({ok:false,error:"Invalid device id"},{status:400});
 
   const rawToken=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"").trim() || "";
-  if(!rawToken) return NextResponse.json({ok:false,error:"Unauthorized"},{status:401});
+  const sessionToken=request.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.split('=')[1];
+  const sessionUser= sessionToken ? getSessionUser(sessionToken) : null;
 
-  const persistent=await findPersistentDeviceByToken(rawToken,id);
-  const device=persistent || (validBearer(rawToken,numericId) ? findDevice(numericId) : null);
-  if(!device) return NextResponse.json({ok:false,error:"Device not found"},{status:404});
+  const persistentByToken=rawToken ? await findPersistentDeviceByToken(rawToken,id) : null;
+  const persistentById=sessionUser ? await findPersistentDeviceById(id) : null;
+  const device=persistentByToken || persistentById || (rawToken && validBearer(rawToken,numericId) ? findDevice(numericId) : (sessionUser ? findDevice(numericId) : null));
+  if(!device) return NextResponse.json({ok:false,error:"Unauthorized or device not found"},{status:401});
 
   const body=await request.json().catch(()=>null) as {command?:string;payload?:unknown}|null;
   const command=body?.command?.trim();
