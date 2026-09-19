@@ -38,6 +38,22 @@ export async function registerPersistentDevice(name: string, type: string) {
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
 }
 
+export async function findPersistentDeviceById(deviceId: string | number) {
+  if (!databaseConfigured()) return null;
+  try {
+    const result = await query(
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview
+       FROM device_registry
+       WHERE device_id = $1
+       LIMIT 1`,
+      [String(deviceId)],
+    );
+    return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function findPersistentDeviceByToken(token: string, deviceId?: string | number) {
   if (!databaseConfigured() || !token) return null;
 
