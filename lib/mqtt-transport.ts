@@ -99,8 +99,12 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
     const numericId = Number(deviceId);
     if (!Number.isFinite(numericId)) return;
     try {
-      const { authenticateDeviceToken } = await import("./store");
-      if (!authenticateDeviceToken(token, numericId)) return;
+      const { findPersistentDeviceByToken } = await import("./persistent-devices");
+      const persistent = await findPersistentDeviceByToken(token, deviceId);
+      if (!persistent) {
+        const { authenticateDeviceToken } = await import("./store");
+        if (!authenticateDeviceToken(token, numericId)) return;
+      }
       const { ackCommand } = await import("./store");
       const item = ackCommand(numericId, body.commandId, body.result ?? null);
       if (item) addCommandAckEvent(numericId, item.command);
@@ -110,6 +114,15 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
     const numericId = Number(deviceId);
     if (!Number.isFinite(numericId)) return;
     try {
+      const { findPersistentDeviceByToken, markPersistentDeviceOnline } = await import("./persistent-devices");
+      const persistent = await findPersistentDeviceByToken(token, deviceId);
+      if (persistent) {
+        await markPersistentDeviceOnline(deviceId, {
+          transport: "mqtt",
+          firmware: typeof body.firmware === "string" ? body.firmware : undefined,
+        });
+        return;
+      }
       const { validBearer } = await import("./store");
       if (validBearer(token, numericId)) await markDeviceSeen(deviceId, { transport: "mqtt", firmware: typeof body.firmware === "string" ? body.firmware : undefined });
     } catch { /* keep MQTT listener resilient */ }
