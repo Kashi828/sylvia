@@ -10,11 +10,14 @@ function sessionUser(request: Request) {
 
 export async function GET(request:Request){
   if (persistentDevicesAvailable()) {
-    const devices = await listPersistentDevices();
-    return NextResponse.json({ok:true,count:devices.length,devices:devices.map(publicDevice)});
+    if (sessionUser(request) || validBearer(request)) {
+      const devices = await listPersistentDevices();
+      return NextResponse.json({ok:true,count:devices.length,devices:devices.map(publicDevice),persistent:true});
+    }
+    return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
   }
-  if(!validBearer(request)) return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
-  return NextResponse.json({ok:true,count:store.devices.length,devices:store.devices.map(publicDevice)});
+  if(!validBearer(request) && !sessionUser(request)) return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
+  return NextResponse.json({ok:true,count:store.devices.length,devices:store.devices.map(publicDevice),persistent:false});
 }
 
 export async function POST(request:Request){
