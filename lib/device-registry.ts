@@ -10,6 +10,8 @@ export type FleetDevice = {
   lastSeen: string | null;
   firmware: string | null;
   transport: DeviceTransport;
+  temperature: number;
+  battery: number;
   createdAt: string;
   updatedAt?: string;
 };
@@ -24,6 +26,8 @@ function normalize(row: any): FleetDevice {
     lastSeen: row.last_seen ? new Date(row.last_seen).toISOString() : null,
     firmware: row.firmware ?? null,
     transport: (row.transport ?? "unknown") as DeviceTransport,
+    temperature: Number(row.temperature ?? 0),
+    battery: Number(row.battery ?? 0),
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
   };
@@ -54,7 +58,7 @@ async function persist(device: FleetDevice) {
 export async function hydrateFleetRegistry() {
   if (!databaseConfigured()) return listFleetDevices();
   try {
-    const result = await query(`SELECT device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at FROM device_registry ORDER BY name ASC`);
+    const result = await query(`SELECT device_id,name,lifecycle,last_seen,firmware,transport,temperature,battery,created_at,updated_at FROM device_registry ORDER BY name ASC`);
     for (const row of result.rows) {
       const device = normalize(row);
       registry.set(device.deviceId, device);
