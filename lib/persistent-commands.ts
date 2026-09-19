@@ -30,8 +30,12 @@ export function persistentCommandsAvailable() { return databaseConfigured(); }
 
 export async function createPersistentCommand(id: string, deviceId: string | number, command: string, payload: unknown) {
   if (!databaseConfigured()) return null;
-  const result = await query("INSERT INTO device_commands (id, device_id, command, payload, status) VALUES ($1,$2,$3,$4::jsonb,'queued') ON CONFLICT (id) DO NOTHING RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), command, JSON.stringify(payload ?? null)]);
-  return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : await getPersistentCommand(id);
+  try {
+    const result = await query("INSERT INTO device_commands (id, device_id, command, payload, status) VALUES ($1,$2,$3,$4::jsonb,'queued') ON CONFLICT (id) DO NOTHING RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), command, JSON.stringify(payload ?? null)]);
+    return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : await getPersistentCommand(id);
+  } catch {
+    return null;
+  }
 }
 
 export async function markPersistentCommandSent(id: string) {
