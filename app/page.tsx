@@ -61,6 +61,23 @@ export default function Home(){
    setRules(readStore<Rule[]>('sylvia.rules',seedRules).filter(rule=>validStreamIds.has(rule.streamId)));
    setSchedules(readStore('sylvia.schedules',seedSchedules)); setApiKeys(readStore('sylvia.apiKeys',seedApiKeys)); setWebhooks(readStore('sylvia.webhooks',seedWebhooks)); setProjectName(readStore('sylvia.projectName','SYLVIA Cloud Project')); setDarkMode(readStore('sylvia.darkMode',false)); setHydrated(true);
    setZyraConfig(readStore('sylvia.zyra',seedZyra)); setMembers(readStore('sylvia.members',seedMembers)); setCurrentRole(readStore('sylvia.currentRole','Owner')); setHistory(readStore('sylvia.history',{}));
+
+   fetch('/api/v1/devices',{cache:'no-store'}).then(async response=>{
+     if(!response.ok)return;
+     const data=await response.json().catch(()=>null);
+     const remote=Array.isArray(data?.devices)?data.devices:[];
+     if(!remote.length && data?.persistent===true){setDevices([]);return;}
+     if(data?.persistent===true){
+       setDevices(remote.map((item:{id:number;name:string;type:string;online:boolean;temperature:number;battery:number;lastSeen:string;tokenPreview?:string})=>{
+         const local=cleanDevices.find(d=>d.id===Number(item.id));
+         return {
+           id:Number(item.id), name:item.name, type:item.type, templateId:local?.templateId||1,
+           token:local?.token||'', temperature:Number(item.temperature||0), online:Boolean(item.online),
+           battery:Number(item.battery||0), lastSeen:item.lastSeen?Date.parse(item.lastSeen):0
+         } as Device;
+       }));
+     }
+   }).catch(()=>{});
  },[]);
  useEffect(()=>{
    if(!hydrated)return;
