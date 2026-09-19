@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { findPersistentDeviceByToken } from "@/lib/persistent-devices";
+import { validBearer } from "@/lib/store";
 import { ingestMqttTelemetry } from "@/lib/mqtt-telemetry";
 import { getTelemetryStats } from "@/lib/telemetry-store";
 import { loadPersistedTelemetry, persistTelemetry } from "@/lib/telemetry-persistence";
@@ -25,10 +28,24 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const deviceId = request.nextUrl.searchParams.get("deviceId") || undefined;
   const streamId = request.nextUrl.searchParams.get("streamId") || undefined;
+
+  const sessionToken = request.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.split('=')[1];
+  const hasSession = Boolean(sessionToken && getSessionUser(sessionToken));
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || "";
+  const numericId = deviceId ? Number(deviceId) : NaN;
+  const deviceBearerOk = bearer && Number.isFinite(numericId)
+    ? Boolean(await findPersistentDeviceByToken(bearer, deviceId) || validBearer(bearer, numericId))
+    : false;
+
+  if (!hasSession && !deviceBearerOk) {
+    return NextResponse.json({ ok:false, error:"Authentication required" }, { status:401 });
+  }
+
   const samples = await loadPersistedTelemetry(deviceId, streamId);
   return NextResponse.json({
+    ok:true,
     samples,
     stats: getTelemetryStats(deviceId, streamId),
-    storage: process.env.DATABASE_URL ? "postgresql" : "memory-fallback",
+    storage: process.env.POSTGRES_URL ? "postgresql" : "memory-fallback",
   });
 }
