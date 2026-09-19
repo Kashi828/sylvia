@@ -38,17 +38,21 @@ async function persist(device: FleetDevice) {
   try {
     await query(
       `INSERT INTO device_registry
-        (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (device_id, name, lifecycle, last_seen, firmware, transport, online, temperature, battery, created_at, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        ON CONFLICT (device_id) DO UPDATE SET
          name=EXCLUDED.name,
          lifecycle=EXCLUDED.lifecycle,
          last_seen=EXCLUDED.last_seen,
          firmware=EXCLUDED.firmware,
          transport=EXCLUDED.transport,
+         online=EXCLUDED.online,
+         temperature=EXCLUDED.temperature,
+         battery=EXCLUDED.battery,
          updated_at=EXCLUDED.updated_at`,
       [device.deviceId, device.name, device.lifecycle, device.lastSeen, device.firmware,
-       device.transport, device.createdAt, device.updatedAt ?? new Date().toISOString()],
+       device.transport, device.lifecycle === "online", device.temperature, device.battery,
+       device.createdAt, device.updatedAt ?? new Date().toISOString()],
     );
   } catch {
     // Keep the beta usable when the database is unavailable; memory remains authoritative for the session.
