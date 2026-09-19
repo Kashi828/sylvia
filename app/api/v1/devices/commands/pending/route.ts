@@ -6,9 +6,7 @@ import {withRateLimit} from '@/lib/http';
 
 export async function GET(request:Request){
   const limited=withRateLimit(request,60);if(limited)return limited;
-  const token=validBearer(request);
-  if(!token)return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
-
+  const token=request.headers.get('authorization')?.replace(/^Bearer\s+/i,'').trim() || '';
   const deviceId=new URL(request.url).searchParams.get('deviceId');
   const limit=Number(new URL(request.url).searchParams.get('limit')||10);
 
@@ -22,7 +20,7 @@ export async function GET(request:Request){
   }
 
   const device=findDevice(Number(deviceId||0));
-  if(!device || !authenticateDeviceToken(token, device.id))return NextResponse.json({ok:false,error:'Device not found'},{status:404});
+  if(!token || !device || !authenticateDeviceToken(token, device.id))return NextResponse.json({ok:false,error:'Device not found'},{status:404});
   const commands=takeCommands(device.id,Number.isFinite(limit)?limit:10);
   if(commands.length)addEvent('device.command.delivered',`${device.name}: ${commands.length} command(s) delivered`,device.id);
   return NextResponse.json({ok:true,commands,persistent:false});
