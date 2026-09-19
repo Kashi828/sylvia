@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
     const body = await request.json();
     const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-    const sample = ingestMqttTelemetry({ ...body }, token || undefined);
+    const sample = await ingestMqttTelemetry({ ...body }, token || undefined);
     const persisted = await persistTelemetry(sample);
     const alerts = typeof sample.value === 'number' ? evaluateTelemetry(sample.deviceId, sample.streamId, sample.value) : [];
     return NextResponse.json({ ok: true, sample: persisted, alerts }, { status: 201 });
