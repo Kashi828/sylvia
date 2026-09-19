@@ -31,8 +31,9 @@ The application currently connects server-side through PostgreSQL. Supabase Auth
 1. Create a new project at [Supabase](https://supabase.com/).
 2. In Vercel, connect the Supabase integration to the SYLVIA project, or set the Supabase PostgreSQL connection as `POSTGRES_URL`.
 3. Apply `supabase/migrations/20260917000000_sylvia_core.sql` to the new project.
-4. Redeploy SYLVIA.
-5. Open `/api/v1/health` and confirm the database reports `configured: true` and `connected: true`.
+4. Apply `supabase/migrations/20260920000000_persistent_device_auth.sql` as well when upgrading an existing database.
+5. Redeploy SYLVIA.
+6. Open `/api/v1/health` and confirm the database reports `configured: true` and `connected: true`.
 
 Do not commit database passwords, Supabase secret keys, or other credentials.
 
