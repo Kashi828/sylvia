@@ -89,6 +89,7 @@ export async function markPersistentDeviceOnline(
   const result = await query(
     `UPDATE device_registry
        SET lifecycle='online',
+           online=true,
            last_seen=now(),
            firmware=COALESCE($2, firmware),
            transport=COALESCE($3, transport),
