@@ -14,19 +14,19 @@ export type MqttTelemetrySample = {
 
 export async function ingestMqttTelemetry(sample: MqttTelemetrySample, token?: string) {
   if (!sample.deviceId || !sample.key) throw new Error("deviceId and key are required");
+  if (!token) throw new Error("Unauthorized");
 
-  const persistent = token
-    ? await findPersistentDeviceByToken(token, sample.deviceId)
-    : null;
+  const numericId = Number(sample.deviceId);
+  const persistent = await findPersistentDeviceByToken(token, sample.deviceId);
 
-  if (!persistent) {
-    const numericId = Number(sample.deviceId);
-    const legacy = token ? validBearer(token, numericId) : null;
-    if (!legacy || !findDevice(numericId)) throw new Error("Unauthorized");
+  if (!persistent && (!Number.isFinite(numericId) || !validBearer(token, numericId))) {
+    throw new Error("Unauthorized");
   }
 
+  const memoryDevice = Number.isFinite(numericId) ? findDevice(numericId) : undefined;
   const timestamp = sample.timestamp || new Date().toISOString();
   const streamId = sample.streamId || sample.key;
+
   const stored = addTelemetrySample({
     deviceId: sample.deviceId,
     streamId,
@@ -40,12 +40,14 @@ export async function ingestMqttTelemetry(sample: MqttTelemetrySample, token?: s
     await markPersistentDeviceOnline(sample.deviceId, {
       transport: "mqtt",
       firmware: sample.firmware,
-      temperature: sample.key.toLowerCase() === "temperature" && typeof sample.value === "number" ? sample.value : undefined,
-      battery: sample.key.toLowerCase() === "battery" && typeof sample.value === "number" ? sample.value : undefined,
+      temperature: sample.key.toLowerCase().includes("temp") && typeof sample.value === "number" ? sample.value : undefined,
+      battery: sample.key.toLowerCase().includes("battery") && typeof sample.value === "number" ? sample.value : undefined,
     });
-  } else {
-    void markDeviceSeen(sample.deviceId, { transport: "mqtt", firmware: sample.firmware });
+  } else if (memoryDevice) {
+    memoryDevice.online = true;
+    memoryDevice.lastSeen = timestamp;
   }
 
+  void markDeviceSeen(sample.deviceId, { transport: "mqtt", firmware: sample.firmware });
   return stored;
 }
