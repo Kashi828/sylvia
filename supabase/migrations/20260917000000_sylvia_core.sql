@@ -61,10 +61,16 @@ create table if not exists public.telemetry_events (
 create table if not exists public.device_registry (
   device_id text primary key,
   name text not null,
+  type text not null default 'ESP32 Device',
   lifecycle text not null check (lifecycle in ('provisioning','online','offline','disabled')),
   last_seen timestamptz,
   firmware text,
   transport text not null default 'unknown' check (transport in ('rest','mqtt','unknown')),
+  online boolean not null default false,
+  temperature double precision not null default 0,
+  battery double precision not null default 0,
+  token_hash text,
+  token_preview text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -125,6 +131,7 @@ create index if not exists idx_notification_subscriptions_enabled_scope on publi
 create index if not exists idx_device_registry_lifecycle on public.device_registry(lifecycle);
 create index if not exists idx_device_registry_last_seen on public.device_registry(last_seen desc);
 create index if not exists idx_device_registry_updated_at on public.device_registry(updated_at desc);
+create index if not exists idx_device_registry_token_hash on public.device_registry(token_hash);
 
 -- SYLVIA's server-side runtime currently owns persistence, so public client
 -- access is disabled until Supabase Auth/RLS policies are introduced.
