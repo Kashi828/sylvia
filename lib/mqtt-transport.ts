@@ -92,7 +92,7 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
       const key = typeof body.key === "string" ? body.key : `V${body.channel}`;
       const value = body.value;
       if (!["number", "string", "boolean"].includes(typeof value)) return;
-      ingestMqttTelemetry({ deviceId, key, streamId: typeof body.streamId === "string" ? body.streamId : key, value, timestamp: body.timestamp, firmware: body.firmware }, token);
+      await ingestMqttTelemetry({ deviceId, key, streamId: typeof body.streamId === "string" ? body.streamId : key, value, timestamp: body.timestamp, firmware: body.firmware }, token);
     } catch { /* invalid or unauthorized device telemetry is ignored */ }
   } else if (channel === "command-ack") {
     if (!token || typeof body?.commandId !== "string") return;
