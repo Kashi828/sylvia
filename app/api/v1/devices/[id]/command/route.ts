@@ -5,6 +5,7 @@ import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
 import { findPersistentDeviceById } from "@/lib/persistent-devices";
+import { createPersistentCommand, markPersistentCommandSent, persistentCommandsAvailable } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,30); if(limited)return limited;
@@ -26,6 +27,9 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(!command||command.length>80||!/^[a-zA-Z0-9_.:-]+$/.test(command)) return NextResponse.json({ok:false,error:"Invalid command name"},{status:400});
 
   const queued=queueCommand(device.id,command,body?.payload??null);
+  const persistentCommand=persistentCommandsAvailable()
+    ? await createPersistentCommand(queued.id,device.id,command,body?.payload??null)
+    : null;
   let dispatched=false;
   let dispatchError:string|undefined;
 
@@ -34,6 +38,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       markCommandInFlight(queued.id);
       await publishDeviceCommand(String(device.id),{commandId:queued.id,command,payload:body?.payload??null,timestamp:new Date().toISOString()});
       dispatched=true;
+      if (persistentCommand) await markPersistentCommandSent(queued.id);
       addEvent("device.command.dispatched",device.name + ": " + command + " dispatched over MQTT",device.id);
     }catch(error){
       dispatchError=error instanceof Error?error.message:"MQTT dispatch failed";
