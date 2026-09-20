@@ -8,12 +8,13 @@ export async function persistTelemetry(sample: TelemetrySample) {
   try {
     await db.query(
       `INSERT INTO telemetry_events
-       (device_id, datastream_id, value, occurred_at)
-       VALUES ($1, $2, $3, $4)`,
+       (device_id, datastream_id, value, value_json, occurred_at)
+       VALUES ($1, $2, $3, $4::jsonb, $5)`,
       [
         sample.deviceId,
         sample.streamId,
         typeof sample.value === "number" ? sample.value : null,
+        JSON.stringify(sample.value),
         sample.timestamp,
       ],
     );
@@ -42,7 +43,7 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
 
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
     const result = await db.query(
-      `SELECT device_id, datastream_id, value, occurred_at
+      `SELECT device_id, datastream_id, value, value_json, occurred_at
        FROM telemetry_events ${where}
        ORDER BY occurred_at DESC
        LIMIT 5000`,
@@ -53,7 +54,11 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
       deviceId: row.device_id,
       streamId: row.datastream_id,
       key: row.datastream_id,
-      value: row.value === null ? null : Number(row.value),
+      value: row.value_json !== null && row.value_json !== undefined
+        ? row.value_json
+        : row.value === null
+          ? null
+          : Number(row.value),
       timestamp: new Date(row.occurred_at).toISOString(),
       transport: "mqtt" as const,
     }));
