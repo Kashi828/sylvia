@@ -5,9 +5,12 @@ import {findPersistentDeviceById,findPersistentDeviceByToken,markPersistentDevic
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const {id}=await params;
   const token=request.headers.get('authorization')?.replace(/^Bearer\s+/i,'').trim()||'';
+  const body=await request.json().catch(()=>null) as {firmware?:string;temperature?:number;battery?:number}|null;
   const persistent=token?await findPersistentDeviceByToken(token,id):null;
   if(persistent){
-    const updated=await markPersistentDeviceOnline(id,{transport:'rest'});
+    const temperature=typeof body?.temperature==='number'&&Number.isFinite(body.temperature)?body.temperature:undefined;
+    const battery=typeof body?.battery==='number'&&Number.isFinite(body.battery)?body.battery:undefined;
+    const updated=await markPersistentDeviceOnline(id,{transport:'rest',firmware:body?.firmware,temperature,battery});
     return NextResponse.json({ok:true,deviceId:id,online:true,lastSeen:updated?.lastSeen||new Date().toISOString(),persistent:true});
   }
   if(!validBearer(request,Number(id)))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
