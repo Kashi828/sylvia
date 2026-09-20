@@ -1,24 +1,32 @@
 import {NextResponse} from 'next/server';
-import {addEvent,findDevice,findStream,validBearer,authenticateDeviceToken,publicDevice} from '@/lib/store';
 import {withRateLimit} from '@/lib/http';
+import {ingestMqttTelemetry} from '@/lib/mqtt-telemetry';
+import {persistTelemetry} from '@/lib/telemetry-persistence';
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,60); if(limited)return limited;
-  const {id}=await params; const token=validBearer(request, Number(id));
+  const {id}=await params;
+  const token=request.headers.get('authorization')?.replace(/^Bearer\\s+/i,'').trim() || '';
   if(!token)return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
-  const device=findDevice(Number(id));
-  if(!device || !authenticateDeviceToken(token, device.id))return NextResponse.json({ok:false,error:'Device not found'},{status:404});
-  const body=await request.json().catch(()=>null) as {streamId?:number;value?:unknown}|null;
-  if(!body || !Number.isFinite(Number(body.streamId)))return NextResponse.json({ok:false,error:'streamId is required'},{status:400});
-  const stream=findStream(Number(body.streamId));
-  if(!stream || stream.deviceId!==device.id)return NextResponse.json({ok:false,error:'Datastream does not belong to device'},{status:400});
-  let value=body.value;
-  if(stream.type==='Number'){const n=Number(value); if(!Number.isFinite(n))return NextResponse.json({ok:false,error:'Value must be numeric'},{status:400}); value=n;}
-  if(stream.type==='Boolean'){if(typeof value==='string')value=value==='true'; if(typeof value!=='boolean')return NextResponse.json({ok:false,error:'Value must be boolean'},{status:400});}
-  stream.value=value as never; stream.updatedAt=new Date().toISOString(); device.online=true; device.lastSeen=stream.updatedAt;
-  if(stream.name==='Temperature')device.temperature=Number(value);
-  if(stream.name==='Battery')device.battery=Number(value);
-  if(stream.name==='Online')device.online=Boolean(value);
-  addEvent('telemetry.received',`${device.name} → ${stream.name}: ${String(value)}`,device.id,stream.id);
-  return NextResponse.json({ok:true,device:publicDevice(device),datastream:stream});
+
+  const body=await request.json().catch(()=>null) as {streamId?:string|number;key?:string;value?:unknown;timestamp?:string;firmware?:string}|null;
+  if(!body || (body.streamId===undefined && !body.key))return NextResponse.json({ok:false,error:'streamId or key is required'},{status:400});
+  if(body.value===undefined)return NextResponse.json({ok:false,error:'value is required'},{status:400});
+
+  try{
+    const sample=await ingestMqttTelemetry({
+      deviceId:id,
+      streamId:String(body.streamId ?? body.key),
+      key:String(body.key ?? body.streamId),
+      value:body.value as number|string|boolean,
+      timestamp:body.timestamp,
+      firmware:body.firmware,
+    },token);
+    const persisted=await persistTelemetry({...sample,transport:'rest'});
+    return NextResponse.json({ok:true,sample:persisted,persistent:true},{status:201});
+  }catch(error){
+    const message=error instanceof Error?error.message:'Telemetry ingestion failed';
+    const status=message==='Unauthorized'?401:message==='Device not found'?404:400;
+    return NextResponse.json({ok:false,error:message},{status});
+  }
 }
