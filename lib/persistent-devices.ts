@@ -32,7 +32,7 @@ export async function registerPersistentDevice(name: string, type: string) {
       (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview)
      VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5)
      RETURNING device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview`,
-    [deviceId, name.trim(), now, hashDeviceToken(token), tokenFingerprint(token)],
+    [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token)],
   );
 
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
