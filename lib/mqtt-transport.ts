@@ -107,6 +107,10 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
       }
       const { ackCommand } = await import("./store");
       const item = ackCommand(numericId, body.commandId, body.result ?? null);
+      if (persistent) {
+        const { ackPersistentCommand } = await import("./persistent-commands");
+        await ackPersistentCommand(deviceId, body.commandId, body.result ?? null);
+      }
       if (item) addCommandAckEvent(numericId, item.command);
     } catch { /* keep MQTT listener resilient */ }
   } else if (channel === "heartbeat") {
