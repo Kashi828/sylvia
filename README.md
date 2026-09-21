@@ -4,9 +4,9 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.51.0-beta.5 — Persistent Hardware Foundation**
+**v0.52.0-beta.1 — REST Command Polling**
 
-SYLVIA now starts without seeded/fake devices. The main console is the single workspace for registering real hardware, device control, telemetry and automation.
+SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
 ## Database architecture
 
@@ -21,6 +21,7 @@ Supabase PostgreSQL
        ├── devices / datastreams
        ├── telemetry
        ├── device registry
+       ├── persistent device commands
        └── notifications / subscriptions
 ```
 
@@ -48,6 +49,14 @@ POSTGRES_URL=...
 
 MQTT remains independent and continues to use the existing `SYLVIA_MQTT_*` variables.
 
+## Command transport
+
+Device commands can now use either:
+
+- **MQTT** — preferred live transport with QoS 1 and command acknowledgements.
+- **REST polling** — authenticated ESP8266/NodeMCU devices can poll `GET /api/v1/devices/{id}/commands`, receive queued commands atomically claimed as `sent`, then acknowledge with `POST /api/v1/devices/{id}/commands`.
+
+This gives hardware a cloud command path even when an MQTT client is not connected. Command records remain in PostgreSQL for acknowledgement history.
 
 ## Current beta progress
 
@@ -55,12 +64,11 @@ MQTT remains independent and continues to use the existing `SYLVIA_MQTT_*` varia
 - Fake/demo devices and automatic simulator telemetry have been removed.
 - Device registration now uses an authenticated server API and returns a device token for hardware setup.
 - The console synchronizes hardware presence from the fleet registry.
-- Light-mode UI fixes are isolated from the established dark-mode theme.
+- Persistent telemetry and persistent device metrics are supported.
+- Persistent command queue and acknowledgement storage are supported.
+- REST command polling is now available as a hardware transport fallback.
 - ESP8266/NodeMCU support remains the next real-hardware validation path; physical hardware testing is intentionally manual.
 
+### v0.52.0-beta.1
 
-### v0.51.0-beta.5
-
-The persistent command queue now has an explicit PostgreSQL schema, including command status, dispatch/ack timestamps, payload/result storage, and indexes for device command history.
-
-Physical NodeMCU testing is intentionally the next manual validation step after the hosted MQTT broker and database are ready.
+The command path now closes the REST fallback loop: queued commands can be atomically claimed by a device, marked as sent, and acknowledged by that same authenticated device. This is the next step toward reliable cloud-to-hardware control without requiring the MQTT session to stay connected.
