@@ -25,6 +25,17 @@ export async function GET(request: NextRequest) {
         );
       };
 
+      if (deviceId) {
+        void findPersistentDeviceById(deviceId).then(device => {
+          if (!device) return;
+          send({
+            type: "device.state.updated",
+            deviceId: String(device.id),
+            state: (device.state || {}) as StateEvent["state"],
+            updatedAt: device.lastSeen ? new Date(device.lastSeen).toISOString() : new Date().toISOString(),
+          });
+        }).catch(() => {});
+      }
       controller.enqueue(encoder.encode(`event: ready\ndata: {"ok":true}\n\n`));
       unsubscribe = subscribeState(send);
       keepAlive = setInterval(() => {
