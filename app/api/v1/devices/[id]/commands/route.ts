@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { findPersistentDeviceByToken } from "@/lib/persistent-devices";
-import { ackPersistentCommand, claimPersistentCommands } from "@/lib/persistent-commands";
+import { ackPersistentCommand, claimPersistentCommands, listPersistentCommands } from "@/lib/persistent-commands";
 
 async function authenticate(request: Request, id: string) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || "";
@@ -19,7 +19,8 @@ export async function GET(
   const url = new URL(request.url);
   const rawLimit = Number(url.searchParams.get("limit") ?? "10");
   const limit = Number.isFinite(rawLimit) ? Math.trunc(rawLimit) : 10;
-  const commands = await claimPersistentCommands(id, limit);
+  const history = url.searchParams.get("history") === "true";
+  const commands = history ? await listPersistentCommands(id, limit) : await claimPersistentCommands(id, limit);
 
   return NextResponse.json({
     ok: true,
