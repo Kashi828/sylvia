@@ -82,7 +82,7 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
 
 export async function markPersistentDeviceOnline(
   deviceId: string | number,
-  metadata?: { firmware?: string; transport?: "rest" | "mqtt" | "unknown"; temperature?: number; battery?: number },
+  metadata?: { firmware?: string; transport?: "rest" | "mqtt" | "unknown"; temperature?: number; battery?: number; state?: Record<string, unknown> },
 ) {
   if (!databaseConfigured()) return null;
   const id = String(deviceId);
