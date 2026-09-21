@@ -230,14 +230,6 @@ void Sylvia::pollCommands() {
     executeCommand(command);
   }
 }
-
-void Sylvia::sendCommand(const char* command, JsonObjectConst payload) {
-  // Device-side SDK intentionally does not create cloud commands.
-  // Commands are created from the SYLVIA console/API and delivered to devices.
-  (void)command;
-  (void)payload;
-}
-
 void Sylvia::loop() {
   if (!_configured || WiFi.status() != WL_CONNECTED) return;
 
