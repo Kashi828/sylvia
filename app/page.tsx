@@ -8,7 +8,7 @@ import { Activity, Cpu, LayoutDashboard, Radio, Zap, Settings, Plus, Gauge, Tras
 
 type Device={id:number;name:string;type:string;templateId:number;token:string;tokenPreview?:string;temperature:number;online:boolean;battery:number;lastSeen:number};
 type Template={id:number;name:string;description:string;protocol:string;created:number};
-type Stream={id:number;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number};
+type Stream={id:number;remoteId?:string;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number};
 type Widget={id:number;title:string;kind:'Gauge'|'Value'|'Switch'|'Chart';streamId:number};
 type Rule={id:number;name:string;streamId:number;operator:'>'|'<'|'='|'!=';threshold:string;action:'Event'|'Switch device'|'Set datastream';enabled:boolean};
 type ApiKey={id:number;name:string;token:string;created:number};
@@ -61,7 +61,7 @@ export default function Home(){
    setRules(readStore<Rule[]>('sylvia.rules',seedRules).filter(rule=>validStreamIds.has(rule.streamId)));
    setSchedules(readStore('sylvia.schedules',seedSchedules)); setApiKeys(readStore('sylvia.apiKeys',seedApiKeys)); setWebhooks(readStore('sylvia.webhooks',seedWebhooks)); setProjectName(readStore('sylvia.projectName','SYLVIA Cloud Project')); setDarkMode(readStore('sylvia.darkMode',false)); setHydrated(true);
    setZyraConfig(readStore('sylvia.zyra',seedZyra)); setMembers(readStore('sylvia.members',seedMembers)); setCurrentRole(readStore('sylvia.currentRole','Owner')); setHistory(readStore('sylvia.history',{}));
-   fetch('/api/v1/datastreams',{cache:'no-store'}).then(async response=>{if(!response.ok)return;const data=await response.json().catch(()=>null);if(!Array.isArray(data?.datastreams))return;setStreams(current=>{const remote=data.datastreams.map((item:{id:string;name:string;deviceId:string;type:'Number'|'Boolean'|'String';unit?:string})=>({id:Math.abs(Array.from(String(item.id)).reduce((a,ch)=>a+ch.charCodeAt(0),0)),name:item.name,deviceId:Number(item.deviceId),type:item.type,unit:item.unit||'',value:item.type==='Boolean'?'false':item.type==='String'?'ready':0} as Stream));const keys=new Set(remote.map(s=>s.deviceId+'|'+s.name));return [...remote,...current.filter(s=>!keys.has(s.deviceId+'|'+s.name))]});}).catch(()=>{});
+   fetch('/api/v1/datastreams',{cache:'no-store'}).then(async response=>{if(!response.ok)return;const data=await response.json().catch(()=>null);if(!Array.isArray(data?.datastreams))return;setStreams(current=>{const remote=data.datastreams.map((item:{id:string;name:string;deviceId:string;type:'Number'|'Boolean'|'String';unit?:string;value?:number|boolean|string|null;lastOccurredAt?:string|null})=>({id:Math.abs(Array.from(String(item.id)).reduce((a,ch)=>a+ch.charCodeAt(0),0)),remoteId:String(item.id),name:item.name,deviceId:Number(item.deviceId),type:item.type,unit:item.unit||'',value:item.value??(item.type==='Boolean'?false:item.type==='String'?'ready':0)} as Stream));const keys=new Set(remote.map(s=>s.deviceId+'|'+s.name));return [...remote,...current.filter(s=>!keys.has(s.deviceId+'|'+s.name))]});}).catch(()=>{});
 
    fetch('/api/v1/devices',{cache:'no-store'}).then(async response=>{
      if(!response.ok)return;
@@ -140,7 +140,7 @@ export default function Home(){
  
  const updateStreamValue=(id:number,value:string|number)=>{setStreams(ss=>ss.map(s=>s.id===id?{...s,value}:s));setNotice('Datastream value updated')};
  const addTemplate=()=>{if(!templateDraft.name.trim())return;setTemplates(t=>[...t,{id:Date.now(),name:templateDraft.name.trim(),description:templateDraft.description.trim()||'Custom device template',protocol:templateDraft.protocol,created:Date.now()}]);setTemplateDraft({name:'',description:'',protocol:'REST'});setShowTemplateForm(false);setNotice('Template created')};
- const addStream=async()=>{if(!streamDraft.name.trim()||!streamDraft.deviceId)return;try{const response=await fetch('/api/v1/datastreams',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:String(streamDraft.deviceId),name:streamDraft.name.trim(),type:streamDraft.type,unit:streamDraft.type==='Number'?streamDraft.unit:''})});const data=await response.json().catch(()=>null);if(!response.ok)throw new Error(data?.error||'Datastream creation failed');const remote=data?.datastream;const local:Stream={id:Math.abs(Array.from(String(remote?.id||Date.now())).reduce((a,ch)=>a+ch.charCodeAt(0),0)),name:remote?.name||streamDraft.name.trim(),deviceId:Number(remote?.deviceId||streamDraft.deviceId),type:remote?.type||streamDraft.type,unit:remote?.unit||'',value:remote?.type==='Boolean'?'false':remote?.type==='String'?'ready':0};setStreams(s=>[...s.filter(x=>!(x.deviceId===local.deviceId&&x.name===local.name)),local]);setStreamDraft({name:'',deviceId:devices[0]?.id||1,type:'Number',unit:'°C'});setShowStreamForm(false);setNotice(data?.persistent?'Datastream persisted in PostgreSQL':'Datastream created')}catch(error){setNotice(error instanceof Error?error.message:'Datastream creation failed')}};
+ const addStream=async()=>{if(!streamDraft.name.trim()||!streamDraft.deviceId)return;try{const response=await fetch('/api/v1/datastreams',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:String(streamDraft.deviceId),name:streamDraft.name.trim(),type:streamDraft.type,unit:streamDraft.type==='Number'?streamDraft.unit:''})});const data=await response.json().catch(()=>null);if(!response.ok)throw new Error(data?.error||'Datastream creation failed');const remote=data?.datastream;const local:Stream={id:Math.abs(Array.from(String(remote?.id||Date.now())).reduce((a,ch)=>a+ch.charCodeAt(0),0)),name:remote?.name||streamDraft.name.trim(),deviceId:Number(remote?.deviceId||streamDraft.deviceId),type:remote?.type||streamDraft.type,unit:remote?.unit||'',remoteId:remote?.id?String(remote.id):undefined,value:remote?.value??(remote?.type==='Boolean'?false:remote?.type==='String'?'ready':0)};setStreams(s=>[...s.filter(x=>!(x.deviceId===local.deviceId&&x.name===local.name)),local]);setStreamDraft({name:'',deviceId:devices[0]?.id||1,type:'Number',unit:'°C'});setShowStreamForm(false);setNotice(data?.persistent?'Datastream persisted in PostgreSQL':'Datastream created')}catch(error){setNotice(error instanceof Error?error.message:'Datastream creation failed')}};
  const deleteStream=async(id:number)=>{const stream=streams.find(x=>x.id===id);try{if(stream){const response=await fetch('/api/v1/datastreams?id='+encodeURIComponent(String(stream.remoteId||stream.id)),{method:'DELETE'});const data=await response.json().catch(()=>null);if(!response.ok)throw new Error(data?.error||'Datastream deletion failed');}setStreams(s=>s.filter(x=>x.id!==id));setWidgets(w=>w.filter(x=>x.streamId!==id));setRules(r=>r.filter(x=>x.streamId!==id));setNotice('Datastream removed from cloud')}catch(error){setNotice(error instanceof Error?error.message:'Datastream deletion failed')}};
  const addWidget=(kind:Widget['kind'])=>{const source=streams[0];if(!source)return;setWidgets(w=>[...w,{id:Date.now(),title:`${source.name} ${kind.toLowerCase()}`,kind,streamId:source.id}]);setNotice(`${kind} widget added`)}; const updateWidget=(id:number,patch:Partial<Widget>)=>setWidgets(ws=>ws.map(w=>w.id===id?{...w,...patch}:w));
  const addRule=()=>{if(!ruleDraft.name.trim())return;setRules(r=>[...r,{id:Date.now(),...ruleDraft}]);setRuleDraft({name:'',streamId:streams[0]?.id||1,operator:'>',threshold:'30',action:'Event'});setShowRuleForm(false);setNotice('Automation created')};
@@ -453,13 +453,14 @@ function TelemetryPanel({devices,streams,history,setHistory,setNotice}:{devices:
  const [storage,setStorage]=useState('local');
  useEffect(()=>{if(!deviceStreams.some(s=>s.id===streamId))setStreamId(deviceStreams[0]?.id||numeric[0]?.id||0)},[deviceId,numeric.length,deviceStreams,streamId]);
  const stream=numeric.find(s=>s.id===streamId);
+ const remoteStreamId=stream?.remoteId;
  useEffect(()=>{
    if(!deviceId||!streamId)return;
    let active=true;
    const loadCloudTelemetry=async()=>{
      setCloudLoading(true);
      try{
-       const r=await fetch(`/api/v1/telemetry?deviceId=${deviceId}&streamId=${streamId}`,{cache:'no-store'});
+       const r=await fetch(`/api/v1/telemetry?deviceId=${deviceId}&streamId=${encodeURIComponent(String(stream?.remoteId||streamId))}`,{cache:'no-store'});
        const j=await r.json().catch(()=>null);
        if(!active||!r.ok||!Array.isArray(j?.samples))return;
        const cloudPoints=j.samples
@@ -475,7 +476,7 @@ function TelemetryPanel({devices,streams,history,setHistory,setNotice}:{devices:
    void loadCloudTelemetry();
    const timer=setInterval(loadCloudTelemetry,5000);
    return()=>{active=false;clearInterval(timer)};
- },[deviceId,streamId,numeric.length,setHistory]);
+ },[deviceId,streamId,remoteStreamId,numeric.length,setHistory]);
  const points=stream?history[stream.id]||[]:[];
  const values=points.map(p=>p.value);
  const min=values.length?Math.min(...values):Number(stream?.value)||0;
