@@ -30,7 +30,7 @@ PASTE_ROOT_CA_HERE
 -----END CERTIFICATE-----
 )EOF";
 
-const uint8_t RELAY_PIN = D2;
+// Change this to the GPIO connected to your relay/LED.\nconst uint8_t RELAY_PIN = D2;
 
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
@@ -102,7 +102,7 @@ void executeCommand(JsonObject command) {
     int pin = payload["pin"] | -1;
     int value = payload["value"] | -1;
 
-    if (pin >= 0 && (value == 0 || value == 1)) {
+    if (pin < 0) pin = RELAY_PIN;\n    if (pin >= 0 && (value == 0 || value == 1)) {
       pinMode(pin, OUTPUT);
       digitalWrite(pin, value ? HIGH : LOW);
       ok = true;
