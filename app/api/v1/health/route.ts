@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.51.0-beta.4-persistent-hardware';
+const DEPLOYMENT_MARKER = 'v0.51.0-beta.5-persistent-hardware';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -95,7 +95,7 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.51.0-beta.4',
+    version: '0.51.0-beta.5',
     deployment: DEPLOYMENT_MARKER,
     checks: {
       database: db,
