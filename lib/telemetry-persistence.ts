@@ -6,18 +6,31 @@ export async function persistTelemetry(sample: TelemetrySample) {
   if (!db) return addTelemetrySample(sample);
 
   try {
-    await db.query(
-      `INSERT INTO telemetry_events
-       (device_id, datastream_id, value, value_json, occurred_at)
-       VALUES ($1, $2, $3, $4::jsonb, $5)`,
-      [
-        sample.deviceId,
-        sample.streamId,
-        typeof sample.value === "number" ? sample.value : null,
-        JSON.stringify(sample.value),
-        sample.timestamp,
-      ],
-    );
+    await db.query("BEGIN");
+    try {
+      await db.query(
+        `INSERT INTO telemetry_events
+         (device_id, datastream_id, value, value_json, occurred_at)
+         VALUES ($1, $2, $3, $4::jsonb, $5)`,
+        [
+          sample.deviceId,
+          sample.streamId,
+          typeof sample.value === "number" ? sample.value : null,
+          JSON.stringify(sample.value),
+          sample.timestamp,
+        ],
+      );
+      await db.query(
+        `UPDATE public.datastream_registry
+         SET last_value_json=$1::jsonb,last_occurred_at=$2,updated_at=now()
+         WHERE datastream_id=$3 AND device_id=$4`,
+        [JSON.stringify(sample.value), sample.timestamp, sample.streamId, sample.deviceId],
+      );
+      await db.query("COMMIT");
+    } catch (error) {
+      await db.query("ROLLBACK");
+      throw error;
+    }
     return sample;
   } catch {
     return addTelemetrySample(sample);
