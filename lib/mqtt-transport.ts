@@ -1,6 +1,8 @@
 import mqtt, { type MqttClient } from "mqtt";
 import { ingestMqttTelemetry } from "./mqtt-telemetry";
 import { markDeviceSeen } from "./device-registry";
+import { listPersistentDatastreams } from "./persistent-datastreams";
+import { persistTelemetry } from "./telemetry-persistence";
 
 let client: MqttClient | null = null;
 let connected = false;
@@ -92,7 +94,20 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
       const key = typeof body.key === "string" ? body.key : `V${body.channel}`;
       const value = body.value;
       if (!["number", "string", "boolean"].includes(typeof value)) return;
-      await ingestMqttTelemetry({ deviceId, key, streamId: typeof body.streamId === "string" ? body.streamId : key, value, timestamp: body.timestamp, firmware: body.firmware }, token);
+      const streamId = typeof body.datastreamId === "string" ? body.datastreamId : typeof body.streamId === "string" ? body.streamId : key;
+      const persistent = await findPersistentDeviceByToken(token || "", deviceId);
+      if (persistent) {
+        const registered = await listPersistentDatastreams(deviceId);
+        const stream = registered.find(item => item.id === streamId);
+        if (!stream) return;
+        const validType =
+          (stream.type === "Number" && typeof value === "number" && Number.isFinite(value)) ||
+          (stream.type === "Boolean" && typeof value === "boolean") ||
+          (stream.type === "String" && typeof value === "string");
+        if (!validType) return;
+      }
+      const sample = await ingestMqttTelemetry({ deviceId, key, streamId, value, timestamp: body.timestamp, firmware: body.firmware }, token);
+      if (persistent) await persistTelemetry({ ...sample, transport: "mqtt" });
     } catch { /* invalid or unauthorized device telemetry is ignored */ }
   } else if (channel === "command-ack") {
     if (!token || typeof body?.commandId !== "string") return;
@@ -124,7 +139,15 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
         await markPersistentDeviceOnline(deviceId, {
           transport: "mqtt",
           firmware: typeof body.firmware === "string" ? body.firmware : undefined,
+          temperature: typeof body.temperature === "number" ? body.temperature : undefined,
+          battery: typeof body.battery === "number" ? body.battery : undefined,
+          state: body.state && typeof body.state === "object" ? body.state : undefined,
         });
+        const state = body.state && typeof body.state === "object"
+          ? Object.fromEntries(Object.entries(body.state).filter(([, value]) => value === null || ["string","number","boolean"].includes(typeof value)))
+          : {};
+        const { publishState } = await import("./state-events");
+        publishState({ type: "device.state.updated", deviceId, state, updatedAt: new Date().toISOString() });
         return;
       }
       const { validBearer } = await import("./store");
