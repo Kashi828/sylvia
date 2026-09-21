@@ -30,7 +30,14 @@ PASTE_ROOT_CA_HERE
 -----END CERTIFICATE-----
 )EOF";
 
-// Change this to the GPIO connected to your relay/LED.\nconst uint8_t RELAY_PIN = D2;\n\n// Prevent accidental duplicate execution if a response is replayed locally.\nString lastCommandId = "";
+// Change this to the GPIO connected to your relay/LED.\nconst uint8_t RELAY_PIN = D2;
+const uint32_t HEARTBEAT_INTERVAL_MS = 15000;
+const uint32_t COMMAND_POLL_INTERVAL_MS = 2000;
+
+// Prevent accidental duplicate execution if a response is replayed locally.
+String lastCommandId = "";
+unsigned long lastHeartbeatAt = 0;
+unsigned long lastPollAt = 0;
 
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
@@ -48,6 +55,31 @@ void connectWiFi() {
 
 String commandsUrl() {
   return String(SYLVIA_BASE_URL) + "/api/v1/devices/" + DEVICE_ID + "/commands";
+}
+
+void sendHeartbeat() {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setCACert(SYLVIA_ROOT_CA);
+
+  HTTPClient http;
+  String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + DEVICE_ID + "/heartbeat";
+  if (!http.begin(*client, url)) return;
+
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
+
+  StaticJsonDocument<256> body;
+  body["firmware"] = "sylvia-esp8266-rest-beta2";
+  body["relayPin"] = RELAY_PIN;
+  body["relayState"] = digitalRead(RELAY_PIN) == HIGH;
+
+  String payload;
+  serializeJson(body, payload);
+  const int code = http.POST(payload);
+  Serial.printf("HEARTBEAT -> HTTP %d\n", code);
+  http.end();
 }
 
 void acknowledgeCommand(const String& commandId, bool ok, const String& message) {
@@ -154,9 +186,25 @@ void setup() {
   digitalWrite(RELAY_PIN, LOW);
 
   connectWiFi();
+  sendHeartbeat();
 }
 
 void loop() {
-  pollCommands();
-  delay(2000);
+  if (WiFi.status() != WL_CONNECTED) {
+    connectWiFi();
+    delay(500);
+    return;
+  }
+
+  const unsigned long now = millis();
+
+  if (now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS || lastHeartbeatAt == 0) {
+    lastHeartbeatAt = now;
+    sendHeartbeat();
+  }
+
+  if (now - lastPollAt >= COMMAND_POLL_INTERVAL_MS || lastPollAt == 0) {
+    lastPollAt = now;
+    pollCommands();
+  }
 }
