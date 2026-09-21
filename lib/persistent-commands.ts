@@ -88,7 +88,9 @@ export async function claimPersistentCommands(deviceId: string | number, limit =
 export async function ackPersistentCommand(deviceId: string | number, id: string, resultValue: unknown) {
   if (!databaseConfigured()) return null;
   try {
-    const result = await query("UPDATE device_commands SET status='acked', acked_at=now(), result=$3::jsonb WHERE id=$1 AND device_id=$2 RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), JSON.stringify(resultValue ?? null)]);
+    const failed = resultValue !== null && typeof resultValue === "object" && "ok" in resultValue && (resultValue as {ok?: unknown}).ok === false;
+    const status = failed ? "failed" : "acked";
+    const result = await query("UPDATE device_commands SET status=$3, acked_at=now(), result=$4::jsonb WHERE id=$1 AND device_id=$2 AND status IN ('queued','sent') RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), status, JSON.stringify(resultValue ?? null)]);
     return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
   } catch { return null; }
 }
