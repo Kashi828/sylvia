@@ -26,6 +26,10 @@ function normalize(row: Record<string, unknown>): PersistentCommand {
   };
 }
 
+function safeLimit(limit: number) {
+  return Math.max(1, Math.min(Number.isFinite(limit) ? Math.trunc(limit) : 10, 50));
+}
+
 export function persistentCommandsAvailable() { return databaseConfigured(); }
 
 export async function createPersistentCommand(id: string, deviceId: string | number, command: string, payload: unknown) {
@@ -33,9 +37,7 @@ export async function createPersistentCommand(id: string, deviceId: string | num
   try {
     const result = await query("INSERT INTO device_commands (id, device_id, command, payload, status) VALUES ($1,$2,$3,$4::jsonb,'queued') ON CONFLICT (id) DO NOTHING RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), command, JSON.stringify(payload ?? null)]);
     return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : await getPersistentCommand(id);
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export async function markPersistentCommandSent(id: string) {
@@ -56,10 +58,22 @@ export async function getPersistentCommand(id: string) {
 
 export async function listPersistentPendingCommands(deviceId: string | number, limit = 10) {
   if (!databaseConfigured()) return [];
-  const safeLimit = Math.max(1, Math.min(Number.isFinite(limit) ? Math.trunc(limit) : 10, 50));
   try {
-    const result = await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2", [String(deviceId), safeLimit]);
+    const result = await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2", [String(deviceId), safeLimit(limit)]);
     return result.rows.map(row => normalize(row as Record<string, unknown>));
+  } catch { return []; }
+}
+
+export async function claimPersistentCommands(deviceId: string | number, limit = 10) {
+  if (!databaseConfigured()) return [];
+  try {
+    const result = await query(
+      "WITH picked AS (SELECT id FROM device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2 FOR UPDATE SKIP LOCKED) UPDATE device_commands c SET status='sent', sent_at=COALESCE(c.sent_at,now()) FROM picked WHERE c.id=picked.id RETURNING c.id,c.device_id,c.command,c.payload,c.status,c.created_at,c.sent_at,c.acked_at,c.result",
+      [String(deviceId), safeLimit(limit)],
+    );
+    return result.rows
+      .sort((a, b) => new Date(String(a.created_at)).getTime() - new Date(String(b.created_at)).getTime())
+      .map(row => normalize(row as Record<string, unknown>));
   } catch { return []; }
 }
 
