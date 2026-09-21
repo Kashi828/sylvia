@@ -7,6 +7,7 @@ function normalize(row: Record<string, unknown>): ServerDevice {
     id: Number(row.device_id),
     name: String(row.name),
     type: String(row.type || "ESP32 Device"),
+    state: (row.state && typeof row.state === "object") ? row.state as Record<string, unknown> : {},
     tokenHash: String(row.token_hash || ""),
     tokenPreview: String(row.token_preview || ""),
     online: Boolean(row.online),
@@ -42,7 +43,7 @@ export async function findPersistentDeviceById(deviceId: string | number) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        WHERE device_id = $1
        LIMIT 1`,
