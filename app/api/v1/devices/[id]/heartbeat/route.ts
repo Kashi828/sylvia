@@ -1,4 +1,5 @@
 import {NextResponse} from 'next/server';
+import {publishState} from '@/lib/state-events';
 import {addEvent,findDevice,validBearer} from '@/lib/store';
 import {findPersistentDeviceById,findPersistentDeviceByToken,markPersistentDeviceOnline} from '@/lib/persistent-devices';
 
@@ -11,7 +12,11 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     const temperature=typeof body?.temperature==='number'&&Number.isFinite(body.temperature)?body.temperature:undefined;
     const battery=typeof body?.battery==='number'&&Number.isFinite(body.battery)?body.battery:undefined;
     const updated=await markPersistentDeviceOnline(id,{transport:'rest',firmware:body?.firmware,temperature,battery,state:body?.state});
-    return NextResponse.json({ok:true,deviceId:id,online:true,lastSeen:updated?.lastSeen||new Date().toISOString(),persistent:true});
+    const state = (body?.state && typeof body.state === 'object')
+      ? Object.fromEntries(Object.entries(body.state).filter(([, value]) => value === null || ['string','number','boolean'].includes(typeof value)))
+      : {};
+    publishState({type:'device.state.updated',deviceId:id,state,updatedAt:new Date().toISOString()});
+    return NextResponse.json({ok:true,deviceId:id,online:true,lastSeen:updated?.lastSeen||new Date().toISOString(),state,persistent:true});
   }
   if(!validBearer(request,Number(id)))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
   const d=findDevice(Number(id));if(!d)return NextResponse.json({ok:false,error:'Device not found'},{status:404});
