@@ -14,9 +14,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const device = await authenticate(request, id);
-  if (!device) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
+  if (!device) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(request.url);
   const rawLimit = Number(url.searchParams.get("limit") ?? "10");
@@ -38,9 +36,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const device = await authenticate(request, id);
-  if (!device) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
+  if (!device) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => null) as {
     commandId?: string;
