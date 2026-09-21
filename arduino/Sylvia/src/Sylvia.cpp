@@ -125,7 +125,6 @@ bool Sylvia::telemetry(const char* streamId, double value) {
   body["streamId"] = streamId;
   body["key"] = streamId;
   body["value"] = value;
-  body["timestamp"] = millis();
 
   String payload;
   serializeJson(body, payload);
