@@ -118,6 +118,46 @@ bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode)
   return !error;
 }
 
+bool Sylvia::telemetry(const char* streamId, double value) {
+  if (!streamId || !streamId[0] || isnan(value)) return false;
+
+  StaticJsonDocument<384> body;
+  body["streamId"] = streamId;
+  body["key"] = streamId;
+  body["value"] = value;
+  body["timestamp"] = millis();
+
+  String payload;
+  serializeJson(body, payload);
+  return postJson(endpoint(("/api/v1/devices/" + _deviceId + "/telemetry").c_str()), payload);
+}
+
+bool Sylvia::telemetry(const char* streamId, const char* value) {
+  if (!streamId || !streamId[0]) return false;
+
+  StaticJsonDocument<512> body;
+  body["streamId"] = streamId;
+  body["key"] = streamId;
+  body["value"] = value ? value : "";
+
+  String payload;
+  serializeJson(body, payload);
+  return postJson(endpoint(("/api/v1/devices/" + _deviceId + "/telemetry").c_str()), payload);
+}
+
+bool Sylvia::telemetry(const char* streamId, bool value) {
+  if (!streamId || !streamId[0]) return false;
+
+  StaticJsonDocument<384> body;
+  body["streamId"] = streamId;
+  body["key"] = streamId;
+  body["value"] = value;
+
+  String payload;
+  serializeJson(body, payload);
+  return postJson(endpoint(("/api/v1/devices/" + _deviceId + "/telemetry").c_str()), payload);
+}
+
 bool Sylvia::heartbeat(const char* firmware, double temperature, double battery) {
   if (!_configured) return false;
 
