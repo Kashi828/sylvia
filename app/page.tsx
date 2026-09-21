@@ -274,36 +274,132 @@ function ConnectivityPanel({devices,streams,apiKeys,setNotice}:{devices:Device[]
  useEffect(()=>{setStatus(selected?'Ready':'Needs device')},[selected?.id]);
  const token=selected?.token||'DEVICE_TOKEN_UNAVAILABLE';
  const copy=async(text:string)=>{try{await navigator.clipboard?.writeText(text);setNotice('Copied to clipboard')}catch{setNotice('Copy unavailable')}};
- const firmware=`#include <ESP8266WiFi.h>
-#include <Sylvia.h>
-
-const char* SYLVIA_DEVICE_ID = "${selected?.id||'YOUR_DEVICE_ID'}";
-const char* SYLVIA_DEVICE_TOKEN = "${token}";
-const char* SYLVIA_BROKER_HOST = "YOUR_MQTT_BROKER_HOST";
-const uint16_t SYLVIA_BROKER_PORT = 8883;
+ const firmware=`/* SYLVIA v0.52 REST hardware starter
+   Persistent cloud commands -> ESP8266 -> GPIO/relay -> ACK.
+   Install: ESP8266WiFi, ESP8266HTTPClient, ArduinoJson.
+*/
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecureBearSSL.h>
+#include <ArduinoJson.h>
 
 const char* WIFI_SSID = "YOUR_WIFI";
 const char* WIFI_PASSWORD = "YOUR_PASSWORD";
-const char* SYLVIA_CA_PEM = "-----BEGIN CERTIFICATE-----\\nPASTE_BROKER_CA_HERE\\n-----END CERTIFICATE-----";
+const char* SYLVIA_BASE_URL = "https://YOUR_SYLVIA_DOMAIN";
+const char* SYLVIA_DEVICE_ID = "${selected?.id||"YOUR_DEVICE_ID"}";
+const char* SYLVIA_DEVICE_TOKEN = "${token}";
+
+static const char SYLVIA_ROOT_CA[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+PASTE_SERVER_ROOT_CA_HERE
+-----END CERTIFICATE-----
+)EOF";
+
+const uint8_t RELAY_PIN = D2;
+
+String commandsUrl() {
+  return String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/commands";
+}
+
+void ackCommand(const String& commandId, bool ok, const String& message) {
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setCACert(SYLVIA_ROOT_CA);
+  HTTPClient http;
+  if (!http.begin(*client, commandsUrl())) return;
+  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
+  StaticJsonDocument<256> body;
+  body["commandId"] = commandId;
+  JsonObject result = body.createNestedObject("result");
+  result["ok"] = ok;
+  result["message"] = message;
+  String json;
+  serializeJson(body, json);
+  Serial.printf("ACK %s -> HTTP %d\\n", commandId.c_str(), http.POST(json));
+  http.end();
+}
+
+void executeCommand(JsonObject command) {
+  String id = command["id"] | "";
+  String name = command["command"] | "";
+  JsonVariant payload = command["payload"];
+
+  if (name == "restart") {
+    ackCommand(id, true, "restart requested");
+    delay(100);
+    ESP.restart();
+    return;
+  }
+
+  bool ok = false;
+  String message = "unsupported command";
+
+  if (name == "identify") {
+    Serial.println("SYLVIA identify");
+    ok = true;
+    message = "device identified";
+  } else if (name == "sync") {
+    ok = true;
+    message = "sync completed";
+  } else if (name == "digital_write" && payload.is<JsonObject>()) {
+    int pin = payload["pin"] | RELAY_PIN;
+    int value = payload["value"] | -1;
+    if (value == 0 || value == 1) {
+      pinMode(pin, OUTPUT);
+      digitalWrite(pin, value ? HIGH : LOW);
+      ok = true;
+      message = String("GPIO ") + pin + " = " + value;
+    } else {
+      message = "value must be 0 or 1";
+    }
+  }
+
+  ackCommand(id, ok, message);
+}
+
+void pollCommands() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setCACert(SYLVIA_ROOT_CA);
+  HTTPClient http;
+  if (!http.begin(*client, commandsUrl())) return;
+  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
+
+  int code = http.GET();
+  if (code != HTTP_CODE_OK) {
+    Serial.printf("SYLVIA poll HTTP %d\\n", code);
+    http.end();
+    return;
+  }
+
+  StaticJsonDocument<2048> response;
+  if (deserializeJson(response, http.getStream())) {
+    Serial.println("Invalid SYLVIA command response");
+    http.end();
+    return;
+  }
+  http.end();
+
+  for (JsonObject command : response["commands"].as<JsonArray>()) executeCommand(command);
+}
 
 void setup() {
   Serial.begin(115200);
-  Sylvia.begin(
-    SYLVIA_DEVICE_ID,
-    SYLVIA_DEVICE_TOKEN,
-    WIFI_SSID,
-    WIFI_PASSWORD,
-    SYLVIA_BROKER_HOST,
-    SYLVIA_BROKER_PORT,
-    SYLVIA_CA_PEM
-  );
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
 void loop() {
-  Sylvia.run();
-  // Example: Sylvia.virtualWrite(0, 25.4f);
+  if (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    return;
+  }
+  pollCommands();
+  delay(2000);
 }`;
- return <div className="apiPage"><div className="hero"><div><span className="eyebrow">DEVICE CONNECTIVITY</span><h1>Connect real hardware from this console.</h1><p>Register a device, use its device token, then connect ESP8266/NodeMCU through MQTT/TLS. Device presence and telemetry are reported by the hardware itself.</p></div><div className="heroActions"><span className={status==='Ready'?'enabled':'disabled'}>{status}</span></div></div><div className="stats"><Stat label="Registered devices" value={devices.length}/><Stat label="Connected" value={devices.filter(d=>d.online).length}/><Stat label="Transport" value="MQTT / TLS"/><Stat label="SDK" value="ESP8266 ready"/></div><div className="panel"><div className="apiTitle"><Cpu size={17}/><div><b>Hardware connection flow</b><span>Use one path from registration to live telemetry.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Register</b><small>Create the device in the main console and keep the one-time device token.</small></div><div><span>02</span><b>Configure</b><small>Set Wi-Fi, broker host, port 8883 and the broker CA certificate.</small></div><div><span>03</span><b>Connect</b><small>ESP8266 connects using the device ID and token over MQTT/TLS.</small></div><div><span>04</span><b>Publish</b><small>Send telemetry and heartbeat messages from the firmware.</small></div></div></div><div className="apiGrid"><div className="panel"><div className="apiTitle"><Network size={17}/><div><b>Registered device</b><span>Select a device token that is available in this browser session.</span></div></div><div className="form"><label>Device<select value={selectedId} onChange={e=>setSelectedId(Number(e.target.value))}>{devices.length?devices.map(d=><option key={d.id} value={d.id}>{d.name} · {d.online?'Online':'Offline'}</option>):<option value={0}>No registered devices</option>}</select></label><label>Broker URL<input value={broker} onChange={e=>setBroker(e.target.value)} /></label><label>MQTT client ID<input value={clientId} onChange={e=>setClientId(e.target.value)} placeholder={selected?`sylvia-${selected.id}`:'sylvia-device'}/></label><div className="provisionBox"><div><b>Device token</b><span className="mono">{selected?.token||'Register a device to receive its token. Tokens are not recoverable after leaving the registration session.'}</span></div>{selected?.token&&<button className="secondary" onClick={()=>copy(selected.token)}><Copy size={13}/> Copy token</button>}</div></div></div><div className="panel"><div className="apiTitle"><Terminal size={17}/><div><b>ESP8266 / NodeMCU starter</b><span>Secure MQTT/TLS connection contract used by the current SDK.</span></div></div><pre>{firmware}</pre><button className="secondary" onClick={()=>copy(firmware)}><Copy size={14}/> Copy firmware</button></div></div><div className="panel"><div className="sectionHead"><div><h2>MQTT contract</h2><span>All device IDs use the same topic family.</span></div></div><div className="endpointList"><div className="endpoint"><span className="endpointDot"/><div><b>Telemetry</b><small>sylvia/devices/{'{deviceId}'}/telemetry</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Heartbeat</b><small>sylvia/devices/{'{deviceId}'}/heartbeat</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Commands</b><small>sylvia/devices/{'{deviceId}'}/command</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Command ACK</b><small>sylvia/devices/{'{deviceId}'}/command-ack</small></div></div></div></div><div className="panel"><div className="apiTitle"><ShieldCheck size={17}/><div><b>Security requirement</b><span>For hosted hardware, use MQTT/TLS with certificate validation. Never publish device tokens in source code repositories.</span></div></div></div></div>}
+ return <div className="apiPage"><div className="hero"><div><span className="eyebrow">DEVICE CONNECTIVITY</span><h1>Connect real hardware from this console.</h1><p>Register a device, use its device token, then connect ESP8266/NodeMCU through MQTT/TLS. Device presence and telemetry are reported by the hardware itself.</p></div><div className="heroActions"><span className={status==='Ready'?'enabled':'disabled'}>{status}</span></div></div><div className="stats"><Stat label="Registered devices" value={devices.length}/><Stat label="Connected" value={devices.filter(d=>d.online).length}/><Stat label="Transport" value="REST + MQTT"/><Stat label="SDK" value="ESP8266 ready"/></div><div className="panel"><div className="apiTitle"><Cpu size={17}/><div><b>Hardware connection flow</b><span>Use one path from registration to live telemetry.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Register</b><small>Create the device in the main console and keep the one-time device token.</small></div><div><span>02</span><b>Configure</b><small>Set Wi-Fi, broker host, port 8883 and the broker CA certificate.</small></div><div><span>03</span><b>Connect</b><small>ESP8266 connects using the device ID and token over MQTT/TLS.</small></div><div><span>04</span><b>Publish</b><small>Send telemetry and heartbeat messages from the firmware.</small></div></div></div><div className="apiGrid"><div className="panel"><div className="apiTitle"><Network size={17}/><div><b>Registered device</b><span>Select a registered device and use its one-time token for REST hardware setup.</span></div></div><div className="form"><label>Device<select value={selectedId} onChange={e=>setSelectedId(Number(e.target.value))}>{devices.length?devices.map(d=><option key={d.id} value={d.id}>{d.name} · {d.online?'Online':'Offline'}</option>):<option value={0}>No registered devices</option>}</select></label><label>Broker URL<input value={broker} onChange={e=>setBroker(e.target.value)} /></label><label>MQTT client ID<input value={clientId} onChange={e=>setClientId(e.target.value)} placeholder={selected?`sylvia-${selected.id}`:'sylvia-device'}/></label><div className="provisionBox"><div><b>Device token</b><span className="mono">{selected?.token||'Register a device to receive its token. Tokens are not recoverable after leaving the registration session.'}</span></div>{selected?.token&&<button className="secondary" onClick={()=>copy(selected.token)}><Copy size={13}/> Copy token</button>}</div></div></div><div className="panel"><div className="apiTitle"><Terminal size={17}/><div><b>ESP8266 / NodeMCU REST starter</b><span>Authenticated HTTPS polling for the persistent SYLVIA command queue.</span></div></div><pre>{firmware}</pre><button className="secondary" onClick={()=>copy(firmware)}><Copy size={14}/> Copy firmware</button></div></div><div className="panel"><div className="sectionHead"><div><h2>MQTT contract</h2><span>All device IDs use the same topic family.</span></div></div><div className="endpointList"><div className="endpoint"><span className="endpointDot"/><div><b>Telemetry</b><small>sylvia/devices/{'{deviceId}'}/telemetry</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Heartbeat</b><small>sylvia/devices/{'{deviceId}'}/heartbeat</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Commands</b><small>sylvia/devices/{'{deviceId}'}/command</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Command ACK</b><small>sylvia/devices/{'{deviceId}'}/command-ack</small></div></div></div></div><div className="panel"><div className="apiTitle"><ShieldCheck size={17}/><div><b>Security requirement</b><span>For hosted hardware, use MQTT/TLS with certificate validation. Never publish device tokens in source code repositories.</span></div></div></div></div>}
 
 function TelemetryPanel({devices,streams,history,setHistory,setNotice}:{devices:Device[];streams:Stream[];history:Record<number,HistoryPoint[]>;setHistory:React.Dispatch<React.SetStateAction<Record<number,HistoryPoint[]>>>;setNotice:(v:string)=>void}){
  const numeric=streams.filter(s=>s.type==='Number'); const [deviceId,setDeviceId]=useState<number>(devices[0]?.id||0); const deviceStreams=numeric.filter(s=>s.deviceId===deviceId); const [streamId,setStreamId]=useState<number>(deviceStreams[0]?.id||numeric[0]?.id||0); useEffect(()=>{if(!deviceStreams.some(s=>s.id===streamId))setStreamId(deviceStreams[0]?.id||numeric[0]?.id||0)},[deviceId,numeric.length,deviceStreams,streamId]); const stream=numeric.find(s=>s.id===streamId); const points=stream?history[stream.id]||[]:[]; const values=points.map(p=>p.value); const min=values.length?Math.min(...values):Number(stream?.value)||0; const max=values.length?Math.max(...values):Number(stream?.value)||0; const avg=values.length?values.reduce((a,b)=>a+b,0)/values.length:Number(stream?.value)||0; const span=Math.max(1,max-min); const line=points.map((p,i)=>`${(i/Math.max(1,points.length-1))*100},${94-((p.value-min)/span)*78}`).join(' '); const exportCsv=()=>{if(!stream)return; const rows=['timestamp,value',...points.map(p=>`${new Date(p.ts).toISOString()},${p.value}`)].join('\n'); const blob=new Blob([rows],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`sylvia-${stream.name.toLowerCase().replace(/\s+/g,'-')}-telemetry.csv`; a.click(); URL.revokeObjectURL(a.href); setNotice('Telemetry CSV exported')}; const clear=()=>{if(stream){setHistory(h=>({...h,[stream.id]:[]}));setNotice('Telemetry history cleared')}}; return <div className="telemetryPage"><div className="hero"><div><span className="eyebrow">TELEMETRY CENTER</span><h1>See what your devices have been doing.</h1><p>Inspect recent numeric telemetry, watch the live trend and export the data for analysis.</p></div><div className="heroActions"><button className="secondary" onClick={clear}><Trash2 size={14}/> Clear history</button><button className="primary" onClick={exportCsv}><ExternalLink size={14}/> Export CSV</button></div></div><div className="telemetryToolbar"><label>Device<select className="premiumField" value={deviceId} onChange={e=>setDeviceId(Number(e.target.value))}>{devices.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label><label>Datastream<select className="premiumField" value={streamId} onChange={e=>setStreamId(Number(e.target.value))}>{deviceStreams.length?deviceStreams.map(s=><option key={s.id} value={s.id}>{s.name}</option>):<option value={0}>No numeric streams</option>}</select></label></div>{stream?<><div className="stats"><Stat label="Current" value={`${stream.value}${stream.unit}`}/><Stat label="Minimum" value={`${min.toFixed(1)}${stream.unit}`}/><Stat label="Average" value={`${avg.toFixed(1)}${stream.unit}`}/><Stat label="Samples" value={points.length}/></div><div className="panel telemetryChart"><div className="sectionHead"><div><h2>{stream.name} history</h2><span>{points.length} recent samples · live simulator capture</span></div><span className="telemetryLive"><i/>Live</span></div><div className="chartFrame">{points.length>1?<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.8" vectorEffect="non-scaling-stroke"/></svg>:<div className="chartEmpty">Collecting telemetry… keep this page open for a few seconds.</div>}</div></div><div className="panel"><div className="sectionHead"><div><h2>Recent samples</h2><span>Newest readings are appended automatically.</span></div></div><div className="sampleGrid">{points.slice(-10).reverse().map(p=><div className="sample" key={p.ts}><b>{p.value}{stream.unit}</b><span>{new Date(p.ts).toLocaleTimeString()}</span></div>)}</div></div></>:<div className="dashboardEmpty"><b>No numeric datastream available</b><span>Create a numeric datastream for this device to start collecting telemetry.</span></div>}</div>}
