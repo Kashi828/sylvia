@@ -7,7 +7,7 @@ import {listPersistentDatastreams} from '@/lib/persistent-datastreams';
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,60); if(limited)return limited;
   const {id}=await params;
-  const token=request.headers.get('authorization')?.replace(/^Bearer\\s+/i,'').trim() || '';
+  const token=request.headers.get('authorization')?.replace(/^Bearer\s+/i,'').trim() || '';
   if(!token)return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
 
   const body=await request.json().catch(()=>null) as {datastreamId?:string|number;streamId?:string|number;key?:string;value?:unknown;timestamp?:string;firmware?:string}|null;
@@ -24,7 +24,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     const sample=await ingestMqttTelemetry({
       deviceId:id,
       streamId:String(datastreamId),
-      key:String(body.key ?? body.streamId),
+      key:String(body.key ?? body.streamId ?? datastreamId),
       value:body.value as number|string|boolean,
       timestamp:body.timestamp,
       firmware:body.firmware,
