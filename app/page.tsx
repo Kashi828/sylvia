@@ -474,7 +474,7 @@ function TelemetryPanel({devices,streams,history,setHistory,setNotice}:{devices:
    void loadCloudTelemetry();
    const timer=setInterval(loadCloudTelemetry,5000);
    return()=>{active=false;clearInterval(timer)};
- },[deviceId,streamId,setHistory]);
+ },[deviceId,streamId,numeric.length,setHistory]);
  const points=stream?history[stream.id]||[]:[];
  const values=points.map(p=>p.value);
  const min=values.length?Math.min(...values):Number(stream?.value)||0;
