@@ -7,6 +7,8 @@ export type PersistentDatastream = {
   type: "Number" | "Boolean" | "String";
   unit: string;
   createdAt: string;
+  value: number | boolean | string | null;
+  lastOccurredAt: string | null;
 };
 
 function normalize(row: Record<string, unknown>): PersistentDatastream {
@@ -17,6 +19,8 @@ function normalize(row: Record<string, unknown>): PersistentDatastream {
     type: String(row.value_type) as PersistentDatastream["type"],
     unit: String(row.unit || ""),
     createdAt: new Date(String(row.created_at)).toISOString(),
+    value: row.last_value_json === null || row.last_value_json === undefined ? null : (row.last_value_json as number | boolean | string),
+    lastOccurredAt: row.last_occurred_at ? new Date(String(row.last_occurred_at)).toISOString() : null,
   };
 }
 
@@ -27,7 +31,7 @@ export function persistentDatastreamsAvailable() {
 export async function listPersistentDatastreams(deviceId?: string) {
   if (!databaseConfigured()) return [];
   const result = await query(
-    `SELECT datastream_id,device_id,name,value_type,unit,created_at
+    `SELECT datastream_id,device_id,name,value_type,unit,created_at,last_value_json,last_occurred_at
      FROM public.datastream_registry
      ${deviceId ? "WHERE device_id=$1" : ""}
      ORDER BY name ASC`,
@@ -48,7 +52,7 @@ export async function createPersistentDatastream(
     `INSERT INTO public.datastream_registry
       (datastream_id,device_id,name,value_type,unit)
      VALUES ($1,$2,$3,$4,$5)
-     RETURNING datastream_id,device_id,name,value_type,unit,created_at`,
+     RETURNING datastream_id,device_id,name,value_type,unit,created_at,last_value_json,last_occurred_at`,
     [id, String(deviceId), name.trim(), type, unit.trim()],
   );
   return normalize(result.rows[0] as Record<string, unknown>);
