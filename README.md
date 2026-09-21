@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.52.0-beta.1 — REST Command Polling**
+**v0.52.0-beta.2 — REST Command Polling**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -69,6 +69,10 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - REST command polling is now available as a hardware transport fallback.
 - ESP8266/NodeMCU support remains the next real-hardware validation path; physical hardware testing is intentionally manual.
 
-### v0.52.0-beta.1
+### v0.52.0-beta.2
 
-The command path now closes the REST fallback loop: queued commands can be atomically claimed by a device, marked as sent, and acknowledged by that same authenticated device. This is the next step toward reliable cloud-to-hardware control without requiring the MQTT session to stay connected.
+The REST fallback is now accompanied by a real ESP8266 command-polling reference sketch. It polls the persistent command queue, executes `restart`, `sync`, `identify`, and `digital_write` commands, then acknowledges each command back to SYLVIA over authenticated HTTPS.
+
+Reference firmware: `examples/esp8266/sylvia-rest-command-poller.ino`.
+
+The next hardware milestone is a physical ESP8266/NodeMCU test using a real relay or LED load.
