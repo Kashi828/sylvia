@@ -40,7 +40,6 @@ public:
   bool reportState(const char* key, double value);
   bool reportState(const char* key, bool value);
 
-  bool sendCommand(const char* command, JsonObjectConst payload = JsonObjectConst());
 
   bool onCommand(const char* command, CommandHandler handler);
 
