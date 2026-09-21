@@ -30,7 +30,7 @@ PASTE_ROOT_CA_HERE
 -----END CERTIFICATE-----
 )EOF";
 
-// Change this to the GPIO connected to your relay/LED.\nconst uint8_t RELAY_PIN = D2;
+// Change this to the GPIO connected to your relay/LED.\nconst uint8_t RELAY_PIN = D2;\n\n// Prevent accidental duplicate execution if a response is replayed locally.\nString lastCommandId = "";
 
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
