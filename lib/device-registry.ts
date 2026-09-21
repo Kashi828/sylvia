@@ -62,7 +62,7 @@ async function persist(device: FleetDevice) {
 export async function hydrateFleetRegistry() {
   if (!databaseConfigured()) return listFleetDevices();
   try {
-    const result = await query(`SELECT device_id,name,lifecycle,last_seen,firmware,transport,temperature,battery,created_at,updated_at FROM device_registry ORDER BY name ASC`);
+    const result = await query(`SELECT device_id,name,lifecycle,last_seen,firmware,transport,temperature,battery,state,created_at,updated_at FROM device_registry ORDER BY name ASC`);
     for (const row of result.rows) {
       const device = normalize(row);
       registry.set(device.deviceId, device);
