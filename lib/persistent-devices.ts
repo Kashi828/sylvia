@@ -93,10 +93,11 @@ export async function markPersistentDeviceOnline(
            last_seen=now(),
            firmware=COALESCE($2, firmware),
            transport=COALESCE($3, transport),
+           state=COALESCE($4::jsonb, state),
            updated_at=now()
        WHERE device_id=$1
        RETURNING device_id,name,online,temperature,battery,last_seen,token_hash,token_preview`,
-    [id, metadata?.firmware ?? null, metadata?.transport ?? null],
+    [id, metadata?.firmware ?? null, metadata?.transport ?? null, JSON.stringify(metadata?.state ?? {})],
   );
   if (!result.rows[0]) return null;
 
