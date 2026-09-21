@@ -19,9 +19,9 @@ REPLACE_WITH_YOUR_CA_CERTIFICATE
 )EOF";
 
 const uint8_t TELEMETRY_PIN = A0;
-const uint8_t HEARTBEAT_INTERVAL_MS = 15000;
-const uint8_t TELEMETRY_INTERVAL_MS = 5000;
-const uint8_t COMMAND_POLL_INTERVAL_MS = 2000;
+const unsigned long HEARTBEAT_INTERVAL_MS = 15000UL;
+const unsigned long TELEMETRY_INTERVAL_MS = 5000UL;
+const unsigned long COMMAND_POLL_INTERVAL_MS = 2000UL;
 
 unsigned long lastHeartbeat = 0;
 unsigned long lastTelemetry = 0;
@@ -33,13 +33,7 @@ String apiUrl(const String& path) {
   return String(SYLVIA_BASE_URL) + path;
 }
 
-bool requestJson(
-  const String& method,
-  const String& path,
-  const String& body,
-  String& response,
-  int& status
-) {
+bool requestJson(const String& method, const String& path, const String& body, String& response, int& status) {
   HTTPClient http;
   http.begin(secureClient, apiUrl(path));
   http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
@@ -54,8 +48,7 @@ void heartbeat() {
   StaticJsonDocument<192> doc;
   doc["firmware"] = "sylvia-esp8266-rest-0.1";
   doc["battery"] = 0;
-  JsonObject metrics = doc.createNestedObject("metrics");
-  metrics["analog"] = analogRead(TELEMETRY_PIN);
+  doc["analog"] = analogRead(TELEMETRY_PIN);
 
   String body;
   serializeJson(doc, body);
@@ -98,7 +91,6 @@ void acknowledge(const String& commandId, const String& result) {
 void handleCommand(JsonObject command) {
   const String commandId = command["id"] | "";
   const String name = command["command"] | "";
-
   if (commandId.length() == 0) return;
 
   if (name == "digital_write") {
@@ -106,7 +98,7 @@ void handleCommand(JsonObject command) {
     const int pin = payload["pin"] | -1;
     const int value = payload["value"] | -1;
 
-    if (pin >= 0 && value >= 0) {
+    if (pin >= 0 && (value == 0 || value == 1)) {
       pinMode(pin, OUTPUT);
       digitalWrite(pin, value ? HIGH : LOW);
       acknowledge(commandId, "digital_write applied");
@@ -121,13 +113,7 @@ void pollCommands() {
   String response;
   int status = 0;
 
-  if (!requestJson(
-        "GET",
-        "/api/v1/devices/" + String(DEVICE_ID) + "/commands?limit=5",
-        "",
-        response,
-        status
-      )) {
+  if (!requestJson("GET", "/api/v1/devices/" + String(DEVICE_ID) + "/commands?limit=5", "", response, status)) {
     return;
   }
 
@@ -152,16 +138,12 @@ void connectWiFi() {
 void setup() {
   Serial.begin(115200);
   connectWiFi();
-
   secureClient.setCACert(SYLVIA_ROOT_CA);
-
   heartbeat();
 }
 
 void loop() {
-  if (WiFi.status() != WL_CONNECTED) {
-    connectWiFi();
-  }
+  if (WiFi.status() != WL_CONNECTED) connectWiFi();
 
   const unsigned long now = millis();
 
