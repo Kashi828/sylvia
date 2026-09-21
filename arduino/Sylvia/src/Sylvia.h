@@ -30,6 +30,10 @@ public:
 
   void loop();
 
+  bool telemetry(const char* streamId, double value);
+  bool telemetry(const char* streamId, const char* value);
+  bool telemetry(const char* streamId, bool value);
+
   bool heartbeat(
     const char* firmware = nullptr,
     double temperature = NAN,
