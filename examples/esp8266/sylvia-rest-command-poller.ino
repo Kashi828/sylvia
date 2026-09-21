@@ -73,7 +73,7 @@ void sendHeartbeat() {
   StaticJsonDocument<256> body;
   body["firmware"] = "sylvia-esp8266-rest-beta2";
   body["relayPin"] = RELAY_PIN;
-  body["relayState"] = digitalRead(RELAY_PIN) == HIGH;
+  body["relayState"] = digitalRead(RELAY_PIN) == HIGH;\n  JsonObject state = body.createNestedObject("state");\n  state["relayPin"] = RELAY_PIN;\n  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;
 
   String payload;
   serializeJson(body, payload);
