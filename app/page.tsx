@@ -338,7 +338,7 @@ void sendHeartbeat() {
   body["battery"] = 0;
   JsonObject state = body.createNestedObject("state");
   state["relayPin"] = RELAY_PIN;
-  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;
+  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;\n  state["lastCommandId"] = lastCommandId;
   String json;
   serializeJson(body, json);
   const int code = http.POST(json);
