@@ -296,6 +296,11 @@ PASTE_SERVER_ROOT_CA_HERE
 )EOF";
 
 const uint8_t RELAY_PIN = D2;
+const uint32_t HEARTBEAT_INTERVAL_MS = 15000;
+const uint32_t COMMAND_POLL_INTERVAL_MS = 2000;
+unsigned long lastHeartbeatAt = 0;
+unsigned long lastPollAt = 0;
+String lastCommandId = "";
 
 String commandsUrl() {
   return String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/commands";
@@ -319,10 +324,34 @@ void ackCommand(const String& commandId, bool ok, const String& message) {
   http.end();
 }
 
+void sendHeartbeat() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setCACert(SYLVIA_ROOT_CA);
+  HTTPClient http;
+  String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/heartbeat";
+  if (!http.begin(*client, url)) return;
+  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
+  StaticJsonDocument<384> body;
+  body["firmware"] = "sylvia-esp8266-rest-beta2";
+  body["battery"] = 0;
+  JsonObject state = body.createNestedObject("state");
+  state["relayPin"] = RELAY_PIN;
+  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;
+  String json;
+  serializeJson(body, json);
+  const int code = http.POST(json);
+  Serial.printf("HEARTBEAT -> HTTP %d\n", code);
+  http.end();
+}
+
 void executeCommand(JsonObject command) {
   String id = command["id"] | "";
   String name = command["command"] | "";
   JsonVariant payload = command["payload"];
+
+  if (id == lastCommandId) return;
 
   if (name == "restart") {
     ackCommand(id, true, "restart requested");
@@ -355,6 +384,7 @@ void executeCommand(JsonObject command) {
   }
 
   ackCommand(id, ok, message);
+  if (ok) lastCommandId = id;
 }
 
 void pollCommands() {
@@ -396,8 +426,20 @@ void loop() {
     delay(500);
     return;
   }
-  pollCommands();
-  delay(2000);
+
+  const unsigned long now = millis();
+
+  if (lastHeartbeatAt == 0 || now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
+    lastHeartbeatAt = now;
+    sendHeartbeat();
+  }
+
+  if (lastPollAt == 0 || now - lastPollAt >= COMMAND_POLL_INTERVAL_MS) {
+    lastPollAt = now;
+    pollCommands();
+  }
+
+  delay(50);
 }`;
  return <div className="apiPage"><div className="hero"><div><span className="eyebrow">DEVICE CONNECTIVITY</span><h1>Connect real hardware from this console.</h1><p>Register a device, use its device token, then connect ESP8266/NodeMCU through MQTT/TLS. Device presence and telemetry are reported by the hardware itself.</p></div><div className="heroActions"><span className={status==='Ready'?'enabled':'disabled'}>{status}</span></div></div><div className="stats"><Stat label="Registered devices" value={devices.length}/><Stat label="Connected" value={devices.filter(d=>d.online).length}/><Stat label="Transport" value="REST + MQTT"/><Stat label="SDK" value="ESP8266 ready"/></div><div className="panel"><div className="apiTitle"><Cpu size={17}/><div><b>Hardware connection flow</b><span>Use one path from registration to live telemetry.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Register</b><small>Create the device in the main console and keep the one-time device token.</small></div><div><span>02</span><b>Configure</b><small>Set Wi-Fi, broker host, port 8883 and the broker CA certificate.</small></div><div><span>03</span><b>Connect</b><small>ESP8266 connects using the device ID and token over MQTT/TLS.</small></div><div><span>04</span><b>Publish</b><small>Send telemetry and heartbeat messages from the firmware.</small></div></div></div><div className="apiGrid"><div className="panel"><div className="apiTitle"><Network size={17}/><div><b>Registered device</b><span>Select a registered device and use its one-time token for REST hardware setup.</span></div></div><div className="form"><label>Device<select value={selectedId} onChange={e=>setSelectedId(Number(e.target.value))}>{devices.length?devices.map(d=><option key={d.id} value={d.id}>{d.name} · {d.online?'Online':'Offline'}</option>):<option value={0}>No registered devices</option>}</select></label><label>Broker URL<input value={broker} onChange={e=>setBroker(e.target.value)} /></label><label>MQTT client ID<input value={clientId} onChange={e=>setClientId(e.target.value)} placeholder={selected?`sylvia-${selected.id}`:'sylvia-device'}/></label><div className="provisionBox"><div><b>Device token</b><span className="mono">{selected?.token||'Register a device to receive its token. Tokens are not recoverable after leaving the registration session.'}</span></div>{selected?.token&&<button className="secondary" onClick={()=>copy(selected.token)}><Copy size={13}/> Copy token</button>}</div></div></div><div className="panel"><div className="apiTitle"><Terminal size={17}/><div><b>ESP8266 / NodeMCU REST starter</b><span>Authenticated HTTPS polling for the persistent SYLVIA command queue.</span></div></div><pre>{firmware}</pre><button className="secondary" onClick={()=>copy(firmware)}><Copy size={14}/> Copy firmware</button></div></div><div className="panel"><div className="sectionHead"><div><h2>MQTT contract</h2><span>All device IDs use the same topic family.</span></div></div><div className="endpointList"><div className="endpoint"><span className="endpointDot"/><div><b>Telemetry</b><small>sylvia/devices/{'{deviceId}'}/telemetry</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Heartbeat</b><small>sylvia/devices/{'{deviceId}'}/heartbeat</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Commands</b><small>sylvia/devices/{'{deviceId}'}/command</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Command ACK</b><small>sylvia/devices/{'{deviceId}'}/command-ack</small></div></div></div></div><div className="panel"><div className="apiTitle"><ShieldCheck size={17}/><div><b>Security requirement</b><span>For hosted hardware, use MQTT/TLS with certificate validation. Never publish device tokens in source code repositories.</span></div></div></div></div>}
 
