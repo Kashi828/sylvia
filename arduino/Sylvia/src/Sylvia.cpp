@@ -122,6 +122,7 @@ bool Sylvia::telemetry(const char* streamId, double value) {
   if (!streamId || !streamId[0] || isnan(value)) return false;
 
   StaticJsonDocument<384> body;
+  body["datastreamId"] = streamId;
   body["streamId"] = streamId;
   body["key"] = streamId;
   body["value"] = value;
