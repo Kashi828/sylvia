@@ -75,4 +75,4 @@ The REST fallback is now accompanied by a real ESP8266 command-polling reference
 
 Reference firmware: `examples/esp8266/sylvia-rest-command-poller.ino`.
 
-The next hardware milestone is a physical ESP8266/NodeMCU test using a real relay or LED load.
+Command acknowledgements now distinguish successful and failed device execution, and terminal command records cannot be acknowledged twice. The ESP8266 reference also ignores a repeated command ID during the same runtime to reduce duplicate GPIO execution.\n\nThe next hardware milestone is a physical ESP8266/NodeMCU test using a real relay or LED load.
