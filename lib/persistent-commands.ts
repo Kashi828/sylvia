@@ -64,6 +64,14 @@ export async function listPersistentPendingCommands(deviceId: string | number, l
   } catch { return []; }
 }
 
+export async function listPersistentCommands(deviceId: string | number, limit = 20) {
+  if (!databaseConfigured()) return [];
+  try {
+    const result = await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM device_commands WHERE device_id=$1 ORDER BY created_at DESC LIMIT $2", [String(deviceId), safeLimit(limit)]);
+    return result.rows.map(row => normalize(row as Record<string, unknown>));
+  } catch { return []; }
+}
+
 export async function claimPersistentCommands(deviceId: string | number, limit = 10) {
   if (!databaseConfigured()) return [];
   try {
