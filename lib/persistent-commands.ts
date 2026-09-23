@@ -45,7 +45,9 @@ export async function markPersistentCommandSent(id: string) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query("UPDATE device_commands SET status='sent', sent_at=COALESCE(sent_at,now()) WHERE id=$1 RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id]);
-    return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    const command = result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    if (command) publishCommand({ type: "device.command.updated", deviceId: command.deviceId, commandId: command.id, status: command.status, command: command.command, result: command.result, updatedAt: command.sentAt || new Date().toISOString() });
+    return command;
   } catch { return null; }
 }
 
@@ -53,7 +55,9 @@ export async function getPersistentCommand(id: string) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM device_commands WHERE id=$1 LIMIT 1", [id]);
-    return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    const command = result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    if (command) publishCommand({ type: "device.command.updated", deviceId: command.deviceId, commandId: command.id, status: command.status, command: command.command, result: command.result, updatedAt: command.ackedAt || new Date().toISOString() });
+    return command;
   } catch { return null; }
 }
 
