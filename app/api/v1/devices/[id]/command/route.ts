@@ -17,7 +17,9 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
 
   const persistentByToken=rawToken ? await findPersistentDeviceByToken(rawToken,id) : null;
   const persistentById=sessionUser ? await findPersistentDeviceById(id) : null;
-  const numericId=Number(id);\n  const legacyDevice=Number.isFinite(numericId) ? findDevice(numericId) : null;\n  const device=persistentByToken || persistentById || (rawToken && legacyDevice && validBearer(rawToken,numericId) ? legacyDevice : (sessionUser ? legacyDevice : null));
+  const numericId=Number(id);
+  const legacyDevice=Number.isFinite(numericId) ? findDevice(numericId) : null;
+  const device=persistentByToken || persistentById || (rawToken && legacyDevice && validBearer(rawToken,numericId) ? legacyDevice : (sessionUser ? legacyDevice : null));
   if(!device) return NextResponse.json({ok:false,error:"Unauthorized or device not found"},{status:401});
 
   const body=await request.json().catch(()=>null) as {command?:string;payload?:unknown}|null;
