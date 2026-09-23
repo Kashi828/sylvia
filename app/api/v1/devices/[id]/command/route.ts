@@ -10,8 +10,6 @@ import { createPersistentCommand, markPersistentCommandSent, persistentCommandsA
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,30); if(limited)return limited;
   const {id}=await params;
-  const numericId=Number(id);
-  if(!Number.isFinite(numericId)) return NextResponse.json({ok:false,error:"Invalid device id"},{status:400});
 
   const rawToken=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"").trim() || "";
   const sessionToken=request.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.split('=')[1];
@@ -19,7 +17,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
 
   const persistentByToken=rawToken ? await findPersistentDeviceByToken(rawToken,id) : null;
   const persistentById=sessionUser ? await findPersistentDeviceById(id) : null;
-  const device=persistentByToken || persistentById || (rawToken && validBearer(rawToken,numericId) ? findDevice(numericId) : (sessionUser ? findDevice(numericId) : null));
+  const numericId=Number(id);\n  const legacyDevice=Number.isFinite(numericId) ? findDevice(numericId) : null;\n  const device=persistentByToken || persistentById || (rawToken && legacyDevice && validBearer(rawToken,numericId) ? legacyDevice : (sessionUser ? legacyDevice : null));
   if(!device) return NextResponse.json({ok:false,error:"Unauthorized or device not found"},{status:401});
 
   const body=await request.json().catch(()=>null) as {command?:string;payload?:unknown}|null;
