@@ -64,6 +64,18 @@ export async function listPersistentPendingCommands(deviceId: string | number, l
   } catch { return []; }
 }
 
+export async function recoverStalePersistentCommands(deviceId: string | number, timeoutSeconds = 120) {
+  if (!databaseConfigured()) return [];
+  const timeout = Math.max(30, Math.min(Math.trunc(timeoutSeconds), 3600));
+  try {
+    const result = await query(
+      "UPDATE device_commands SET status='failed', acked_at=now(), result=$3::jsonb WHERE device_id=$1 AND status='sent' AND sent_at IS NOT NULL AND sent_at < now() - ($2::text || ' seconds')::interval RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",
+      [String(deviceId), timeout, JSON.stringify({ ok: false, error: "Command acknowledgement timeout", timeoutSeconds: timeout })],
+    );
+    return result.rows.map(row => normalize(row as Record<string, unknown>));
+  } catch { return []; }
+}
+
 export async function listPersistentCommands(deviceId: string | number, limit = 20) {
   if (!databaseConfigured()) return [];
   try {
