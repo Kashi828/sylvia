@@ -42,12 +42,22 @@ function safeError(error: unknown): { code: string | null; message: string | nul
 export async function GET() {
   let databaseError: { code: string | null; message: string | null } = { code: null, message: null };
   let mqttError: { code: string | null; message: string | null } = { code: null, message: null };
+  const runtimeSchema = { configured: false, connected: false, missingTables: [] as string[] };
 
   const db = { configured: databaseConfigured(), connected: false };
   if (db.configured) {
     try {
       await query('select 1');
       db.connected = true;
+      const requiredTables = ['device_registry','telemetry_events','datastream_registry','sylvia_device_commands'];
+      const schemaResult = await query(
+        `select table_name from information_schema.tables where table_schema='public' and table_name = any($1::text[])`,
+        [requiredTables],
+      );
+      const presentTables = new Set(schemaResult.rows.map(row => String(row.table_name)));
+      runtimeSchema.configured = true;
+      runtimeSchema.connected = requiredTables.every(table => presentTables.has(table));
+      runtimeSchema.missingTables = requiredTables.filter(table => !presentTables.has(table));
     } catch (error) {
       databaseError = safeError(error);
     }
@@ -63,7 +73,7 @@ export async function GET() {
     mqtt = mqttStatus();
   }
 
-  const ready = db.configured && db.connected && mqtt.configured && mqtt.connected;
+  const ready = db.configured && db.connected && runtimeSchema.connected && mqtt.configured && mqtt.connected;
   const databaseEnv = ['POSTGRES_URL'].filter(present);
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
@@ -82,7 +92,7 @@ export async function GET() {
     service: 'sylvia',
     version: '0.52.0-beta.2',
     deployment: DEPLOYMENT_MARKER,
-    checks: { database: db, mqtt },
+    checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
       databaseProvider: 'supabase-postgres',
       databaseUrlResolved: Boolean(getDatabaseUrl()),
