@@ -244,7 +244,43 @@ function DeviceDetailPanel({device,streams,onClose,onUpdateStream,setNotice}:{de
    </div>
   )}
 
-  {view==='Commands'&&<div className="commandPanel"><div className="commandPreset"><button className="secondary" onClick={()=>{setCommand('restart');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Restart</button><button className="secondary" onClick={()=>{setCommand('sync');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Sync</button><button className="secondary" onClick={()=>{setCommand('identify');setCommandPayload('');setNotice('Command prepared')}}><Bot size={14}/> Identify</button><button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{"value":1}');setNotice('GPIO ON command prepared')}}><Power size={14}/> GPIO ON</button><button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{"value":0}');setNotice('GPIO OFF command prepared')}}><Power size={14}/> GPIO OFF</button></div><label className="commandInput"><span>Custom command</span><div><input value={command} onChange={e=>setCommand(e.target.value)} placeholder="e.g. digital_write"/><button className="primary" onClick={sendCommand}><Send size={14}/> Send</button></div></label><label className="commandInput"><span>Payload JSON</span><div><input value={commandPayload} onChange={e=>setCommandPayload(e.target.value)} placeholder='{"pin":2,"value":1}'/></div></label><div className="commandHint"><Terminal size={15}/><span>Commands are persisted in PostgreSQL. MQTT devices receive them over MQTT; REST devices claim them by polling. Acknowledgements update the persistent command record.</span></div>{commandHistory.length>0&&<div className="controlList" style={{marginTop:14}}><b>Recent command state</b>{commandHistory.slice(0,6).map(item=><div className="controlRow" key={item.id}><div><b>{item.command}</b><span className="mono">{item.id}</span></div><div><b>{item.status}</b><span>{item.ackedAt?new Date(item.ackedAt).toLocaleTimeString():new Date(item.createdAt).toLocaleTimeString()}</span></div></div>)}</div></div>}
+  {view==='Commands'&&(
+   <div className="commandPanel">
+    <div className="commandPreset">
+     <button className="secondary" onClick={()=>{setCommand('restart');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Restart</button>
+     <button className="secondary" onClick={()=>{setCommand('sync');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Sync</button>
+     <button className="secondary" onClick={()=>{setCommand('identify');setCommandPayload('');setNotice('Command prepared')}}><Bot size={14}/> Identify</button>
+     <button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{\"value\":1}');setNotice('GPIO ON command prepared')}}><Power size={14}/> GPIO ON</button>
+     <button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{\"value\":0}');setNotice('GPIO OFF command prepared')}}><Power size={14}/> GPIO OFF</button>
+    </div>
+    <label className="commandInput">
+     <span>Custom command</span>
+     <div>
+      <input value={command} onChange={e=>setCommand(e.target.value)} placeholder="e.g. digital_write"/>
+      <button className="primary" onClick={sendCommand}><Send size={14}/> Send</button>
+     </div>
+    </label>
+    <label className="commandInput">
+     <span>Payload JSON</span>
+     <div><input value={commandPayload} onChange={e=>setCommandPayload(e.target.value)} placeholder='{"pin":2,"value":1}'/></div>
+    </label>
+    <div className="commandHint">
+     <Terminal size={15}/>
+     <span>Commands are persisted in PostgreSQL. MQTT devices receive them over MQTT; REST devices claim them by polling. Acknowledgements update the persistent command record.</span>
+    </div>
+    {commandHistory.length>0&&(
+     <div className="controlList" style={{marginTop:14}}>
+      <b>Recent command state</b>
+      {commandHistory.slice(0,6).map(item=>(
+       <div className="controlRow" key={item.id}>
+        <div><b>{item.command}</b><span className="mono">{item.id}</span></div>
+        <div><b>{item.status}</b><span>{item.ackedAt?new Date(item.ackedAt).toLocaleTimeString():new Date(item.createdAt).toLocaleTimeString()}</span></div>
+       </div>
+      ))}
+     </div>
+    )}
+   </div>
+  )}
  </Modal>
 }
 
