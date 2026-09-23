@@ -112,26 +112,27 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
   } else if (channel === "command-ack") {
     if (!token || typeof body?.commandId !== "string") return;
     const numericId = Number(deviceId);
-    if (!Number.isFinite(numericId)) return;
     try {
       const { findPersistentDeviceByToken } = await import("./persistent-devices");
       const persistent = await findPersistentDeviceByToken(token, deviceId);
+      if (!persistent && !Number.isFinite(numericId)) return;
       if (!persistent) {
         const { authenticateDeviceToken } = await import("./store");
         if (!authenticateDeviceToken(token, numericId)) return;
       }
-      const { ackCommand } = await import("./store");
-      const item = ackCommand(numericId, body.commandId, body.result ?? null);
       if (persistent) {
         const { ackPersistentCommand } = await import("./persistent-commands");
-        await ackPersistentCommand(deviceId, body.commandId, body.result ?? null);
+        const command = await ackPersistentCommand(deviceId, body.commandId, body.result ?? null);
+        if (command) addCommandAckEvent(deviceId, command.command);
+      } else {
+        const { ackCommand } = await import("./store");
+        const item = ackCommand(numericId, body.commandId, body.result ?? null);
+        if (item) addCommandAckEvent(deviceId, item.command);
       }
-      if (item) addCommandAckEvent(numericId, item.command);
     } catch { /* keep MQTT listener resilient */ }
   } else if (channel === "heartbeat") {
     if (!token) return;
     const numericId = Number(deviceId);
-    if (!Number.isFinite(numericId)) return;
     try {
       const { findPersistentDeviceByToken, markPersistentDeviceOnline } = await import("./persistent-devices");
       const persistent = await findPersistentDeviceByToken(token, deviceId);
@@ -150,13 +151,15 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
         publishState({ type: "device.state.updated", deviceId, state, updatedAt: new Date().toISOString() });
         return;
       }
-      const { validBearer } = await import("./store");
-      if (validBearer(token, numericId)) await markDeviceSeen(deviceId, { transport: "mqtt", firmware: typeof body.firmware === "string" ? body.firmware : undefined });
+      if (Number.isFinite(numericId)) {
+        const { validBearer } = await import("./store");
+        if (validBearer(token, numericId)) await markDeviceSeen(deviceId, { transport: "mqtt", firmware: typeof body.firmware === "string" ? body.firmware : undefined });
+      }
     } catch { /* keep MQTT listener resilient */ }
   }
 }
 
-function addCommandAckEvent(deviceId: number, command: string) {
+function addCommandAckEvent(deviceId: string, command: string) {
   // Lazy import keeps the transport module lightweight while avoiding a circular module dependency.
   void import("./store").then(({ addEvent }) => addEvent("device.command.ack", `Device ${deviceId}: ${command} acknowledged`, deviceId));
 }
