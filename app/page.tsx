@@ -8,7 +8,7 @@ import { Activity, Cpu, LayoutDashboard, Radio, Zap, Settings, Plus, Gauge, Tras
 
 type Device={id:number;name:string;type:string;templateId:number;token:string;tokenPreview?:string;temperature:number;online:boolean;battery:number;lastSeen:number};
 type Template={id:number;name:string;description:string;protocol:string;created:number};
-type Stream={id:number;remoteId?:string;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number|boolean;
+type Stream={id:number;remoteId?:string;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number|boolean;}
 type Widget={id:number;title:string;kind:'Gauge'|'Value'|'Switch'|'Chart';streamId:number};
 type Rule={id:number;name:string;streamId:number;operator:'>'|'<'|'='|'!=';threshold:string;action:'Event'|'Switch device'|'Set datastream';enabled:boolean};
 type ApiKey={id:number;name:string;token:string;created:number};
