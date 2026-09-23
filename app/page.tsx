@@ -202,8 +202,48 @@ function DeviceDetailPanel({device,streams,onClose,onUpdateStream,setNotice}:{de
  return <Modal title={device.name} eyebrow="DEVICE CONTROL CENTER" close={onClose}>
   <div className="deviceControlHeader"><div className="detailHero"><div className="deviceIcon big"><Cpu size={22}/></div><div><b>{device.type}</b><span>{device.online?'Connected':'Offline'} · Template #{device.templateId}</span></div></div><span className={device.online?'power on':'power'} aria-label={device.online?'Device online':'Device offline'} title={device.online?'Connected':'Waiting for connection'}><Power size={17}/></span></div>
   <div className="deviceTabs">{(['Overview','Telemetry','Commands'] as const).map(t=><button key={t} className={view===t?'active':''} onClick={()=>setView(t)}>{t}</button>)}</div>
-  {view==='Overview'&&<><div className="stateSyncBadge"><span className={stateConnected?'liveDot':'liveDot offline'}/><b>{stateConnected?'Realtime state connected':'Waiting for realtime state'}</b><small>{Object.keys(liveState).length} reported fields</small></div><div className="detailGrid premiumDetailGrid"><div><span>Temperature</span><b>{device.online?device.temperature.toFixed(1):'—'}{device.online?' °C':''}</b></div><div><span>Battery</span><b>{device.online?device.battery+'%':'—'}</b></div><div><span>Status</span><b className={device.online?'statusGood':'statusDim'}>{device.online?'Online':'Offline'}</b></div><div><span>Last seen</span><b>{new Date(device.lastSeen).toLocaleTimeString()}</b></div></div><div className="provisionBox"><div><b>Device token</b><span className="mono">{device.token||device.tokenPreview||'Token available only on the device registration session'}</span></div>{device.token&&<button className="secondary" onClick={()=>copy(device.token)}><Copy size={13}/> Copy token</button>}</div>{Object.keys(liveState).length>0&&<div className="provisionBox stateReportBox"><div><b>Device-reported state</b><span className="mono">{Object.entries(liveState).map(([k,v])=>`${k}: ${String(v)}`).join(' · ')}</span></div></div>}<div className="stateConfirmation"><span className="liveDot"/><div><b>Physical state correlation</b><small>{liveState.lastCommandId?<>Latest device command: <span className="mono">{String(liveState.lastCommandId)}</span></>:<>Waiting for a command-correlated heartbeat.</>}</small></div></div><div className="provisionBox"><div><b>Heartbeat endpoint</b><span className="mono">POST /api/v1/devices/{device.id}/heartbeat</span></div><button className="secondary" onClick={()=>copy(`/api/v1/devices/${device.id}/heartbeat`)}><Copy size={13}/> Copy endpoint</button></div></>}
-  {view==='Telemetry'&&<div className="controlList">{deviceStreams.length===0?<div className="dashboardEmpty"><div><b>No datastreams attached</b><span>Create a datastream for this device to control values here.</span></div></div>:deviceStreams.map(s=><div className="controlRow" key={s.id}><div><b>{s.name}</b><span>{s.type}{s.unit?` · ${s.unit}`:''}</span></div>{s.type==='Boolean'?<button className={String(s.value)==='true'?'switch on':'switch'} onClick={()=>onUpdateStream(s.id,String(s.value)==='true'?'false':'true')} aria-label={`Toggle ${s.name}`}><i/></button>:<div className="controlInput"><input value={String(s.value)} onChange={e=>onUpdateStream(s.id,s.type==='Number'?Number(e.target.value):e.target.value)} /><button className="secondary" onClick={()=>setNotice(`${s.name} updated`)}>Apply</button></div>}</div>)}</div>}
+  {view==='Overview'&&(
+   <>
+    <div className="stateSyncBadge">
+     <span className={stateConnected?'liveDot':'liveDot offline'}/>
+     <b>{stateConnected?'Realtime state connected':'Waiting for realtime state'}</b>
+     <small>{Object.keys(liveState).length} reported fields</small>
+    </div>
+    <div className="detailGrid premiumDetailGrid">
+     <div><span>Temperature</span><b>{device.online?device.temperature.toFixed(1):'—'}{device.online?' °C':''}</b></div>
+     <div><span>Battery</span><b>{device.online?device.battery+'%':'—'}</b></div>
+     <div><span>Status</span><b className={device.online?'statusGood':'statusDim'}>{device.online?'Online':'Offline'}</b></div>
+     <div><span>Last seen</span><b>{new Date(device.lastSeen).toLocaleTimeString()}</b></div>
+    </div>
+    <div className="provisionBox">
+     <div><b>Device token</b><span className="mono">{device.token||device.tokenPreview||'Token available only on the device registration session'}</span></div>
+     {device.token&&<button className="secondary" onClick={()=>copy(device.token)}><Copy size={13}/> Copy token</button>}
+    </div>
+    {Object.keys(liveState).length>0&&(
+     <div className="provisionBox stateReportBox">
+      <div><b>Device-reported state</b><span className="mono">{Object.entries(liveState).map(([k,v])=>k+': '+String(v)).join(' · ')}</span></div>
+     </div>
+    )}
+    <div className="stateConfirmation">
+     <span className="liveDot"/>
+     <div><b>Physical state correlation</b><small>{liveState.lastCommandId?'Latest device command: '+String(liveState.lastCommandId):'Waiting for a command-correlated heartbeat.'}</small></div>
+    </div>
+   </>
+  )}
+  {view==='Telemetry'&&(
+   <div className="controlList">
+    {deviceStreams.map(s=>(
+     <div className="controlRow" key={s.id}>
+      <div><b>{s.name}</b><span>{s.type}{s.unit?' · '+s.unit:''}</span></div>
+      {s.type==='Boolean'
+       ? <button className={String(s.value)==='true'?'switch on':'switch'} onClick={()=>onUpdateStream(s.id,String(s.value)==='true'?'false':'true')} aria-label={'Toggle '+s.name}><i/></button>
+       : <div className="controlInput"><input value={String(s.value)} onChange={e=>onUpdateStream(s.id,s.type==='Number'?Number(e.target.value):e.target.value)}/><button className="secondary" onClick={()=>setNotice(s.name+' updated')}>Apply</button></div>}
+     </div>
+    ))}
+    {deviceStreams.length===0&&<div className="dashboardEmpty"><div><b>No datastreams attached</b><span>Create a datastream for this device to control values here.</span></div></div>}
+   </div>
+  )}
+
   {view==='Commands'&&<div className="commandPanel"><div className="commandPreset"><button className="secondary" onClick={()=>{setCommand('restart');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Restart</button><button className="secondary" onClick={()=>{setCommand('sync');setCommandPayload('');setNotice('Command prepared')}}><RefreshCw size={14}/> Sync</button><button className="secondary" onClick={()=>{setCommand('identify');setCommandPayload('');setNotice('Command prepared')}}><Bot size={14}/> Identify</button><button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{"value":1}');setNotice('GPIO ON command prepared')}}><Power size={14}/> GPIO ON</button><button className="secondary" onClick={()=>{setCommand('digital_write');setCommandPayload('{"value":0}');setNotice('GPIO OFF command prepared')}}><Power size={14}/> GPIO OFF</button></div><label className="commandInput"><span>Custom command</span><div><input value={command} onChange={e=>setCommand(e.target.value)} placeholder="e.g. digital_write"/><button className="primary" onClick={sendCommand}><Send size={14}/> Send</button></div></label><label className="commandInput"><span>Payload JSON</span><div><input value={commandPayload} onChange={e=>setCommandPayload(e.target.value)} placeholder='{"pin":2,"value":1}'/></div></label><div className="commandHint"><Terminal size={15}/><span>Commands are persisted in PostgreSQL. MQTT devices receive them over MQTT; REST devices claim them by polling. Acknowledgements update the persistent command record.</span></div>{commandHistory.length>0&&<div className="controlList" style={{marginTop:14}}><b>Recent command state</b>{commandHistory.slice(0,6).map(item=><div className="controlRow" key={item.id}><div><b>{item.command}</b><span className="mono">{item.id}</span></div><div><b>{item.status}</b><span>{item.ackedAt?new Date(item.ackedAt).toLocaleTimeString():new Date(item.createdAt).toLocaleTimeString()}</span></div></div>)}</div></div>}
  </Modal>
 }
