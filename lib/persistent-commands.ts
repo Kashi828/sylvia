@@ -1,4 +1,5 @@
 import { databaseConfigured, query } from "@/lib/db";
+import { publishCommand } from "@/lib/command-events";
 
 export type PersistentCommand = {
   id: string;
@@ -72,7 +73,9 @@ export async function recoverStalePersistentCommands(deviceId: string | number, 
       "UPDATE device_commands SET status='failed', acked_at=now(), result=$3::jsonb WHERE device_id=$1 AND status='sent' AND sent_at IS NOT NULL AND sent_at < now() - ($2::text || ' seconds')::interval RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",
       [String(deviceId), timeout, JSON.stringify({ ok: false, error: "Command acknowledgement timeout", timeoutSeconds: timeout })],
     );
-    return result.rows.map(row => normalize(row as Record<string, unknown>));
+    const commands = result.rows.map(row => normalize(row as Record<string, unknown>));
+    for (const command of commands) publishCommand({ type: "device.command.updated", deviceId: command.deviceId, commandId: command.id, status: command.status, command: command.command, result: command.result, updatedAt: command.ackedAt || new Date().toISOString() });
+    return commands;
   } catch { return []; }
 }
 
