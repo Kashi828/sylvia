@@ -58,11 +58,12 @@ export async function createPersistentDatastream(
   return normalize(result.rows[0] as Record<string, unknown>);
 }
 
-export async function deletePersistentDatastream(id: string) {
+export async function deletePersistentDatastream(id: string, ownerId?: string) {
   if (!databaseConfigured()) return false;
+  if (!ownerId) return false;
   const result = await query(
-    "DELETE FROM public.datastream_registry WHERE datastream_id=$1",
-    [id],
+    "DELETE FROM public.datastream_registry d USING public.device_registry dev WHERE d.datastream_id=$1 AND d.device_id=dev.device_id AND dev.owner_id=$2 RETURNING d.datastream_id",
+    [id, ownerId],
   );
   return result.rowCount === 1;
 }
