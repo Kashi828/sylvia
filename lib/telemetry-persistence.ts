@@ -56,7 +56,7 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
 
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
     const result = await db.query(
-      `SELECT device_id, datastream_id, value, value_json, occurred_at
+      `SELECT device_id, datastream_id, value, value_json, metadata, occurred_at
        FROM telemetry_events ${where}
        ORDER BY occurred_at DESC
        LIMIT 5000`,
@@ -73,7 +73,7 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
           ? null
           : Number(row.value),
       timestamp: new Date(row.occurred_at).toISOString(),
-      transport: "mqtt" as const,
+      transport: row.metadata?.transport === "rest" ? "rest" as const : "mqtt" as const,
     }));
   } catch {
     return getTelemetry(deviceId, streamId);
