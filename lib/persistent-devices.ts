@@ -43,7 +43,7 @@ export async function findPersistentDeviceById(deviceId: string | number) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,state
        FROM device_registry
        WHERE device_id = $1
        LIMIT 1`,
@@ -68,7 +68,7 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
 
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        WHERE ${where}
        LIMIT 1`,
@@ -116,7 +116,7 @@ export async function markPersistentDeviceOnline(
   }
 
   const refreshed = await query(
-    `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview
+    `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
      FROM device_registry WHERE device_id=$1 LIMIT 1`,
     [id],
   );
@@ -127,7 +127,7 @@ export async function listPersistentDevices() {
   if (!databaseConfigured()) return [];
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        ORDER BY name ASC`,
     );
