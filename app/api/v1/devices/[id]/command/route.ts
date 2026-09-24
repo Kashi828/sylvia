@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { addEvent, queueCommand, markCommandInFlight, validBearer, publicDevice, findDevice } from "@/lib/store";
-import { findPersistentDeviceByToken } from "@/lib/persistent-devices";
+import { findPersistentDeviceByToken, findPersistentDeviceById } from "@/lib/persistent-devices";
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
-import { findPersistentDeviceById } from "@/lib/persistent-devices";
 import { createPersistentCommand, markPersistentCommandSent, persistentCommandsAvailable } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -16,7 +15,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const sessionUser= sessionToken ? getSessionUser(sessionToken) : null;
 
   const persistentByToken=rawToken ? await findPersistentDeviceByToken(rawToken,id) : null;
-  const persistentById=sessionUser ? await findPersistentDeviceById(id) : null;
+  const persistentById=sessionUser ? await findPersistentDeviceById(id, sessionUser.id) : null;
   const numericId=Number(id);
   const legacyDevice=Number.isFinite(numericId) ? findDevice(numericId) : null;
   const device=persistentByToken || persistentById || (rawToken && legacyDevice && validBearer(rawToken,numericId) ? legacyDevice : (sessionUser ? legacyDevice : null));
