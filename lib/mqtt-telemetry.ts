@@ -33,7 +33,7 @@ export async function ingestMqttTelemetry(sample: MqttTelemetrySample, token?: s
     key: sample.key,
     value: sample.value,
     timestamp,
-    transport: "mqtt",
+    transport: sample.transport || "mqtt",
   });
 
   if (persistent) {
