@@ -3,6 +3,8 @@ import {withRateLimit} from '@/lib/http';
 import {ingestMqttTelemetry} from '@/lib/mqtt-telemetry';
 import {persistTelemetry} from '@/lib/telemetry-persistence';
 import {listPersistentDatastreams} from '@/lib/persistent-datastreams';
+import {findPersistentDeviceByToken} from '@/lib/persistent-devices';
+import {findDevice, validBearer} from '@/lib/store';
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,60); if(limited)return limited;
@@ -16,9 +18,20 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(body.value===undefined)return NextResponse.json({ok:false,error:'value is required'},{status:400});
 
   try{
-    // ingestMqttTelemetry authenticates the persistent device token before accepting telemetry.
-    // Keep datastream discovery after authentication so an unauthenticated caller cannot probe
-    // which datastream IDs exist on a device.
+    // Authenticate the device before looking up its datastreams.
+    const persistent=await findPersistentDeviceByToken(token,id);
+    const numericId=Number(id);
+    const legacyAuthorized=!persistent && Number.isFinite(numericId) && validBearer(token,numericId) && Boolean(findDevice(numericId));
+    if(!persistent && !legacyAuthorized){
+      return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
+    }
+
+    const registered=await listPersistentDatastreams(id);
+    const stream=registered.find(item=>item.id===String(datastreamId));
+    if(!stream)return NextResponse.json({ok:false,error:'Datastream not registered for device'},{status:404});
+    const validType=(stream.type==='Number'&&typeof body.value==='number'&&Number.isFinite(body.value))||(stream.type==='Boolean'&&typeof body.value==='boolean')||(stream.type==='String'&&typeof body.value==='string');
+    if(!validType)return NextResponse.json({ok:false,error:`Value type mismatch for datastream ${stream.id}`},{status:400});
+
     const sample=await ingestMqttTelemetry({
       deviceId:id,
       streamId:String(datastreamId),
@@ -27,13 +40,6 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       timestamp:body.timestamp,
       firmware:body.firmware,
     },token);
-
-    const registered=await listPersistentDatastreams(id);
-    const stream=registered.find(item=>item.id===String(datastreamId));
-    if(!stream)return NextResponse.json({ok:false,error:'Datastream not registered for device'},{status:404});
-    const validType=(stream.type==='Number'&&typeof body.value==='number'&&Number.isFinite(body.value))||(stream.type==='Boolean'&&typeof body.value==='boolean')||(stream.type==='String'&&typeof body.value==='string');
-    if(!validType)return NextResponse.json({ok:false,error:`Value type mismatch for datastream ${stream.id}`},{status:400});
-
     const persisted=await persistTelemetry({...sample,transport:'rest'});
     return NextResponse.json({ok:true,sample:persisted,persistent:true},{status:201});
   }catch(error){
