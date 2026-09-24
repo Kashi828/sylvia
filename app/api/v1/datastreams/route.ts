@@ -11,7 +11,8 @@ function session(request: Request) {
 export async function GET(request: Request) {
   if (!session(request)) return NextResponse.json({ ok:false, error:"Authentication required" }, { status:401 });
   const deviceId = new URL(request.url).searchParams.get("deviceId") || undefined;
-  if (deviceId && !(await findPersistentDeviceById(deviceId))) {
+  const user = session(request);
+  if (deviceId && !(await findPersistentDeviceById(deviceId, user?.id))) {
     return NextResponse.json({ ok:false, error:"Device not found" }, { status:404 });
   }
   return NextResponse.json({ ok:true, persistent:persistentDatastreamsAvailable(), datastreams:await listPersistentDatastreams(deviceId) });
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   if (!deviceId || !name || !["Number","Boolean","String"].includes(type || "")) {
     return NextResponse.json({ ok:false, error:"deviceId, name and valid type are required" }, { status:400 });
   }
-  if (!(await findPersistentDeviceById(deviceId))) return NextResponse.json({ ok:false, error:"Device not found" }, { status:404 });
+  if (!(await findPersistentDeviceById(deviceId, user?.id))) return NextResponse.json({ ok:false, error:"Device not found" }, { status:404 });
   try {
     const datastream = await createPersistentDatastream(deviceId,name,type as "Number"|"Boolean"|"String",body?.unit || "");
     return NextResponse.json({ ok:true, datastream }, { status:201 });
@@ -37,7 +38,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!session(request)) return NextResponse.json({ ok:false, error:"Authentication required" }, { status:401 });
+  const user = session(request);
+  if (!user) return NextResponse.json({ ok:false, error:"Authentication required" }, { status:401 });
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ ok:false,error:"id is required" },{status:400});
   return NextResponse.json({ ok:await deletePersistentDatastream(id) });
