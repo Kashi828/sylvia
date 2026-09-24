@@ -39,15 +39,16 @@ export async function registerPersistentDevice(name: string, type: string, owner
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
 }
 
-export async function findPersistentDeviceById(deviceId: string | number) {
+export async function findPersistentDeviceById(deviceId: string | number, ownerId?: string) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
       `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        WHERE device_id = $1
+         AND ($2::text IS NULL OR owner_id = $2::text)
        LIMIT 1`,
-      [String(deviceId)],
+      [String(deviceId), ownerId ?? null],
     );
     return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
   } catch {
@@ -123,13 +124,15 @@ export async function markPersistentDeviceOnline(
   return refreshed.rows[0] ? normalize(refreshed.rows[0] as Record<string, unknown>) : null;
 }
 
-export async function listPersistentDevices() {
+export async function listPersistentDevices(ownerId?: string) {
   if (!databaseConfigured()) return [];
   try {
     const result = await query(
       `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
+       WHERE ($1::text IS NULL OR owner_id = $1::text)
        ORDER BY name ASC`,
+      [ownerId ?? null],
     );
     return result.rows.map((row) => normalize(row as Record<string, unknown>));
   } catch {
