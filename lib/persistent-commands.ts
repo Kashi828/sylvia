@@ -98,9 +98,11 @@ export async function claimPersistentCommands(deviceId: string | number, limit =
       "WITH picked AS (SELECT id FROM device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2 FOR UPDATE SKIP LOCKED) UPDATE device_commands c SET status='sent', sent_at=COALESCE(c.sent_at,now()) FROM picked WHERE c.id=picked.id RETURNING c.id,c.device_id,c.command,c.payload,c.status,c.created_at,c.sent_at,c.acked_at,c.result",
       [String(deviceId), safeLimit(limit)],
     );
-    return result.rows
+    const commands = result.rows
       .sort((a, b) => new Date(String(a.created_at)).getTime() - new Date(String(b.created_at)).getTime())
       .map(row => normalize(row as Record<string, unknown>));
+    for (const command of commands) publishCommand({ type: "device.command.updated", deviceId: command.deviceId, commandId: command.id, status: command.status, command: command.command, result: command.result, updatedAt: command.sentAt || new Date().toISOString() });
+    return commands;
   } catch { return []; }
 }
 
@@ -110,6 +112,8 @@ export async function ackPersistentCommand(deviceId: string | number, id: string
     const failed = resultValue !== null && typeof resultValue === "object" && "ok" in resultValue && (resultValue as {ok?: unknown}).ok === false;
     const status = failed ? "failed" : "acked";
     const result = await query("UPDATE device_commands SET status=$3, acked_at=now(), result=$4::jsonb WHERE id=$1 AND device_id=$2 AND status IN ('queued','sent') RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result", [id, String(deviceId), status, JSON.stringify(resultValue ?? null)]);
-    return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    const command = result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
+    if (command) publishCommand({ type: "device.command.updated", deviceId: command.deviceId, commandId: command.id, status: command.status, command: command.command, result: command.result, updatedAt: command.ackedAt || new Date().toISOString() });
+    return command;
   } catch { return null; }
 }
