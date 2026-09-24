@@ -32,7 +32,7 @@ export async function registerPersistentDevice(name: string, type: string) {
     `INSERT INTO device_registry
       (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview)
      VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5)
-     RETURNING device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview`,
+     RETURNING device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state`,
     [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token)],
   );
 
@@ -98,7 +98,7 @@ export async function markPersistentDeviceOnline(
            updated_at=now()
        WHERE device_id=$1
        RETURNING device_id,name,online,temperature,battery,last_seen,token_hash,token_preview`,
-    [id, metadata?.firmware ?? null, metadata?.transport ?? null, JSON.stringify(metadata?.state ?? {})],
+    [id, metadata?.firmware ?? null, metadata?.transport ?? null, metadata?.state === undefined ? null : JSON.stringify(metadata.state)],
   );
   if (!result.rows[0]) return null;
 
