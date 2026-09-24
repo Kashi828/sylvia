@@ -16,11 +16,9 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(body.value===undefined)return NextResponse.json({ok:false,error:'value is required'},{status:400});
 
   try{
-    const registered=await listPersistentDatastreams(id);
-    const stream=registered.find(item=>item.id===String(datastreamId));
-    if(!stream)return NextResponse.json({ok:false,error:'Datastream not registered for device'},{status:404});
-    const validType=(stream.type==='Number'&&typeof body.value==='number'&&Number.isFinite(body.value))||(stream.type==='Boolean'&&typeof body.value==='boolean')||(stream.type==='String'&&typeof body.value==='string');
-    if(!validType)return NextResponse.json({ok:false,error:`Value type mismatch for datastream ${stream.id}`},{status:400});
+    // ingestMqttTelemetry authenticates the persistent device token before accepting telemetry.
+    // Keep datastream discovery after authentication so an unauthenticated caller cannot probe
+    // which datastream IDs exist on a device.
     const sample=await ingestMqttTelemetry({
       deviceId:id,
       streamId:String(datastreamId),
@@ -29,6 +27,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       timestamp:body.timestamp,
       firmware:body.firmware,
     },token);
+
+    const registered=await listPersistentDatastreams(id);
+    const stream=registered.find(item=>item.id===String(datastreamId));
+    if(!stream)return NextResponse.json({ok:false,error:'Datastream not registered for device'},{status:404});
+    const validType=(stream.type==='Number'&&typeof body.value==='number'&&Number.isFinite(body.value))||(stream.type==='Boolean'&&typeof body.value==='boolean')||(stream.type==='String'&&typeof body.value==='string');
+    if(!validType)return NextResponse.json({ok:false,error:`Value type mismatch for datastream ${stream.id}`},{status:400});
+
     const persisted=await persistTelemetry({...sample,transport:'rest'});
     return NextResponse.json({ok:true,sample:persisted,persistent:true},{status:201});
   }catch(error){
