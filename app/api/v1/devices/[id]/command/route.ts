@@ -18,7 +18,14 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const persistentById=sessionUser ? await findPersistentDeviceById(id, sessionUser.id) : null;
   const numericId=Number(id);
   const legacyDevice=Number.isFinite(numericId) ? findDevice(numericId) : null;
-  const device=persistentByToken || persistentById || (rawToken && legacyDevice && validBearer(rawToken,numericId) ? legacyDevice : (sessionUser ? legacyDevice : null));
+
+  // Session callers may only control persistent devices owned by that session user.
+  // Legacy in-memory devices remain accessible only through their explicit device bearer.
+  const device=persistentByToken || persistentById || (
+    !sessionUser && rawToken && legacyDevice && validBearer(rawToken,numericId)
+      ? legacyDevice
+      : null
+  );
   if(!device) return NextResponse.json({ok:false,error:"Unauthorized or device not found"},{status:401});
 
   const body=await request.json().catch(()=>null) as {command?:string;payload?:unknown}|null;
