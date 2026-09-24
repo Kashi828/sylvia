@@ -26,9 +26,22 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const command=body?.command?.trim();
   if(!command||command.length>80||!/^[a-zA-Z0-9_.:-]+$/.test(command)) return NextResponse.json({ok:false,error:"Invalid command name"},{status:400});
 
-  const queued=queueCommand(device.id,command,body?.payload??null);
+  const payload=body?.payload??null;
+  if (command === "digital_write") {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return NextResponse.json({ok:false,error:"digital_write requires an object payload"},{status:400});
+    }
+    const candidate = payload as {pin?:unknown;value?:unknown};
+    const pin = Number(candidate.pin);
+    const value = Number(candidate.value);
+    if (!Number.isInteger(pin) || pin < 0 || pin > 16 || !Number.isInteger(value) || (value !== 0 && value !== 1)) {
+      return NextResponse.json({ok:false,error:"digital_write requires GPIO pin 0-16 and value 0 or 1"},{status:400});
+    }
+  }
+
+  const queued=queueCommand(device.id,command,payload);
   const persistentCommand=persistentCommandsAvailable()
-    ? await createPersistentCommand(queued.id,device.id,command,body?.payload??null)
+    ? await createPersistentCommand(queued.id,device.id,command,payload)
     : null;
   let dispatched=false;
   let dispatchError:string|undefined;
@@ -36,7 +49,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(mqttStatus().configured){
     try{
       markCommandInFlight(queued.id);
-      await publishDeviceCommand(String(device.id),{commandId:queued.id,command,payload:body?.payload??null,timestamp:new Date().toISOString()});
+      await publishDeviceCommand(String(device.id),{commandId:queued.id,command,payload,timestamp:new Date().toISOString()});
       dispatched=true;
       if (persistentCommand) await markPersistentCommandSent(queued.id);
       addEvent("device.command.dispatched",device.name + ": " + command + " dispatched over MQTT",device.id);
