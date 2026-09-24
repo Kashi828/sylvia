@@ -246,6 +246,8 @@ void Sylvia::executeCommand(JsonObjectConst command) {
     return;
   }
 
+  _lastCommandId = id;
+
   CommandHandler handler = findHandler(name);
   if (!handler) {
     acknowledge(id, false, "unsupported command");
@@ -256,7 +258,6 @@ void Sylvia::executeCommand(JsonObjectConst command) {
     ? command["payload"].as<JsonObjectConst>()
     : JsonObjectConst();
 
-  _lastCommandId = id;
   handler(payload);
   acknowledge(id, true, "custom command executed");
 }
