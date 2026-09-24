@@ -10,8 +10,9 @@ function sessionUser(request: Request) {
 
 export async function GET(request:Request){
   if (persistentDevicesAvailable()) {
-    if (sessionUser(request) || validBearer(request)) {
-      const devices = await listPersistentDevices();
+    const user = sessionUser(request);
+    if (user) {
+      const devices = await listPersistentDevices(user.id);
       return NextResponse.json({ok:true,count:devices.length,devices:devices.map(publicDevice),persistent:true});
     }
     return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
@@ -29,7 +30,7 @@ export async function POST(request:Request){
   if(!name) return NextResponse.json({ok:false,error:'name is required'},{status:400});
 
   try {
-    const persistent = await registerPersistentDevice(name, type);
+    const persistent = await registerPersistentDevice(name, type, user.id);
     if (persistent) {
       return NextResponse.json({
         ok:true,
