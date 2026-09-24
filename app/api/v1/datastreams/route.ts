@@ -42,5 +42,5 @@ export async function DELETE(request: Request) {
   if (!user) return NextResponse.json({ ok:false, error:"Authentication required" }, { status:401 });
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return NextResponse.json({ ok:false,error:"id is required" },{status:400});
-  return NextResponse.json({ ok:await deletePersistentDatastream(id) });
+  const deleted = await deletePersistentDatastream(id, user.id);\n  if (!deleted) return NextResponse.json({ ok:false, error:"Datastream not found" }, { status:404 });\n  return NextResponse.json({ ok:true });
 }
