@@ -43,7 +43,7 @@ export async function findPersistentDeviceById(deviceId: string | number) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,state
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        WHERE device_id = $1
        LIMIT 1`,
