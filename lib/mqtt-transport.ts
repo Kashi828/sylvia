@@ -2,6 +2,7 @@ import mqtt, { type MqttClient } from "mqtt";
 import { ingestMqttTelemetry } from "./mqtt-telemetry";
 import { markDeviceSeen } from "./device-registry";
 import { listPersistentDatastreams } from "./persistent-datastreams";
+import { findPersistentDeviceByToken } from "./persistent-devices";
 import { persistTelemetry } from "./telemetry-persistence";
 
 let client: MqttClient | null = null;
