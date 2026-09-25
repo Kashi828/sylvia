@@ -1,6 +1,6 @@
-# SYLVIA Arduino SDK v0.53.2
+# SYLVIA Arduino SDK v0.53.3
 
-Official SYLVIA cloud SDK v0.53.2 for ESP8266 and ESP32.
+Official SYLVIA cloud SDK v0.53.3 for ESP8266 and ESP32.
 
 ## Install
 
