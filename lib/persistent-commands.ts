@@ -47,9 +47,10 @@ export async function recoverStalePersistentCommands(deviceId:string|number,time
 export async function listPersistentCommands(deviceId:string|number,limit=20){
   if(!databaseConfigured())return [];try{const r=await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM sylvia_device_commands WHERE device_id=$1 ORDER BY created_at DESC LIMIT $2",[String(deviceId),safeLimit(limit)]);return r.rows.map(x=>normalize(x as Record<string,unknown>));}catch{return [];}
 }
-export async function claimPersistentCommands(deviceId:string|number,limit=10){
+export async function claimPersistentCommands(deviceId:string|number,limit=10,recoveryCommandId?:string){
   if(!databaseConfigured())return [];try{
-    const r=await query("WITH picked AS (SELECT id FROM sylvia_device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2 FOR UPDATE SKIP LOCKED) UPDATE sylvia_device_commands c SET status='sent', sent_at=COALESCE(c.sent_at,now()) FROM picked WHERE c.id=picked.id RETURNING c.id,c.device_id,c.command,c.payload,c.status,c.created_at,c.sent_at,c.acked_at,c.result",[String(deviceId),safeLimit(limit)]);
+    const normalizedRecovery = recoveryCommandId?.trim() || null;
+    const r=await query("WITH picked AS (SELECT id FROM sylvia_device_commands WHERE device_id=$1 AND ((status='queued') OR (status='sent' AND sent_at IS NOT NULL AND id=$3)) ORDER BY CASE WHEN id=$3 THEN 0 ELSE 1 END, created_at ASC LIMIT $2 FOR UPDATE SKIP LOCKED) UPDATE sylvia_device_commands c SET status='sent', sent_at=COALESCE(c.sent_at,now()) FROM picked WHERE c.id=picked.id RETURNING c.id,c.device_id,c.command,c.payload,c.status,c.created_at,c.sent_at,c.acked_at,c.result",[String(deviceId),safeLimit(limit),normalizedRecovery]);
     const cs=r.rows.sort((a,b)=>new Date(String(a.created_at)).getTime()-new Date(String(b.created_at)).getTime()).map(x=>normalize(x as Record<string,unknown>));for(const c of cs)publishUpdated(c,c.sentAt||undefined);return cs;
   }catch{return [];}
 }
