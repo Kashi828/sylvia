@@ -5,8 +5,10 @@ Sylvia::Sylvia()
     _configured(false),
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
+    _ackRetryIntervalMs(2000),
     _lastHeartbeatAt(0),
     _lastPollAt(0),
+    _lastAckRetryAt(0),
     _lastHttpStatus(0),
     _pendingAckOk(false) {}
 
@@ -39,6 +41,7 @@ bool Sylvia::begin(
   _configured = true;
   _lastHeartbeatAt = 0;
   _lastPollAt = 0;
+  _lastAckRetryAt = 0;
   return true;
 }
 
@@ -126,6 +129,7 @@ bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode)
 
   const DeserializationError error = deserializeJson(document, http.getStream());
   http.end();
+  if (error) _lastError = "Invalid JSON response";
 
   return !error;
 }
@@ -286,7 +290,10 @@ void Sylvia::executeCommand(JsonObjectConst command) {
 }
 
 void Sylvia::retryPendingAck() {
-  if (!_pendingAckId.length()) return;
+  if (!_pendingAckId.length() || WiFi.status() != WL_CONNECTED) return;
+  const unsigned long now = millis();
+  if (_lastAckRetryAt != 0 && now - _lastAckRetryAt < _ackRetryIntervalMs) return;
+  _lastAckRetryAt = now;
   if (acknowledge(_pendingAckId, _pendingAckOk, _pendingAckMessage)) {
     Serial.println("SYLVIA: pending command ACK delivered");
   }
