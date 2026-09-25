@@ -2,10 +2,10 @@
 
 ## v0.53.0-alpha.2 — Hardware Alpha Flash Gate
 
-The project enters the hardware-alpha track.
+The project enters the hardware-alpha track with the v0.53.0-alpha.3 validation toolkit.
 
 ### Cloud
-- Platform package version moved to v0.53.0-alpha.1.
+- Platform package version moved to v0.53.0-alpha.3.
 - Health endpoint now exposes the hardware-alpha version and deployment marker.
 - Persistent device, datastream, telemetry, heartbeat, and command paths remain the cloud control plane.
 
