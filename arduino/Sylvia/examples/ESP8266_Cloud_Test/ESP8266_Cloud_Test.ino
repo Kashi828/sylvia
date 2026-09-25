@@ -1,4 +1,4 @@
-/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.2 */
+/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.3 */
 #include <ESP8266WiFi.h>
 #include <Sylvia.h>
 
