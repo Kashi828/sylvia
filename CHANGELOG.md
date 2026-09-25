@@ -10,6 +10,7 @@ SYLVIA now preserves the latest device command outcome across ESP8266/ESP32 rebo
 - Performs one recovery-aware command poll after boot using the persisted command ID.
 - Re-acknowledges a still-pending cloud command when the same command was already executed before reboot.
 - Reports command persistence and recovery state through heartbeat diagnostics.
+- EEPROM persistence writes are change-aware to avoid unnecessary ACK-retry flash writes.
 
 ### Cloud
 - REST command polling accepts an explicit recovery command ID.
