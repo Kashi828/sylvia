@@ -38,9 +38,10 @@ export async function getPersistentCommand(id:string){
 export async function listPersistentPendingCommands(deviceId:string|number,limit=10){
   if(!databaseConfigured())return []; try{const r=await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM sylvia_device_commands WHERE device_id=$1 AND status='queued' ORDER BY created_at ASC LIMIT $2",[String(deviceId),safeLimit(limit)]);return r.rows.map(x=>normalize(x as Record<string,unknown>));}catch{return [];}
 }
-export async function recoverStalePersistentCommands(deviceId:string|number,timeoutSeconds=120){
+export async function recoverStalePersistentCommands(deviceId:string|number,timeoutSeconds=120,excludeCommandId?:string){
   if(!databaseConfigured())return [];const timeout=Math.max(30,Math.min(Math.trunc(timeoutSeconds),3600));try{
-    const r=await query("UPDATE sylvia_device_commands SET status='failed', acked_at=now(), result=$3::jsonb WHERE device_id=$1 AND status='sent' AND sent_at IS NOT NULL AND sent_at < now() - ($2::text || ' seconds')::interval RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",[String(deviceId),timeout,JSON.stringify({ok:false,error:"Command acknowledgement timeout",timeoutSeconds:timeout})]);
+    const excluded = excludeCommandId?.trim() || null;
+    const r=await query("UPDATE sylvia_device_commands SET status='failed', acked_at=now(), result=$4::jsonb WHERE device_id=$1 AND status='sent' AND sent_at IS NOT NULL AND sent_at < now() - ($2::text || ' seconds')::interval AND ($3::text IS NULL OR id <> $3) RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",[String(deviceId),timeout,excluded,JSON.stringify({ok:false,error:"Command acknowledgement timeout",timeoutSeconds:timeout})]);
     const cs=r.rows.map(x=>normalize(x as Record<string,unknown>));for(const c of cs)publishUpdated(c);return cs;
   }catch{return [];}
 }
