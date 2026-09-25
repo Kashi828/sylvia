@@ -374,20 +374,17 @@ function ConnectivityPanel({devices,streams,apiKeys,setNotice}:{devices:Device[]
    setNotice('Hardware verification completed');
  };
  const copy=async(text:string)=>{try{await navigator.clipboard?.writeText(text);setNotice('Copied to clipboard')}catch{setNotice('Copy unavailable')}};
- const firmware=`/* SYLVIA v0.52 REST hardware starter
-   Persistent cloud commands -> ESP8266 -> GPIO/relay -> ACK.
-   Install: ESP8266WiFi, ESP8266HTTPClient, ArduinoJson.
-*/
+ const firmware=`/* SYLVIA v0.53.0-alpha.1 — official Arduino SDK starter */
+// Install the ESP8266 board package, ArduinoJson, and the Sylvia library.
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
-#include <ArduinoJson.h>
+#include <Sylvia.h>
 
 const char* WIFI_SSID = "YOUR_WIFI";
 const char* WIFI_PASSWORD = "YOUR_PASSWORD";
 const char* SYLVIA_BASE_URL = "${baseUrl||"https://YOUR_SYLVIA_DOMAIN"}";
 const char* SYLVIA_DEVICE_ID = "${selected?.id||"YOUR_DEVICE_ID"}";
 const char* SYLVIA_DEVICE_TOKEN = "${token}";
+const char* SYLVIA_TELEMETRY_STREAM = "${streams.find(s=>s.deviceId===selected?.id&&s.remoteId)?.remoteId||"YOUR_DATASTREAM_ID"}";
 
 static const char SYLVIA_ROOT_CA[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -396,261 +393,83 @@ PASTE_SERVER_ROOT_CA_HERE
 )EOF";
 
 const uint8_t RELAY_PIN = D2;
-const uint32_t HEARTBEAT_INTERVAL_MS = 15000;
-const uint32_t COMMAND_POLL_INTERVAL_MS = 2000;
-const uint32_t TELEMETRY_INTERVAL_MS = 30000;
-const uint32_t WIFI_RETRY_INTERVAL_MS = 5000;
-unsigned long lastHeartbeatAt = 0;
-unsigned long lastPollAt = 0;
-unsigned long lastTelemetryAt = 0;
-unsigned long lastWifiRetryAt = 0;
-String lastCommandId = "";
-String pendingAckId = "";
-bool pendingAckOk = false;
-String pendingAckMessage = "";
+Sylvia sylvia;
 
-String commandsUrl() {
-  return String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/commands";
+void handleIdentify(JsonObjectConst payload) {
+  (void)payload;
+  Serial.println("SYLVIA: identify received");
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(250);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
-bool ackCommand(const String& commandId, bool ok, const String& message) {
-  if (WiFi.status() != WL_CONNECTED) return false;
-  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  client->setCACert(SYLVIA_ROOT_CA);
-  HTTPClient http;
-  if (!http.begin(*client, commandsUrl())) return false;
-  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
-  http.addHeader("Content-Type", "application/json");
-  StaticJsonDocument<256> body;
-  body["commandId"] = commandId;
-  JsonObject result = body.createNestedObject("result");
-  result["ok"] = ok;
-  result["message"] = message;
-  String json;
-  serializeJson(body, json);
-  const int code = http.POST(json);
-  Serial.printf("ACK %s -> HTTP %d\\n", commandId.c_str(), code);
-  http.end();
-  return code >= 200 && code < 300;
+void handleSync(JsonObjectConst payload) {
+  (void)payload;
+  sylvia.reportState("relayPin", RELAY_PIN);
+  sylvia.reportState("relayOn", digitalRead(RELAY_PIN) == HIGH);
+  Serial.println("SYLVIA: sync completed");
 }
 
-void flushPendingAck() {
-  if (!pendingAckId.length()) return;
-  if (ackCommand(pendingAckId, pendingAckOk, pendingAckMessage)) {
-    pendingAckId = "";
-    pendingAckMessage = "";
-  }
-}
-
-bool tlsConfigured() {
-  return String(SYLVIA_ROOT_CA).indexOf("PASTE_SERVER_ROOT_CA_HERE") < 0;
-}
-
-void logHttpFailure(const char* label, HTTPClient& http, int code) {
-  if (code >= 200 && code < 300) return;
-  String body = http.getString();
-  Serial.printf("%s -> HTTP %d: %s\n", label, code, body.c_str());
-}
-
-void sendHeartbeat() {
-  if (WiFi.status() != WL_CONNECTED) return;
-  if (!tlsConfigured()) {
-    Serial.println("HEARTBEAT skipped: replace PASTE_SERVER_ROOT_CA_HERE with the server CA");
+void handleDigitalWrite(JsonObjectConst payload) {
+  const int pin = payload["pin"] | RELAY_PIN;
+  const int value = payload["value"] | -1;
+  if (pin < 0 || value < 0 || value > 1) {
+    Serial.println("SYLVIA: invalid digital_write payload");
     return;
   }
-  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  client->setCACert(SYLVIA_ROOT_CA);
-  HTTPClient http;
-  String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/heartbeat";
-  if (!http.begin(*client, url)) {
-    Serial.println("HEARTBEAT: HTTPS begin failed");
-    return;
-  }
-  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
-  http.addHeader("Content-Type", "application/json");
-  StaticJsonDocument<384> body;
-  body["firmware"] = "sylvia-esp8266-rest-beta2";
-  body["battery"] = 0;
-  JsonObject state = body.createNestedObject("state");
-  state["relayPin"] = RELAY_PIN;
-  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;
-  state["lastCommandId"] = lastCommandId;
-  String json;
-  serializeJson(body, json);
-  const int code = http.POST(json);
-  Serial.printf("HEARTBEAT -> HTTP %d\n", code);
-  logHttpFailure("HEARTBEAT", http, code);
-  http.end();
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, value ? HIGH : LOW);
+  sylvia.reportState("relayPin", pin);
+  sylvia.reportState("relayOn", value == 1);
+  Serial.printf("SYLVIA: GPIO %d = %d\n", pin, value);
 }
 
-void sendTelemetry(const String& datastreamId, float value) {
-  if (WiFi.status() != WL_CONNECTED) return;
-  if (!tlsConfigured()) {
-    Serial.println("TELEMETRY skipped: replace PASTE_SERVER_ROOT_CA_HERE with the server CA");
-    return;
-  }
-  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  client->setCACert(SYLVIA_ROOT_CA);
-  HTTPClient http;
-  String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/telemetry";
-  if (!http.begin(*client, url)) {
-    Serial.println("TELEMETRY: HTTPS begin failed");
-    return;
-  }
-  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
-  http.addHeader("Content-Type", "application/json");
-  StaticJsonDocument<256> body;
-  body["datastreamId"] = datastreamId;
-  body["value"] = value;
-  body["firmware"] = "sylvia-esp8266-rest-beta2";
-  String json;
-  serializeJson(body, json);
-  const int code = http.POST(json);
-  Serial.printf("TELEMETRY -> HTTP %d\\n", code);
-  logHttpFailure("TELEMETRY", http, code);
-  http.end();
-}
-
-void executeCommand(JsonObject command) {
-  String id = command["id"] | "";
-  String name = command["command"] | "";
-  JsonVariant payload = command["payload"];
-
-  if (!id.length() || id == lastCommandId || id == pendingAckId) return;
-  lastCommandId = id;
-
-  if (name == "restart") {
-    if (!ackCommand(id, true, "restart requested")) {
-      pendingAckId = id;
-      pendingAckOk = true;
-      pendingAckMessage = "restart requested";
-      return;
-    }
-    delay(150);
-    ESP.restart();
-    return;
-  }
-
-  bool ok = false;
-  String message = "unsupported command";
-
-  if (name == "identify") {
-    Serial.println("SYLVIA identify");
-    ok = true;
-    message = "device identified";
-  } else if (name == "sync") {
-    ok = true;
-    message = "sync completed";
-  } else if (name == "digital_write" && payload.is<JsonObject>()) {
-    int pin = payload["pin"] | RELAY_PIN;
-    int value = payload["value"] | -1;
-    if (value == 0 || value == 1) {
-      pinMode(pin, OUTPUT);
-      digitalWrite(pin, value ? HIGH : LOW);
-      ok = true;
-      message = String("GPIO ") + pin + " = " + value;
-    } else {
-      message = "value must be 0 or 1";
-    }
-  }
-
-  if (!ackCommand(id, ok, message)) {
-    pendingAckId = id;
-    pendingAckOk = ok;
-    pendingAckMessage = message;
-  }
-}
-
-void pollCommands() {
-  if (WiFi.status() != WL_CONNECTED) return;
-  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  client->setCACert(SYLVIA_ROOT_CA);
-  HTTPClient http;
-  if (!http.begin(*client, commandsUrl())) {
-    Serial.println("SYLVIA poll: HTTPS begin failed");
-    return;
-  }
-  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
-
-  int code = http.GET();
-  if (code != HTTP_CODE_OK) {
-    String errorBody = http.getString();
-    Serial.printf("SYLVIA poll HTTP %d: %s\\n", code, errorBody.c_str());
-    http.end();
-    return;
-  }
-
-  StaticJsonDocument<2048> response;
-  if (deserializeJson(response, http.getStream())) {
-    Serial.println("Invalid SYLVIA command response");
-    http.end();
-    return;
-  }
-  http.end();
-
-  for (JsonObject command : response["commands"].as<JsonArray>()) executeCommand(command);
-}
-
-void connectWifi() {
-  Serial.printf("Wi-Fi connecting to %s\\n", WIFI_SSID);
+void connectWiFi() {
+  if (WiFi.status() == WL_CONNECTED) return;
   WiFi.mode(WIFI_STA);
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(false);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-}
-
-void reportWifiConnected() {
-  static bool reported = false;
-  if (WiFi.status() == WL_CONNECTED && !reported) {
-    reported = true;
-    Serial.printf("Wi-Fi connected: %s | IP %s | RSSI %d dBm\\n",
-      WiFi.SSID().c_str(), WiFi.localIP().toString().c_str(), WiFi.RSSI());
-  } else if (WiFi.status() != WL_CONNECTED) {
-    reported = false;
-  }
+  Serial.print("Connecting Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println();
+  Serial.print("IP: "); Serial.println(WiFi.localIP());
+  Serial.print("RSSI: "); Serial.println(WiFi.RSSI());
 }
 
 void setup() {
   Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-  connectWifi();
+  connectWiFi();
+  if (!sylvia.begin(SYLVIA_DEVICE_ID, SYLVIA_DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) {
+    Serial.print("SYLVIA: startup failed: ");
+    Serial.println(sylvia.lastError());
+    return;
+  }
+  sylvia.setHeartbeatInterval(15000);
+  sylvia.setCommandPollInterval(2000);
+  sylvia.onCommand("identify", handleIdentify);
+  sylvia.onCommand("sync", handleSync);
+  sylvia.onCommand("digital_write", handleDigitalWrite);
+  sylvia.reportState("relayPin", RELAY_PIN);
+  sylvia.reportState("relayOn", false);
+  Serial.print("SYLVIA SDK ");
+  Serial.print(Sylvia::SDK_VERSION);
+  Serial.println(" initialized");
 }
 
 void loop() {
-  const unsigned long now = millis();
-
-  if (WiFi.status() != WL_CONNECTED) {
-    reportWifiConnected();
-    if (now - lastWifiRetryAt >= WIFI_RETRY_INTERVAL_MS) {
-      lastWifiRetryAt = now;
-      Serial.printf("Wi-Fi disconnected (status %d), retrying...\\n", WiFi.status());
-      WiFi.disconnect();
-      connectWifi();
-    }
-    delay(50);
-    return;
+  if (WiFi.status() != WL_CONNECTED) { connectWiFi(); return; }
+  sylvia.loop();
+  static unsigned long lastTelemetry = 0;
+  if (millis() - lastTelemetry >= 30000 || lastTelemetry == 0) {
+    lastTelemetry = millis();
+    const double uptimeSeconds = millis() / 1000.0;
+    const bool ok = sylvia.telemetry(SYLVIA_TELEMETRY_STREAM, uptimeSeconds);
+    if (ok) Serial.println("SYLVIA: telemetry sent");
+    else { Serial.print("SYLVIA: telemetry failed: "); Serial.println(sylvia.lastError()); }
   }
-
-  reportWifiConnected();
-  flushPendingAck();
-
-  if (lastHeartbeatAt == 0 || now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
-    lastHeartbeatAt = now;
-    sendHeartbeat();
-  }
-
-  if (lastPollAt == 0 || now - lastPollAt >= COMMAND_POLL_INTERVAL_MS) {
-    lastPollAt = now;
-    pollCommands();
-  }
-
-  if (lastTelemetryAt == 0 || now - lastTelemetryAt >= TELEMETRY_INTERVAL_MS) {
-    lastTelemetryAt = now;
-    sendTelemetry("${selected?.remoteId||"YOUR_DATASTREAM_ID"}", (float)digitalRead(RELAY_PIN));
-  }
-
-  delay(50);
 }`;
  return <div className="apiPage"><div className="hero"><div><span className="eyebrow">DEVICE CONNECTIVITY</span><h1>Connect real hardware from this console.</h1><p>Register a device, use its device token, then connect ESP8266/NodeMCU over authenticated HTTPS. MQTT/TLS is available as the realtime transport path.</p></div><div className="heroActions"><span className={status==='Ready'?'enabled':'disabled'}>{status}</span></div></div><div className="stats"><Stat label="Registered devices" value={devices.length}/><Stat label="Connected" value={devices.filter(d=>d.online).length}/><Stat label="Transport" value="REST + MQTT"/><Stat label="SDK" value="ESP8266 ready"/></div><div className="panel"><div className="apiTitle"><Cpu size={17}/><div><b>Hardware connection flow</b><span>Use the REST/HTTPS starter for the first hardware test, or use MQTT/TLS for realtime transport.</span></div></div><div className="connectionSteps"><div><span>01</span><b>Register</b><small>Create the device in the main console and keep the one-time device token.</small></div><div><span>02</span><b>Configure</b><small>Set Wi-Fi, SYLVIA production URL and the device token.</small></div><div><span>03</span><b>Connect</b><small>ESP8266 connects over authenticated HTTPS with server certificate validation.</small></div><div><span>04</span><b>Publish</b><small>Send telemetry and heartbeat messages from the firmware.</small></div></div></div><div className="apiGrid"><div className="panel"><div className="apiTitle"><Network size={17}/><div><b>Registered device</b><span>Select a registered device and use its one-time token for the HTTPS hardware starter.</span></div></div><div className="form"><label>Device<select value={selectedId} onChange={e=>setSelectedId(Number(e.target.value))}>{devices.length?devices.map(d=><option key={d.id} value={d.id}>{d.name} · {d.online?'Online':'Offline'}</option>):<option value={0}>No registered devices</option>}</select></label><label>SYLVIA URL<input value={baseUrl} readOnly /></label><label>MQTT client ID<input value={clientId} onChange={e=>setClientId(e.target.value)} placeholder={selected?`sylvia-${selected.id}`:'sylvia-device'}/></label><div className="provisionBox"><div><b>Device token</b><span className="mono">{selected?.token||'Register a device to receive its token. Tokens are not recoverable after leaving the registration session.'}</span></div>{selected?.token&&<button className="secondary" onClick={()=>copy(selected.token)}><Copy size={13}/> Copy token</button>}</div></div></div><div className="panel"><div className="apiTitle"><Terminal size={17}/><div><b>ESP8266 / NodeMCU REST starter</b><span>Authenticated HTTPS polling for the persistent SYLVIA command queue.</span></div></div><pre>{firmware}</pre><button className="secondary" onClick={()=>copy(firmware)}><Copy size={14}/> Copy firmware</button></div></div><div className="panel"><div className="sectionHead"><div><h2>MQTT contract</h2><span>All device IDs use the same topic family.</span></div></div><div className="endpointList"><div className="endpoint"><span className="endpointDot"/><div><b>Telemetry</b><small>sylvia/devices/{'{deviceId}'}/telemetry</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Heartbeat</b><small>sylvia/devices/{'{deviceId}'}/heartbeat</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Commands</b><small>sylvia/devices/{'{deviceId}'}/command</small></div></div><div className="endpoint"><span className="endpointDot"/><div><b>Command ACK</b><small>sylvia/devices/{'{deviceId}'}/command-ack</small></div></div></div></div><div className="panel"><div className="sectionHead"><div><div className="apiTitle"><ShieldCheck size={17}/><div><h2>Hardware verification</h2><span>Run the hosted cloud checks before connecting or debugging physical hardware.</span></div></div></div><button className="primary" onClick={runVerification} disabled={!selected}><Play size={14}/> Run verification</button></div><div className="connectionSteps verificationSteps"><div key="cloud"><span>{verification['cloud']?.status==='pass'?'✓':verification['cloud']?.status==='fail'?'!':'01'}</span><b>Cloud</b><small>{verification['cloud']?.message||'Not checked yet'} · Health endpoint reports DB + MQTT readiness.</small></div><div key="device"><span>{verification['device']?.status==='pass'?'✓':verification['device']?.status==='fail'?'!':'02'}</span><b>Device</b><small>{verification['device']?.message||'Not checked yet'} · Session can read the selected owned device.</small></div><div key="streams"><span>{verification['streams']?.status==='pass'?'✓':verification['streams']?.status==='fail'?'!':'03'}</span><b>Datastreams</b><small>{verification['streams']?.message||'Not checked yet'} · Persistent datastream registry is available.</small></div><div key="telemetry"><span>{verification['telemetry']?.status==='pass'?'✓':verification['telemetry']?.status==='fail'?'!':'04'}</span><b>Telemetry</b><small>{verification['telemetry']?.message||'Not checked yet'} · Cloud telemetry endpoint can read samples.</small></div><div key="heartbeat"><span>{verification['heartbeat']?.status==='pass'?'✓':verification['heartbeat']?.status==='fail'?'!':'05'}</span><b>Heartbeat</b><small>{verification['heartbeat']?.message||'Not checked yet'} · Physical device must report online state.</small></div><div key="command"><span>{verification['command']?.status==='pass'?'✓':verification['command']?.status==='fail'?'!':'06'}</span><b>Command</b><small>{verification['command']?.message||'Not checked yet'} · Identify command can enter the device command path.</small></div></div></div><div className="panel"><div className="apiTitle"><ShieldCheck size={17}/><div><b>Security requirement</b><span>For hosted hardware, use MQTT/TLS with certificate validation. Never publish device tokens in source code repositories.</span></div></div></div></div>}
 
