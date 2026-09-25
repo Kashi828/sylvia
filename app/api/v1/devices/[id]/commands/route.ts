@@ -22,7 +22,11 @@ export async function GET(
   const history = url.searchParams.get("history") === "true";
   const timeoutSeconds = Number(url.searchParams.get("timeoutSeconds") ?? "120");
   const recoveryCommandId = history ? undefined : url.searchParams.get("recoveryCommandId") || undefined;
-  const recovered = history ? [] : await recoverStalePersistentCommands(id, timeoutSeconds);
+  const recovered = history ? [] : await recoverStalePersistentCommands(
+    id,
+    timeoutSeconds,
+    recoveryCommandId,
+  );
   const commands = history
     ? await listPersistentCommands(id, limit)
     : await claimPersistentCommands(id, limit, recoveryCommandId);
