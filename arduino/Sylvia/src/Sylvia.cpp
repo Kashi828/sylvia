@@ -2,6 +2,9 @@
 
 Sylvia::Sylvia()
   : _handlerCount(0),
+    _handshakeComplete(false),
+    _handshakeRetryIntervalMs(10000),
+    _lastHandshakeAt(0),
     _configured(false),
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
@@ -55,6 +58,49 @@ bool Sylvia::begin(
   _lastHeartbeatAt = 0;
   _lastPollAt = 0;
   _lastAckRetryAt = 0;
+  _lastHandshakeAt = 0;
+  _handshakeComplete = false;
+  _protocolVersion = "";
+  _transport = "";
+  _capabilities = "";
+  return true;
+}
+
+bool Sylvia::handshake() {
+  if (!_configured) return false;
+
+  StaticJsonDocument<1536> response;
+  if (!getJson(endpoint(("/api/v1/devices/" + _deviceId + "/handshake").c_str()), response)) {
+    _handshakeComplete = false;
+    return false;
+  }
+
+  const String negotiatedProtocol = response["protocolVersion"] | "";
+  const String negotiatedTransport = response["transport"] | "";
+  if (!negotiatedProtocol.length() || negotiatedProtocol != protocolVersion()) {
+    _handshakeComplete = false;
+    _lastError = "Unsupported SYLVIA protocol";
+    return false;
+  }
+  if (!negotiatedTransport.length()) {
+    _handshakeComplete = false;
+    _lastError = "SYLVIA transport missing";
+    return false;
+  }
+
+  _protocolVersion = negotiatedProtocol;
+  _transport = negotiatedTransport;
+  _capabilities = "";
+
+  JsonArrayConst capabilities = response["capabilities"].as<JsonArrayConst>();
+  for (JsonVariantConst item : capabilities) {
+    const char* capability = item.as<const char*>();
+    if (!capability || !capability[0]) continue;
+    if (_capabilities.length()) _capabilities += ",";
+    _capabilities += capability;
+  }
+
+  _handshakeComplete = true;
   return true;
 }
 
@@ -208,6 +254,11 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   state["sdkVersion"] = sdkVersion();
   state["uptimeMs"] = millis();
   state["wifiRssi"] = WiFi.RSSI();
+  if (_handshakeComplete) {
+    state["protocolVersion"] = _protocolVersion;
+    state["transport"] = _transport;
+    state["capabilities"] = _capabilities;
+  }
   if (_lastCommandId.length()) {
     state["lastCommandId"] = _lastCommandId;
     state["lastCommandOk"] = _lastCommandOk;
@@ -342,9 +393,15 @@ void Sylvia::pollCommands() {
 void Sylvia::loop() {
   if (!_configured || WiFi.status() != WL_CONNECTED) return;
 
-  retryPendingAck();
-
   const unsigned long now = millis();
+
+  if (!_handshakeComplete &&
+      (_lastHandshakeAt == 0 || now - _lastHandshakeAt >= _handshakeRetryIntervalMs)) {
+    _lastHandshakeAt = now;
+    handshake();
+  }
+
+  retryPendingAck();
 
   if (_lastHeartbeatAt == 0 || now - _lastHeartbeatAt >= _heartbeatIntervalMs) {
     _lastHeartbeatAt = now;
