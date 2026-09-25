@@ -303,8 +303,8 @@ void Sylvia::executeCommand(JsonObjectConst command) {
     ? command["payload"].as<JsonObjectConst>()
     : JsonObjectConst();
 
-  handler(payload);
-  acknowledge(id, true, "custom command executed");
+  const bool ok = handler(payload);
+  acknowledge(id, ok, ok ? "custom command executed" : "custom command failed");
 }
 
 void Sylvia::retryPendingAck() {
