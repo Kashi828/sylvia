@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <EEPROM.h>
 
 #if defined(ESP8266)
 #include <ESP8266HTTPClient.h>
@@ -87,6 +88,9 @@ private:
   uint32_t _handshakeRetryIntervalMs;
   unsigned long _lastHandshakeAt;
 
+  bool _persistenceReady;
+  bool _recoveryPollPending;
+
   bool _configured;
   uint32_t _heartbeatIntervalMs;
   uint32_t _commandPollIntervalMs;
@@ -104,6 +108,20 @@ private:
 
   StaticJsonDocument<768> _state;
 
+  struct PersistentSnapshot {
+    uint16_t magic;
+    uint8_t version;
+    uint8_t lastCommandOk;
+    char lastCommandId[65];
+    char lastCommandMessage[129];
+    char pendingAckId[65];
+    uint8_t pendingAckOk;
+    char pendingAckMessage[129];
+  };
+
+  static constexpr size_t PERSISTENCE_SIZE = 512;
+  static constexpr uint16_t PERSISTENCE_MAGIC = 0x5359;
+
   String endpoint(const char* path) const;
   bool postJson(const String& url, const String& payload, int* statusCode = nullptr);
   bool getJson(const String& url, JsonDocument& document, int* statusCode = nullptr);
@@ -113,4 +131,7 @@ private:
   bool acknowledge(const String& commandId, bool ok, const String& message);
   void retryPendingAck();
   CommandHandler findHandler(const String& command);
+
+  void loadPersistentState();
+  bool savePersistentState();
 };
