@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.52.0-beta.2-rest-command-polling';
+const DEPLOYMENT_MARKER = 'v0.53.0-alpha.1-hardware-sdk';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -90,7 +90,7 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.52.0-beta.2',
+    version: '0.53.0-alpha.1',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
