@@ -224,6 +224,17 @@ function DeviceDetailPanel({device,streams,onClose,onUpdateStream,setNotice}:{de
       <div><b>Device-reported state</b><span className="mono">{Object.entries(liveState).map(([k,v])=>k+': '+String(v)).join(' · ')}</span></div>
      </div>
     )}
+    {(liveState.sdkVersion||liveState.wifiRssi!==undefined||liveState.uptimeMs!==undefined)&&(
+     <div className="panel" style={{marginTop:12}}>
+      <div className="apiTitle"><ServerCog size={17}/><div><b>Hardware diagnostics</b><span>Live diagnostics reported by the Sylvia SDK heartbeat.</span></div></div>
+      <div className="detailGrid premiumDetailGrid">
+       <div><span>SDK</span><b className="mono">{String(liveState.sdkVersion||'—')}</b></div>
+       <div><span>Wi-Fi RSSI</span><b>{liveState.wifiRssi!==undefined?String(liveState.wifiRssi)+' dBm':'—'}</b></div>
+       <div><span>Uptime</span><b>{liveState.uptimeMs!==undefined?(Math.floor(Number(liveState.uptimeMs)/1000)+' s'):'—'}</b></div>
+       <div><span>Connection</span><b className={stateConnected?'statusGood':'statusDim'}>{stateConnected?'Realtime':'Waiting'}</b></div>
+      </div>
+     </div>
+    )}
     <div className="stateConfirmation">
      <span className="liveDot"/>
      <div><b>Physical state correlation</b><small>{liveState.lastCommandId?'Latest device command: '+String(liveState.lastCommandId):'Waiting for a command-correlated heartbeat.'}</small></div>
