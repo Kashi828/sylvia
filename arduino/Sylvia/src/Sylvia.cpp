@@ -199,7 +199,7 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   if (!_configured) return false;
 
   StaticJsonDocument<1024> body;
-  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.53.4";
+  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.53.5";
 
   if (!isnan(temperature)) body["temperature"] = temperature;
   if (!isnan(battery)) body["battery"] = battery;
