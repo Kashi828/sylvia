@@ -394,6 +394,7 @@ PASTE_SERVER_ROOT_CA_HERE
 )EOF";
 
 const uint8_t RELAY_PIN = D2;
+const uint32_t WIFI_CONNECT_TIMEOUT_MS = 20000;
 Sylvia sylvia;
 
 bool handleIdentify(JsonObjectConst payload) {
@@ -428,15 +429,31 @@ bool handleDigitalWrite(JsonObjectConst payload) {
   return true;
 }
 
-void connectWiFi() {
-  if (WiFi.status() == WL_CONNECTED) return;
+bool tlsConfigured() {
+  const String ca = String(SYLVIA_ROOT_CA);
+  return ca.indexOf("PASTE_SERVER_ROOT_CA_HERE") < 0 &&
+         ca.indexOf("-----BEGIN CERTIFICATE-----") >= 0 &&
+         ca.indexOf("-----END CERTIFICATE-----") >= 0;
+}
+
+bool connectWiFi() {
+  if (WiFi.status() == WL_CONNECTED) return true;
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  const unsigned long started = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - started < WIFI_CONNECT_TIMEOUT_MS) {
+    delay(500);
+    Serial.print(".");
+  }
   Serial.println();
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("SYLVIA: Wi-Fi connection timeout");
+    return false;
+  }
   Serial.print("IP: "); Serial.println(WiFi.localIP());
   Serial.print("RSSI: "); Serial.println(WiFi.RSSI());
+  return true;
 }
 
 void setup() {
@@ -445,7 +462,8 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-  connectWiFi();
+  if (!connectWiFi()) return;
+  if (!tlsConfigured()) { Serial.println("SYLVIA: replace PASTE_SERVER_ROOT_CA_HERE with the production Root CA"); return; }
   if (!sylvia.begin(SYLVIA_DEVICE_ID, SYLVIA_DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) {
     Serial.print("SYLVIA: startup failed: ");
     Serial.println(sylvia.lastError());
@@ -453,6 +471,7 @@ void setup() {
   }
   sylvia.setHeartbeatInterval(15000);
   sylvia.setCommandPollInterval(2000);
+  sylvia.setHttpTimeout(10000);
   sylvia.onCommand("identify", handleIdentify);
   sylvia.onCommand("sync", handleSync);
   sylvia.onCommand("digital_write", handleDigitalWrite);
