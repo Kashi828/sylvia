@@ -91,6 +91,7 @@ private:
 
   bool _persistenceReady;
   bool _recoveryPollPending;
+  bool _wifiSessionActive;
 
   bool _configured;
   uint32_t _heartbeatIntervalMs;
