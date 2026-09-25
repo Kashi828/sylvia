@@ -1,6 +1,6 @@
-# SYLVIA Arduino SDK v0.53.6
+# SYLVIA Arduino SDK v0.53.7
 
-Official SYLVIA cloud SDK v0.53.6 for ESP8266 and ESP32.
+Official SYLVIA cloud SDK v0.53.7 for ESP8266 and ESP32.
 
 ## Install
 
@@ -62,3 +62,16 @@ The SDK exposes `handshake()` and `handshakeComplete()` and automatically report
 ## v0.53.6 hardware path
 
 Wi-Fi → HTTPS/TLS → protocol handshake → heartbeat → telemetry → command poll → GPIO action → ACK
+
+
+## Persistent command recovery
+
+v0.53.7 stores the last command result and pending acknowledgement in the device's EEPROM-backed SDK snapshot on ESP8266 and ESP32.
+
+After reboot, the SDK makes one recovery-aware command poll using the persisted command ID. If that command is still non-terminal in the cloud, SYLVIA returns it to the device and the SDK re-acknowledges the saved result without executing the hardware handler again.
+
+This prevents duplicate execution after a completed hardware action when the acknowledgement was lost or the device rebooted before the acknowledgement could be confirmed. A hard power loss during the physical action itself cannot provide a universal exactly-once guarantee.
+
+## v0.53.7 hardware path
+
+Wi-Fi → HTTPS/TLS → protocol handshake → persistent recovery check → heartbeat → telemetry → command poll → GPIO action → ACK
