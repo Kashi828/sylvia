@@ -10,6 +10,7 @@ Sylvia::Sylvia()
     _lastHeartbeatAt(0),
     _lastPollAt(0),
     _lastAckRetryAt(0),
+    _lastCommandOk(false),
     _lastHttpStatus(0),
     _pendingAckOk(false) {}
 
@@ -290,24 +291,28 @@ void Sylvia::executeCommand(JsonObjectConst command) {
   if (!id.length() || !name.length()) return;
 
   if (_lastCommandId == id) {
-    acknowledge(id, true, "duplicate command ignored");
+    acknowledge(id, _lastCommandOk, _lastCommandMessage);
     return;
+  }
+
+  CommandHandler handler = findHandler(name);
+  bool ok = false;
+  String message;
+
+  if (!handler) {
+    message = "unsupported command";
+  } else {
+    JsonObjectConst payload = command["payload"].is<JsonObjectConst>()
+      ? command["payload"].as<JsonObjectConst>()
+      : JsonObjectConst();
+    ok = handler(payload);
+    message = ok ? "custom command executed" : "custom command failed";
   }
 
   _lastCommandId = id;
-
-  CommandHandler handler = findHandler(name);
-  if (!handler) {
-    acknowledge(id, false, "unsupported command");
-    return;
-  }
-
-  JsonObjectConst payload = command["payload"].is<JsonObjectConst>()
-    ? command["payload"].as<JsonObjectConst>()
-    : JsonObjectConst();
-
-  const bool ok = handler(payload);
-  acknowledge(id, ok, ok ? "custom command executed" : "custom command failed");
+  _lastCommandOk = ok;
+  _lastCommandMessage = message;
+  acknowledge(id, ok, message);
 }
 
 void Sylvia::retryPendingAck() {
