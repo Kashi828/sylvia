@@ -208,6 +208,11 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   state["sdkVersion"] = sdkVersion();
   state["uptimeMs"] = millis();
   state["wifiRssi"] = WiFi.RSSI();
+  if (_lastCommandId.length()) {
+    state["lastCommandId"] = _lastCommandId;
+    state["lastCommandOk"] = _lastCommandOk;
+    state["lastCommandMessage"] = _lastCommandMessage;
+  }
   for (JsonPair item : _state.as<JsonObject>()) {
     state[item.key()] = item.value();
   }
