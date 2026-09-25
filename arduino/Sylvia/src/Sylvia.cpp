@@ -18,7 +18,17 @@ bool Sylvia::begin(
   const char* baseUrl,
   const char* rootCA
 ) {
+  _lastError = "";
   if (!deviceId || !deviceToken || !baseUrl || !deviceId[0] || !deviceToken[0] || !baseUrl[0]) {
+    _lastError = "Device ID, token, and base URL are required";
+    return false;
+  }
+  if (String(baseUrl).indexOf("https://") != 0) {
+    _lastError = "SYLVIA requires an HTTPS base URL";
+    return false;
+  }
+  if (!rootCA || !rootCA[0]) {
+    _lastError = "Root CA is required for TLS validation";
     return false;
   }
 
@@ -39,6 +49,7 @@ bool Sylvia::begin(
 #endif
 
   _configured = true;
+  _lastHttpStatus = 0;
   _lastHeartbeatAt = 0;
   _lastPollAt = 0;
   _lastAckRetryAt = 0;
@@ -180,7 +191,7 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   if (!_configured) return false;
 
   StaticJsonDocument<1024> body;
-  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.1.0";
+  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.3.0-alpha.1";
 
   if (!isnan(temperature)) body["temperature"] = temperature;
   if (!isnan(battery)) body["battery"] = battery;
