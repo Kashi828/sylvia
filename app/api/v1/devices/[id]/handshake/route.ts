@@ -9,6 +9,7 @@ const CAPABILITIES = [
   "command_ack",
   "state_reporting",
   "idempotent_commands",
+  "persistent_command_recovery",
 ];
 
 export async function GET(
@@ -31,7 +32,7 @@ export async function GET(
       ok: true,
       deviceId: id,
       protocolVersion: PROTOCOL_VERSION,
-      sdkMinVersion: "0.53.6",
+      sdkMinVersion: "0.53.7",
       transport: "rest-poll",
       capabilities: CAPABILITIES,
       heartbeatRecommendedMs: 15000,
