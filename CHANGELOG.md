@@ -1,5 +1,30 @@
 # SYLVIA Changelog
 
+## v0.53.6 — Device Protocol Handshake
+
+SYLVIA now negotiates the device/cloud protocol before normal hardware polling.
+
+### Handshake
+- Added authenticated `GET /api/v1/devices/{id}/handshake`.
+- Negotiates protocol version and REST-poll transport.
+- Returns supported hardware capabilities.
+- Rejects unauthenticated devices without exposing protocol metadata.
+
+### Arduino SDK
+- Stable SDK version is v0.53.6.
+- Automatically retries the handshake every 10 seconds until successful.
+- Exposes `handshake()` and `handshakeComplete()`.
+- Reports negotiated protocol, transport, and capabilities in heartbeat state.
+- Keeps existing heartbeat, telemetry, command polling, ACK retry, and idempotent execution behavior.
+
+### Console
+- Device Control Center now shows protocol, transport, and capability diagnostics.
+- Connectivity Center firmware generator is aligned to v0.53.6 and the current SDK API.
+
+### Hardware target
+
+NodeMCU/ESP8266 → Wi-Fi → TLS → protocol handshake → heartbeat → telemetry → command → GPIO/relay → ACK
+
 ## v0.53.5 — Command Outcome Observability
 
 SYLVIA now carries the most recent command outcome in the device heartbeat, making cloud-side troubleshooting easier during hardware control.
