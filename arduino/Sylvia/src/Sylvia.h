@@ -53,6 +53,7 @@ public:
 
   void setHeartbeatInterval(uint32_t intervalMs);
   void setCommandPollInterval(uint32_t intervalMs);
+  void setHttpTimeout(uint32_t timeoutMs);
 
   int lastHttpStatus() const { return _lastHttpStatus; }
   const String& lastError() const { return _lastError; }
@@ -77,6 +78,7 @@ private:
   uint32_t _heartbeatIntervalMs;
   uint32_t _commandPollIntervalMs;
   uint32_t _ackRetryIntervalMs;
+  uint32_t _httpTimeoutMs;
   unsigned long _lastHeartbeatAt;
   unsigned long _lastPollAt;
   unsigned long _lastAckRetryAt;
