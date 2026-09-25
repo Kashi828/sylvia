@@ -1,4 +1,4 @@
-/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.1 */
+/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.2 */
 #include <ESP8266WiFi.h>
 #include <Sylvia.h>
 
@@ -46,6 +46,7 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT); digitalWrite(RELAY_PIN, LOW); connectWiFi();
   if (!sylvia.begin(DEVICE_ID, DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) { Serial.println("SYLVIA: begin() failed"); return; }
   sylvia.setHeartbeatInterval(15000); sylvia.setCommandPollInterval(2000);
+  sylvia.setHttpTimeout(10000);
   sylvia.onCommand("identify", handleIdentify); sylvia.onCommand("sync", handleSync); sylvia.onCommand("digital_write", handleDigitalWrite);
   sylvia.reportState("relayPin", RELAY_PIN); sylvia.reportState("relayOn", false);
   Serial.println("SYLVIA cloud SDK initialized");
