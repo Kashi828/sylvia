@@ -204,6 +204,9 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   if (!isnan(battery)) body["battery"] = battery;
 
   JsonObject state = body.createNestedObject("state");
+  state["sdkVersion"] = sdkVersion();
+  state["uptimeMs"] = millis();
+  state["wifiRssi"] = WiFi.RSSI();
   for (JsonPair item : _state.as<JsonObject>()) {
     state[item.key()] = item.value();
   }
