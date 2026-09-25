@@ -48,6 +48,7 @@ public:
 
   bool reportState(const char* key, const char* value);
   bool reportState(const char* key, double value);
+  bool reportState(const char* key, int value);
   bool reportState(const char* key, bool value);
 
 
