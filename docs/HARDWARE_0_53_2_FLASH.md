@@ -1,8 +1,8 @@
-# SYLVIA v0.53.3 Hardware Flash Runbook
+# SYLVIA v0.53.4 Hardware Flash Runbook
 
 ## Target
 
-Version: **v0.53.3**
+Version: **v0.53.4**
 
 Validate one ESP8266/NodeMCU against the deployed SYLVIA cloud using the official Sylvia Arduino SDK.
 
