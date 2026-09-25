@@ -6,7 +6,9 @@ Sylvia::Sylvia()
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
     _lastHeartbeatAt(0),
-    _lastPollAt(0) {}
+    _lastPollAt(0),
+    _lastHttpStatus(0),
+    _pendingAckOk(false) {}
 
 bool Sylvia::begin(
   const char* deviceId,
@@ -53,23 +55,26 @@ String Sylvia::endpoint(const char* path) const {
 }
 
 bool Sylvia::postJson(const String& url, const String& payload, int* statusCode) {
-  if (!_configured || WiFi.status() != WL_CONNECTED) return false;
+  _lastHttpStatus = 0;
+  _lastError = "";
+  if (!_configured) { _lastError = "SDK not configured"; return false; }
+  if (WiFi.status() != WL_CONNECTED) { _lastError = "Wi-Fi disconnected"; return false; }
 
 #if defined(ESP8266)
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   if (_rootCA.length()) client->setCACert(_rootCA.c_str());
-  else return false;
+  else { _lastError = "Root CA not configured"; return false; }
 #elif defined(ESP32)
   WiFiClientSecure client;
   if (_rootCA.length()) client.setCACert(_rootCA.c_str());
-  else return false;
+  else { _lastError = "Root CA not configured"; return false; }
 #endif
 
   HTTPClient http;
 #if defined(ESP8266)
-  if (!http.begin(*client, url)) return false;
+  if (!http.begin(*client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #else
-  if (!http.begin(client, url)) return false;
+  if (!http.begin(client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #endif
 
   http.addHeader("Authorization", String("Bearer ") + _deviceToken);
@@ -77,37 +82,44 @@ bool Sylvia::postJson(const String& url, const String& payload, int* statusCode)
 
   const int code = http.POST(payload);
   if (statusCode) *statusCode = code;
+  _lastHttpStatus = code;
+  if (code < 0) _lastError = "HTTP transport error";
+  else if (code < 200 || code >= 300) _lastError = String("HTTP status ") + code;
   http.end();
 
   return code >= 200 && code < 300;
 }
 
 bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode) {
-  if (!_configured || WiFi.status() != WL_CONNECTED) return false;
+  _lastHttpStatus = 0;
+  _lastError = "";
+  if (!_configured) { _lastError = "SDK not configured"; return false; }
+  if (WiFi.status() != WL_CONNECTED) { _lastError = "Wi-Fi disconnected"; return false; }
 
 #if defined(ESP8266)
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   if (_rootCA.length()) client->setCACert(_rootCA.c_str());
-  else return false;
+  else { _lastError = "Root CA not configured"; return false; }
 #elif defined(ESP32)
   WiFiClientSecure client;
   if (_rootCA.length()) client.setCACert(_rootCA.c_str());
-  else return false;
+  else { _lastError = "Root CA not configured"; return false; }
 #endif
 
   HTTPClient http;
 #if defined(ESP8266)
-  if (!http.begin(*client, url)) return false;
+  if (!http.begin(*client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #else
-  if (!http.begin(client, url)) return false;
+  if (!http.begin(client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #endif
 
   http.addHeader("Authorization", String("Bearer ") + _deviceToken);
 
   const int code = http.GET();
   if (statusCode) *statusCode = code;
-
+  _lastHttpStatus = code;
   if (code != HTTP_CODE_OK) {
+    _lastError = String("HTTP status ") + code;
     http.end();
     return false;
   }
@@ -223,7 +235,7 @@ Sylvia::CommandHandler Sylvia::findHandler(const String& command) {
   return nullptr;
 }
 
-void Sylvia::acknowledge(const String& commandId, bool ok, const String& message) {
+bool Sylvia::acknowledge(const String& commandId, bool ok, const String& message) {
   StaticJsonDocument<384> body;
   body["commandId"] = commandId;
 
@@ -234,7 +246,16 @@ void Sylvia::acknowledge(const String& commandId, bool ok, const String& message
   String payload;
   serializeJson(body, payload);
 
-  postJson(endpoint(("/api/v1/devices/" + _deviceId + "/commands").c_str()), payload);
+  const bool sent = postJson(endpoint(("/api/v1/devices/" + _deviceId + "/commands").c_str()), payload);
+  if (!sent) {
+    _pendingAckId = commandId;
+    _pendingAckOk = ok;
+    _pendingAckMessage = message;
+  } else {
+    _pendingAckId = "";
+    _pendingAckMessage = "";
+  }
+  return sent;
 }
 
 void Sylvia::executeCommand(JsonObjectConst command) {
@@ -264,6 +285,13 @@ void Sylvia::executeCommand(JsonObjectConst command) {
   acknowledge(id, true, "custom command executed");
 }
 
+void Sylvia::retryPendingAck() {
+  if (!_pendingAckId.length()) return;
+  if (acknowledge(_pendingAckId, _pendingAckOk, _pendingAckMessage)) {
+    Serial.println("SYLVIA: pending command ACK delivered");
+  }
+}
+
 void Sylvia::pollCommands() {
   StaticJsonDocument<4096> response;
   if (!getJson(endpoint(("/api/v1/devices/" + _deviceId + "/commands").c_str()), response)) return;
@@ -275,6 +303,8 @@ void Sylvia::pollCommands() {
 }
 void Sylvia::loop() {
   if (!_configured || WiFi.status() != WL_CONNECTED) return;
+
+  retryPendingAck();
 
   const unsigned long now = millis();
 
