@@ -6,6 +6,7 @@ Sylvia::Sylvia()
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
     _ackRetryIntervalMs(2000),
+    _httpTimeoutMs(10000),
     _lastHeartbeatAt(0),
     _lastPollAt(0),
     _lastAckRetryAt(0),
@@ -64,6 +65,10 @@ void Sylvia::setCommandPollInterval(uint32_t intervalMs) {
   _commandPollIntervalMs = intervalMs < 500 ? 500 : intervalMs;
 }
 
+void Sylvia::setHttpTimeout(uint32_t timeoutMs) {
+  _httpTimeoutMs = timeoutMs < 1000 ? 1000 : timeoutMs;
+}
+
 String Sylvia::endpoint(const char* path) const {
   return _baseUrl + path;
 }
@@ -91,6 +96,7 @@ bool Sylvia::postJson(const String& url, const String& payload, int* statusCode)
   if (!http.begin(client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #endif
 
+  http.setTimeout(_httpTimeoutMs);
   http.addHeader("Authorization", String("Bearer ") + _deviceToken);
   http.addHeader("Content-Type", "application/json");
 
@@ -127,6 +133,7 @@ bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode)
   if (!http.begin(client, url)) { _lastError = "HTTPS initialization failed"; return false; }
 #endif
 
+  http.setTimeout(_httpTimeoutMs);
   http.addHeader("Authorization", String("Bearer ") + _deviceToken);
 
   const int code = http.GET();
