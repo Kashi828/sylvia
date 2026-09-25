@@ -1,4 +1,4 @@
-/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.5 */
+/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.6 */
 #include <ESP8266WiFi.h>
 #include <Sylvia.h>
 
@@ -79,7 +79,7 @@ void setup() {
   sylvia.setHttpTimeout(10000);
   sylvia.onCommand("identify", handleIdentify); sylvia.onCommand("sync", handleSync); sylvia.onCommand("digital_write", handleDigitalWrite);
   sylvia.reportState("relayPin", RELAY_PIN); sylvia.reportState("relayOn", false);
-  Serial.print("SYLVIA SDK "); Serial.print(Sylvia::sdkVersion()); Serial.println(" initialized");
+  Serial.print("SYLVIA SDK "); Serial.print(Sylvia::sdkVersion()); Serial.println(" initialized; protocol handshake will run automatically");
 }
 
 void loop() {
