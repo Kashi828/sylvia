@@ -1,5 +1,21 @@
 # SYLVIA Changelog
 
+## v0.53.3 — Hardware Diagnostics Console
+
+The SYLVIA console now turns device heartbeat diagnostics into a dedicated hardware view.
+
+### Diagnostics
+- Displays SDK version reported by the device.
+- Displays Wi-Fi RSSI.
+- Displays device uptime.
+- Shows realtime connection state beside the hardware diagnostics.
+
+### Device path
+NodeMCU/ESP8266 → Sylvia SDK heartbeat → realtime state stream → Device Control Center.
+
+### Next
+Proceed with the physical NodeMCU test using the v0.53.3 flash runbook.
+
 ## v0.53.2 — Device Observability
 
 The device heartbeat now carries built-in diagnostics for field troubleshooting.
