@@ -42,3 +42,7 @@ bool handleDigitalWrite(JsonObjectConst payload) {
 
 sylvia.onCommand("digital_write", handleDigitalWrite);
 ```
+
+## Command delivery semantics
+
+Command IDs are idempotent within the device runtime. If the same command is delivered again because an earlier acknowledgement was lost, the SDK re-sends the original success/failure result instead of executing the hardware action again.
