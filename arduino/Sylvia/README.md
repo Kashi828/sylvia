@@ -1,6 +1,6 @@
-# SYLVIA Arduino SDK
+# SYLVIA Arduino SDK v0.53.1
 
-Official SYLVIA cloud SDK for ESP8266 and ESP32.
+Official SYLVIA cloud SDK v0.53.1 for ESP8266 and ESP32.
 
 ## Install
 
@@ -26,7 +26,7 @@ Official SYLVIA cloud SDK for ESP8266 and ESP32.
 
 Do not use setInsecure() on production devices. Keep device tokens secret and never commit real credentials.
 
-## Hardware-alpha flow
+## Hardware v0.53.1 flow
 
 Arduino → Wi-Fi → HTTPS/TLS → SYLVIA Cloud → heartbeat → telemetry → command → GPIO action → acknowledgement
 
