@@ -1,6 +1,8 @@
-# SYLVIA Hardware Alpha Flash Runbook
+# SYLVIA v0.53.1 Hardware Flash Runbook
 
 ## Target
+
+Version: **v0.53.1**
 
 Validate one ESP8266/NodeMCU against the deployed SYLVIA cloud using the official Sylvia Arduino SDK.
 
@@ -71,7 +73,7 @@ A successful startup should show:
 Connecting Wi-Fi....
 IP: ...
 RSSI: ...
-SYLVIA SDK 0.3.0-alpha.7 initialized
+SYLVIA SDK 0.53.1 initialized
 SYLVIA: telemetry sent
 ```
 
@@ -94,7 +96,7 @@ The command check sends `identify` and waits for an acknowledged persistent comm
 
 ## 8. Hardware success condition
 
-The alpha hardware gate is complete when:
+The v0.53.1 hardware gate is complete when:
 
 ```
 NodeMCU online
