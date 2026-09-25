@@ -17,7 +17,8 @@
 
 class Sylvia {
 public:
-  static const char* sdkVersion() { return "0.53.5"; }
+  static const char* sdkVersion() { return "0.53.6"; }
+  static const char* protocolVersion() { return "1"; }
   using CommandHandler = bool (*)(JsonObjectConst payload);
 
   Sylvia();
@@ -30,6 +31,9 @@ public:
   );
 
   void loop();
+
+  bool handshake();
+  bool handshakeComplete() const { return _handshakeComplete; }
 
   bool telemetry(const char* streamId, double value);
   bool telemetry(const char* streamId, const char* value);
@@ -75,6 +79,13 @@ private:
   String _lastCommandId;
   bool _lastCommandOk;
   String _lastCommandMessage;
+
+  bool _handshakeComplete;
+  String _protocolVersion;
+  String _transport;
+  String _capabilities;
+  uint32_t _handshakeRetryIntervalMs;
+  unsigned long _lastHandshakeAt;
 
   bool _configured;
   uint32_t _heartbeatIntervalMs;
