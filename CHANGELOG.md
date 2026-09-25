@@ -1,5 +1,17 @@
 # SYLVIA Changelog
 
+## v0.53.0-alpha.5 — Hardware Safety Gate
+
+The first-flash reference path now rejects GPIO commands aimed at pins other than its configured relay pin. This keeps the physical test focused on one known actuator while the cloud command contract remains extensible.
+
+### Safety
+- Reference ESP8266 firmware restricts digital_write to RELAY_PIN.
+- The hosted Connectivity Center generates the same guarded behavior.
+- Command acknowledgements reflect the handler's true success/failure result.
+
+### Next gate
+- Flash one physical ESP8266/NodeMCU and verify heartbeat, telemetry, identify, GPIO control, and ACK end-to-end.
+
 ## v0.53.0-alpha.4 — First Physical Device Gate
 
 The hardware SDK is now outcome-aware and the hosted Connectivity Center generates the same official SDK path used by the repository example.
