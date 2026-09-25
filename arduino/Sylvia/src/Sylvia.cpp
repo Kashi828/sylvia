@@ -398,6 +398,10 @@ bool Sylvia::acknowledge(const String& commandId, bool ok, const String& message
   serializeJson(body, payload);
 
   const bool sent = postJson(endpoint(("/api/v1/devices/" + _deviceId + "/commands").c_str()), payload);
+  const String previousPendingId = _pendingAckId;
+  const bool previousPendingOk = _pendingAckOk;
+  const String previousPendingMessage = _pendingAckMessage;
+
   if (!sent) {
     _pendingAckId = commandId;
     _pendingAckOk = ok;
@@ -406,7 +410,12 @@ bool Sylvia::acknowledge(const String& commandId, bool ok, const String& message
     _pendingAckId = "";
     _pendingAckMessage = "";
   }
-  savePersistentState();
+
+  if (previousPendingId != _pendingAckId ||
+      previousPendingOk != _pendingAckOk ||
+      previousPendingMessage != _pendingAckMessage) {
+    savePersistentState();
+  }
   return sent;
 }
 
