@@ -76,8 +76,10 @@ private:
   bool _configured;
   uint32_t _heartbeatIntervalMs;
   uint32_t _commandPollIntervalMs;
+  uint32_t _ackRetryIntervalMs;
   unsigned long _lastHeartbeatAt;
   unsigned long _lastPollAt;
+  unsigned long _lastAckRetryAt;
 
   int _lastHttpStatus;
   String _lastError;
