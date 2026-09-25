@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.53.5-rest-first-hardware';
+const DEPLOYMENT_MARKER = 'v0.53.6-device-handshake';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -94,7 +94,7 @@ export async function GET() {
     restReady,
     realtimeReady,
     service: 'sylvia',
-    version: '0.53.5',
+    version: '0.53.6',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
