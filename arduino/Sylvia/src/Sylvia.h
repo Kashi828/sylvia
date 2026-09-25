@@ -17,6 +17,7 @@
 
 class Sylvia {
 public:
+  static constexpr const char* SDK_VERSION = "0.3.0-alpha.1";
   using CommandHandler = void (*)(JsonObjectConst payload);
 
   Sylvia();
@@ -53,6 +54,9 @@ public:
   void setHeartbeatInterval(uint32_t intervalMs);
   void setCommandPollInterval(uint32_t intervalMs);
 
+  int lastHttpStatus() const { return _lastHttpStatus; }
+  const String& lastError() const { return _lastError; }
+
 private:
   struct Handler {
     String command;
@@ -75,6 +79,12 @@ private:
   unsigned long _lastHeartbeatAt;
   unsigned long _lastPollAt;
 
+  int _lastHttpStatus;
+  String _lastError;
+  String _pendingAckId;
+  bool _pendingAckOk;
+  String _pendingAckMessage;
+
   StaticJsonDocument<768> _state;
 
   String endpoint(const char* path) const;
@@ -83,6 +93,7 @@ private:
 
   void pollCommands();
   void executeCommand(JsonObjectConst command);
-  void acknowledge(const String& commandId, bool ok, const String& message);
+  bool acknowledge(const String& commandId, bool ok, const String& message);
+  void retryPendingAck();
   CommandHandler findHandler(const String& command);
 };
