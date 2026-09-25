@@ -546,7 +546,7 @@ void loop() {
   static unsigned long lastTelemetryAt = 0;
   if (lastTelemetryAt == 0 || now - lastTelemetryAt >= 30000) {
     lastTelemetryAt = now;
-    sendTelemetry("YOUR_DATASTREAM_ID", (float)digitalRead(RELAY_PIN));
+    sendTelemetry("${selected?.remoteId||"YOUR_DATASTREAM_ID"}", (float)digitalRead(RELAY_PIN));
   }
 
   delay(50);
