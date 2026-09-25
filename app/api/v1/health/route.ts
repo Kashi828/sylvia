@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.53.0-alpha.8-hardware-sdk';
+const DEPLOYMENT_MARKER = 'v0.53.1-rest-first-hardware';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -73,7 +73,9 @@ export async function GET() {
     mqtt = mqttStatus();
   }
 
-  const ready = db.configured && db.connected && runtimeSchema.connected && mqtt.configured && mqtt.connected;
+  const restReady = db.configured && db.connected && runtimeSchema.connected;
+  const realtimeReady = restReady && mqtt.configured && mqtt.connected;
+  const ready = realtimeReady;
   const databaseEnv = ['POSTGRES_URL'].filter(present);
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
@@ -89,8 +91,10 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     ready,
+    restReady,
+    realtimeReady,
     service: 'sylvia',
-    version: '0.53.0-alpha.8',
+    version: '0.53.1',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
