@@ -1,5 +1,24 @@
 # SYLVIA Changelog
 
+## v0.53.0-alpha.4 — First Physical Device Gate
+
+The hardware SDK is now outcome-aware and the hosted Connectivity Center generates the same official SDK path used by the repository example.
+
+### SDK reliability
+- Command handlers return `bool` so hardware failures produce failed acknowledgements instead of false success.
+- HTTPS requests have bounded timeouts.
+- Failed command acknowledgements are retried at a controlled interval.
+- Startup requires HTTPS and a configured Root CA.
+- SDK exposes HTTP and error diagnostics.
+
+### Hardware path
+- Connectivity Center generates `#include <Sylvia.h>` firmware.
+- ESP8266 example includes Wi-Fi timeout and TLS configuration checks.
+- Platform, health endpoint, SDK, and hardware example are version-aligned.
+
+### Next gate
+- Flash one physical ESP8266/NodeMCU and verify heartbeat, telemetry, command, GPIO action, and acknowledgement end-to-end.
+
 ## v0.53.0-alpha.2 — Hardware Alpha Flash Gate
 
 The project enters the hardware-alpha track with the v0.53.0-alpha.3 validation toolkit.
