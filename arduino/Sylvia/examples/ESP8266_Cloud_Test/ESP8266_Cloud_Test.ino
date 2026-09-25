@@ -17,21 +17,24 @@ const uint8_t RELAY_PIN = D2;
 const uint32_t WIFI_CONNECT_TIMEOUT_MS = 20000;
 Sylvia sylvia;
 
-void handleIdentify(JsonObjectConst payload) {
+bool handleIdentify(JsonObjectConst payload) {
   (void)payload; Serial.println("SYLVIA: identify");
   digitalWrite(LED_BUILTIN, LOW); delay(250); digitalWrite(LED_BUILTIN, HIGH);
+  return true;
 }
-void handleSync(JsonObjectConst payload) {
+bool handleSync(JsonObjectConst payload) {
   (void)payload; Serial.println("SYLVIA: sync");
   sylvia.reportState("relayOn", digitalRead(RELAY_PIN) == HIGH);
+  return true;
 }
-void handleDigitalWrite(JsonObjectConst payload) {
+bool handleDigitalWrite(JsonObjectConst payload) {
   const int pin = payload["pin"] | RELAY_PIN;
   const int value = payload["value"] | -1;
-  if (pin < 0 || value < 0 || value > 1) { Serial.println("SYLVIA: invalid digital_write payload"); return; }
+  if (pin < 0 || value < 0 || value > 1) { Serial.println("SYLVIA: invalid digital_write payload"); return false; }
   pinMode(pin, OUTPUT); digitalWrite(pin, value ? HIGH : LOW);
   sylvia.reportState("relayPin", pin); sylvia.reportState("relayOn", value == 1);
   Serial.printf("SYLVIA: GPIO %d = %d\n", pin, value);
+  return true;
 }
 
 bool tlsConfigured() {
