@@ -421,11 +421,32 @@ void sendHeartbeat() {
   body["battery"] = 0;
   JsonObject state = body.createNestedObject("state");
   state["relayPin"] = RELAY_PIN;
-  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;\n  state["lastCommandId"] = lastCommandId;
+  state["relayOn"] = digitalRead(RELAY_PIN) == HIGH;
+  state["lastCommandId"] = lastCommandId;
   String json;
   serializeJson(body, json);
   const int code = http.POST(json);
   Serial.printf("HEARTBEAT -> HTTP %d\n", code);
+  http.end();
+}
+
+void sendTelemetry(const String& datastreamId, float value) {
+  if (WiFi.status() != WL_CONNECTED) return;
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setCACert(SYLVIA_ROOT_CA);
+  HTTPClient http;
+  String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/telemetry";
+  if (!http.begin(*client, url)) return;
+  http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
+  StaticJsonDocument<256> body;
+  body["datastreamId"] = datastreamId;
+  body["value"] = value;
+  body["firmware"] = "sylvia-esp8266-rest-beta2";
+  String json;
+  serializeJson(body, json);
+  const int code = http.POST(json);
+  Serial.printf("TELEMETRY -> HTTP %d\\n", code);
   http.end();
 }
 
@@ -520,6 +541,12 @@ void loop() {
   if (lastPollAt == 0 || now - lastPollAt >= COMMAND_POLL_INTERVAL_MS) {
     lastPollAt = now;
     pollCommands();
+  }
+
+  static unsigned long lastTelemetryAt = 0;
+  if (lastTelemetryAt == 0 || now - lastTelemetryAt >= 30000) {
+    lastTelemetryAt = now;
+    sendTelemetry("YOUR_DATASTREAM_ID", (float)digitalRead(RELAY_PIN));
   }
 
   delay(50);
