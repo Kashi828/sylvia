@@ -1,6 +1,6 @@
-# SYLVIA Arduino SDK v0.53.3
+# SYLVIA Arduino SDK v0.53.6
 
-Official SYLVIA cloud SDK v0.53.3 for ESP8266 and ESP32.
+Official SYLVIA cloud SDK v0.53.6 for ESP8266 and ESP32.
 
 ## Install
 
@@ -46,3 +46,19 @@ sylvia.onCommand("digital_write", handleDigitalWrite);
 ## Command delivery semantics
 
 Command IDs are idempotent within the device runtime. If the same command is delivered again because an earlier acknowledgement was lost, the SDK re-sends the original success/failure result instead of executing the hardware action again.
+
+
+## Protocol handshake
+
+v0.53.6 performs an authenticated startup handshake against `/api/v1/devices/{id}/handshake`.
+
+The cloud returns:
+- protocol version
+- active transport
+- supported device capabilities
+
+The SDK exposes `handshake()` and `handshakeComplete()` and automatically reports the negotiated protocol, transport, and capabilities in the heartbeat state.
+
+## v0.53.6 hardware path
+
+Wi-Fi → HTTPS/TLS → protocol handshake → heartbeat → telemetry → command poll → GPIO action → ACK
