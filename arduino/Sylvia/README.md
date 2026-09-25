@@ -1,6 +1,6 @@
-# SYLVIA Arduino SDK v0.53.7
+# SYLVIA Arduino SDK v0.53.8
 
-Official SYLVIA cloud SDK v0.53.7 for ESP8266 and ESP32.
+Official SYLVIA cloud SDK v0.53.8 for ESP8266 and ESP32.
 
 ## Install
 
@@ -75,3 +75,17 @@ This prevents duplicate execution after a completed hardware action when the ack
 ## v0.53.7 hardware path
 
 Wi-Fi → HTTPS/TLS → protocol handshake → persistent recovery check → heartbeat → telemetry → command poll → GPIO action → ACK
+
+
+## Wi-Fi session recovery
+
+v0.53.8 treats every Wi-Fi reconnect as a new SYLVIA connection session.
+
+On reconnect the SDK:
+- invalidates the previous handshake
+- re-negotiates protocol and capabilities
+- re-enables reboot/command recovery
+- resets heartbeat, ACK retry, and command polling timers
+- reports a Wi-Fi session counter through heartbeat diagnostics
+
+This keeps cloud state from depending on a stale pre-disconnect transport session.
