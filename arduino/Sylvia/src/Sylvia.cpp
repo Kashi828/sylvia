@@ -8,6 +8,7 @@ Sylvia::Sylvia()
     _persistenceReady(false),
     _recoveryPollPending(false),
     _wifiSessionActive(false),
+    _wifiSessionCount(0),
     _configured(false),
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
@@ -320,6 +321,7 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   }
   state["commandPersistence"] = _persistenceReady;
   state["commandRecoveryPending"] = _recoveryPollPending;
+  state["wifiSessionCount"] = _wifiSessionCount;
   if (_lastCommandId.length()) {
     state["lastCommandId"] = _lastCommandId;
     state["lastCommandOk"] = _lastCommandOk;
@@ -486,6 +488,7 @@ void Sylvia::loop() {
 
   if (!_wifiSessionActive) {
     _wifiSessionActive = true;
+    ++_wifiSessionCount;
     _handshakeComplete = false;
     _recoveryPollPending = _lastCommandId.length() > 0;
     _lastHandshakeAt = 0;
