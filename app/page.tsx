@@ -442,13 +442,30 @@ void flushPendingAck() {
   }
 }
 
+bool tlsConfigured() {
+  return String(SYLVIA_ROOT_CA).indexOf("PASTE_SERVER_ROOT_CA_HERE") < 0;
+}
+
+void logHttpFailure(const char* label, HTTPClient& http, int code) {
+  if (code >= 200 && code < 300) return;
+  String body = http.getString();
+  Serial.printf("%s -> HTTP %d: %s\n", label, code, body.c_str());
+}
+
 void sendHeartbeat() {
   if (WiFi.status() != WL_CONNECTED) return;
+  if (!tlsConfigured()) {
+    Serial.println("HEARTBEAT skipped: replace PASTE_SERVER_ROOT_CA_HERE with the server CA");
+    return;
+  }
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   client->setCACert(SYLVIA_ROOT_CA);
   HTTPClient http;
   String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/heartbeat";
-  if (!http.begin(*client, url)) return;
+  if (!http.begin(*client, url)) {
+    Serial.println("HEARTBEAT: HTTPS begin failed");
+    return;
+  }
   http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
   http.addHeader("Content-Type", "application/json");
   StaticJsonDocument<384> body;
@@ -462,16 +479,24 @@ void sendHeartbeat() {
   serializeJson(body, json);
   const int code = http.POST(json);
   Serial.printf("HEARTBEAT -> HTTP %d\n", code);
+  logHttpFailure("HEARTBEAT", http, code);
   http.end();
 }
 
 void sendTelemetry(const String& datastreamId, float value) {
   if (WiFi.status() != WL_CONNECTED) return;
+  if (!tlsConfigured()) {
+    Serial.println("TELEMETRY skipped: replace PASTE_SERVER_ROOT_CA_HERE with the server CA");
+    return;
+  }
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   client->setCACert(SYLVIA_ROOT_CA);
   HTTPClient http;
   String url = String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/telemetry";
-  if (!http.begin(*client, url)) return;
+  if (!http.begin(*client, url)) {
+    Serial.println("TELEMETRY: HTTPS begin failed");
+    return;
+  }
   http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
   http.addHeader("Content-Type", "application/json");
   StaticJsonDocument<256> body;
@@ -482,6 +507,7 @@ void sendTelemetry(const String& datastreamId, float value) {
   serializeJson(body, json);
   const int code = http.POST(json);
   Serial.printf("TELEMETRY -> HTTP %d\\n", code);
+  logHttpFailure("TELEMETRY", http, code);
   http.end();
 }
 
@@ -573,6 +599,17 @@ void connectWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
+void reportWifiConnected() {
+  static bool reported = false;
+  if (WiFi.status() == WL_CONNECTED && !reported) {
+    reported = true;
+    Serial.printf("Wi-Fi connected: %s | IP %s | RSSI %d dBm\\n",
+      WiFi.SSID().c_str(), WiFi.localIP().toString().c_str(), WiFi.RSSI());
+  } else if (WiFi.status() != WL_CONNECTED) {
+    reported = false;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_PIN, OUTPUT);
@@ -584,6 +621,7 @@ void loop() {
   const unsigned long now = millis();
 
   if (WiFi.status() != WL_CONNECTED) {
+    reportWifiConnected();
     if (now - lastWifiRetryAt >= WIFI_RETRY_INTERVAL_MS) {
       lastWifiRetryAt = now;
       Serial.printf("Wi-Fi disconnected (status %d), retrying...\\n", WiFi.status());
@@ -594,6 +632,7 @@ void loop() {
     return;
   }
 
+  reportWifiConnected();
   flushPendingAck();
 
   if (lastHeartbeatAt == 0 || now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
@@ -678,4 +717,3 @@ function ZyraPanel({config,setConfig,setNotice}:{config:ZyraConfig;setConfig:(v:
              ZYRA AI`}</pre></div></div></div>}
 
 function SettingsPanel({projectName,setProjectName,apiKeys,onCreateKey,onDeleteKey,webhooks,onAddWebhook,onToggleWebhook,onDeleteWebhook,reset,zyraConfig,setZyraConfig}:{projectName:string;setProjectName:(v:string)=>void;apiKeys:ApiKey[];onCreateKey:()=>void;onDeleteKey:(id:number)=>void;webhooks:Webhook[];onAddWebhook:()=>void;onToggleWebhook:(id:number)=>void;onDeleteWebhook:(id:number)=>void;reset:()=>void;zyraConfig:ZyraConfig;setZyraConfig:(v:ZyraConfig)=>void}){return <div className="settingsPanel"><div className="panel settingsPanel"><label>Project name<input className="premiumField" value={projectName} onChange={e=>setProjectName(e.target.value)}/></label><label>Environment<select className="premiumField" defaultValue="Simulator"><option>Simulator</option><option>Development</option><option>Production</option></select></label></div><div className="panel"><div className="sectionHead"><div><h2>API keys</h2><span>Use project keys for server-side integrations.</span></div><button className="primary" onClick={onCreateKey}><KeyRound size={14}/> Create key</button></div><div className="keyList">{apiKeys.map(k=><div className="keyRow" key={k.id}><div><b>{k.name}</b><small>{k.token}</small></div><button className="trash" onClick={()=>onDeleteKey(k.id)}><Trash2 size={15}/></button></div>)}</div></div><div className="panel"><div className="sectionHead"><div><h2>Webhooks</h2><span>Receive device, automation and event notifications.</span></div><button className="primary" onClick={onAddWebhook}><Plus size={14}/> Add webhook</button></div><div className="keyList">{webhooks.map(w=><div className="keyRow" key={w.id}><div><b>{w.name}</b><small>{w.event} · {w.url}</small></div><button className="mini" onClick={()=>onToggleWebhook(w.id)}>{w.enabled?'Enabled':'Paused'}</button><button className="trash" onClick={()=>onDeleteWebhook(w.id)}><Trash2 size={15}/></button></div>)}</div></div><div className="panel"><div className="integrationCard"><div className="integrationIcon"><Plug size={17}/></div><div><b>ZYRA AI connection</b><span>Optional future integration. SYLVIA works independently and can be connected to ZYRA AI later.</span></div><button className={zyraConfig.enabled?'mini':'primary'} onClick={()=>setZyraConfig({...zyraConfig,enabled:!zyraConfig.enabled})}>{zyraConfig.enabled?'Connected':'Connect to ZYRA AI'}</button></div><div className="integrationCard"><div className="integrationIcon"><Boxes size={17}/></div><div><b>SYLVIA core</b><span>Templates · Devices · Datastreams · Dashboards · Automations · REST · Webhooks · MQTT-ready</span></div></div><button className="secondary full" onClick={reset}><RotateCw/> Clear workspace data</button></div></div>}
-function RotateCw(){return <RotateCcw size={14}/>} 
