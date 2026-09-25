@@ -73,9 +73,7 @@ void Sylvia::loadPersistentState() {
   _persistenceReady = false;
   _recoveryPollPending = false;
 
-  if (!EEPROM.begin(PERSISTENCE_SIZE)) {
-    return;
-  }
+  EEPROM.begin(PERSISTENCE_SIZE);
 
   PersistentSnapshot snapshot{};
   EEPROM.get(0, snapshot);
@@ -186,8 +184,9 @@ bool Sylvia::postJson(const String& url, const String& payload, int* statusCode)
 
 #if defined(ESP8266)
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  if (_rootCA.length()) client->setCACert(_rootCA.c_str());
-  else { _lastError = "Root CA not configured"; return false; }
+  if (!_rootCA.length()) { _lastError = "Root CA not configured"; return false; }
+  BearSSL::X509List trustAnchor(_rootCA.c_str());
+  client->setTrustAnchors(&trustAnchor);
 #elif defined(ESP32)
   WiFiClientSecure client;
   if (_rootCA.length()) client.setCACert(_rootCA.c_str());
@@ -223,8 +222,9 @@ bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode)
 
 #if defined(ESP8266)
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  if (_rootCA.length()) client->setCACert(_rootCA.c_str());
-  else { _lastError = "Root CA not configured"; return false; }
+  if (!_rootCA.length()) { _lastError = "Root CA not configured"; return false; }
+  BearSSL::X509List trustAnchor(_rootCA.c_str());
+  client->setTrustAnchors(&trustAnchor);
 #elif defined(ESP32)
   WiFiClientSecure client;
   if (_rootCA.length()) client.setCACert(_rootCA.c_str());
