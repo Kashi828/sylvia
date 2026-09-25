@@ -395,33 +395,36 @@ PASTE_SERVER_ROOT_CA_HERE
 const uint8_t RELAY_PIN = D2;
 Sylvia sylvia;
 
-void handleIdentify(JsonObjectConst payload) {
+bool handleIdentify(JsonObjectConst payload) {
   (void)payload;
   Serial.println("SYLVIA: identify received");
   digitalWrite(LED_BUILTIN, LOW);
   delay(250);
   digitalWrite(LED_BUILTIN, HIGH);
+  return true;
 }
 
-void handleSync(JsonObjectConst payload) {
+bool handleSync(JsonObjectConst payload) {
   (void)payload;
   sylvia.reportState("relayPin", RELAY_PIN);
   sylvia.reportState("relayOn", digitalRead(RELAY_PIN) == HIGH);
   Serial.println("SYLVIA: sync completed");
+  return true;
 }
 
-void handleDigitalWrite(JsonObjectConst payload) {
+bool handleDigitalWrite(JsonObjectConst payload) {
   const int pin = payload["pin"] | RELAY_PIN;
   const int value = payload["value"] | -1;
   if (pin < 0 || value < 0 || value > 1) {
     Serial.println("SYLVIA: invalid digital_write payload");
-    return;
+    return false;
   }
   pinMode(pin, OUTPUT);
   digitalWrite(pin, value ? HIGH : LOW);
   sylvia.reportState("relayPin", pin);
   sylvia.reportState("relayOn", value == 1);
   Serial.printf("SYLVIA: GPIO %d = %d\n", pin, value);
+  return true;
 }
 
 void connectWiFi() {
