@@ -1,5 +1,33 @@
 # SYLVIA Changelog
 
+## v0.53.7 — Persistent Command Recovery
+
+SYLVIA now preserves the latest device command outcome across ESP8266/ESP32 reboots and can recover an unacknowledged command without executing the hardware handler twice.
+
+### Device reliability
+- Added an EEPROM-backed command snapshot for the last command and result.
+- Persists pending command acknowledgement state.
+- Performs one recovery-aware command poll after boot using the persisted command ID.
+- Re-acknowledges a still-pending cloud command when the same command was already executed before reboot.
+- Reports command persistence and recovery state through heartbeat diagnostics.
+
+### Cloud
+- REST command polling accepts an explicit recovery command ID.
+- Recovery can retrieve a matching `sent` command without re-creating it.
+- Stale-command cleanup does not fail the command explicitly being recovered.
+
+### Console
+- Device Control Center shows command persistence and recovery diagnostics.
+- Handshake advertises `persistent_command_recovery`.
+
+### Reliability boundary
+
+This prevents duplicate execution when an already-completed hardware action loses its acknowledgement or the device reboots before the cloud sees the acknowledgement. A hard power loss during the physical action itself cannot provide a universal exactly-once guarantee.
+
+### Hardware target
+
+NodeMCU/ESP8266 → Wi-Fi → TLS → protocol handshake → persistent recovery → heartbeat → telemetry → command → GPIO/relay → ACK
+
 ## v0.53.6 — Device Protocol Handshake
 
 SYLVIA now negotiates the device/cloud protocol before normal hardware polling.
