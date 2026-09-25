@@ -90,7 +90,7 @@ export async function GET() {
     ok: true,
     ready,
     service: 'sylvia',
-    version: '0.53.0-alpha.6',
+    version: '0.53.0-alpha.8',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
