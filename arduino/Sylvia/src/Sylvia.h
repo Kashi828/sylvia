@@ -17,7 +17,7 @@
 
 class Sylvia {
 public:
-  static constexpr const char* SDK_VERSION = "0.3.0-alpha.1";
+  static const char* sdkVersion() { return "0.3.0-alpha.2"; }
   using CommandHandler = void (*)(JsonObjectConst payload);
 
   Sylvia();
