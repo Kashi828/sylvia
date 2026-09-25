@@ -1,5 +1,18 @@
 # SYLVIA Changelog
 
+## v0.53.4 — Idempotent Command Execution
+
+This release hardens command handling for real hardware networks where an acknowledgement can be delayed or lost.
+
+### Command reliability
+- Command IDs are idempotent within a device runtime.
+- A redelivered command replays the original success/failure result instead of executing the hardware action twice.
+- Failed GPIO validation remains a failed command outcome.
+- Persistent cloud command lifecycle stays aligned with the device acknowledgement.
+
+### Hardware target
+The next physical validation can safely exercise command retries without turning one cloud command into multiple hardware actions.
+
 ## v0.53.3 — Hardware Diagnostics Console
 
 The SYLVIA console now turns device heartbeat diagnostics into a dedicated hardware view.
