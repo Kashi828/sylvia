@@ -14,6 +14,7 @@ PASTE_ROOT_CA_HERE
 )EOF";
 const char* TELEMETRY_STREAM_ID = "YOUR_DATASTREAM_ID";
 const uint8_t RELAY_PIN = D2;
+const uint32_t WIFI_CONNECT_TIMEOUT_MS = 20000;
 Sylvia sylvia;
 
 void handleIdentify(JsonObjectConst payload) {
@@ -33,23 +34,49 @@ void handleDigitalWrite(JsonObjectConst payload) {
   Serial.printf("SYLVIA: GPIO %d = %d\n", pin, value);
 }
 
-void connectWiFi() {
-  WiFi.mode(WIFI_STA); WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+bool tlsConfigured() {
+  return String(SYLVIA_ROOT_CA).indexOf("PASTE_ROOT_CA_HERE") < 0 &&
+         String(SYLVIA_ROOT_CA).indexOf("-----BEGIN CERTIFICATE-----") >= 0 &&
+         String(SYLVIA_ROOT_CA).indexOf("-----END CERTIFICATE-----") >= 0;
+}
+
+bool connectWiFi() {
+  if (WiFi.status() == WL_CONNECTED) return true;
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
-  Serial.println(); Serial.print("IP: "); Serial.println(WiFi.localIP());
-  Serial.print("RSSI: "); Serial.println(WiFi.RSSI());
+
+  const unsigned long started = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - started < WIFI_CONNECT_TIMEOUT_MS) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("SYLVIA: Wi-Fi connection timeout");
+    return false;
+  }
+
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("RSSI: ");
+  Serial.println(WiFi.RSSI());
+  return true;
 }
 
 void setup() {
   Serial.begin(115200); pinMode(LED_BUILTIN, OUTPUT); digitalWrite(LED_BUILTIN, HIGH);
-  pinMode(RELAY_PIN, OUTPUT); digitalWrite(RELAY_PIN, LOW); connectWiFi();
+  pinMode(RELAY_PIN, OUTPUT); digitalWrite(RELAY_PIN, LOW);
+  if (!connectWiFi()) return;
+  if (!tlsConfigured()) { Serial.println("SYLVIA: replace PASTE_ROOT_CA_HERE with the production Root CA"); return; }
   if (!sylvia.begin(DEVICE_ID, DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) { Serial.println("SYLVIA: begin() failed"); return; }
   sylvia.setHeartbeatInterval(15000); sylvia.setCommandPollInterval(2000);
   sylvia.setHttpTimeout(10000);
   sylvia.onCommand("identify", handleIdentify); sylvia.onCommand("sync", handleSync); sylvia.onCommand("digital_write", handleDigitalWrite);
   sylvia.reportState("relayPin", RELAY_PIN); sylvia.reportState("relayOn", false);
-  Serial.println("SYLVIA cloud SDK initialized");
+  Serial.print("SYLVIA SDK "); Serial.print(Sylvia::sdkVersion()); Serial.println(" initialized");
 }
 
 void loop() {
