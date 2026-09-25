@@ -1,3 +1,37 @@
+# SYLVIA Changelog
+
+## v0.53.1 — Stable Hardware Connectivity
+
+This release starts the stable numbered hardware track. The previous alpha labels remain in the historical changelog below.
+
+### Cloud readiness
+- Added a REST-first readiness signal so REST/HTTPS hardware does not depend on MQTT being configured.
+- Kept MQTT readiness visible as a separate realtime capability.
+- Hardware verification now stops at the first blocking prerequisite.
+
+### Hardware verification
+- Telemetry verification requires at least one persisted sample.
+- Heartbeat verification requires a fresh online heartbeat.
+- Command verification requires a persistent command acknowledgement.
+- The complete sequence is cloud → device → datastream → telemetry → heartbeat → command.
+
+### Arduino SDK
+- Stable SDK line: v0.53.1.
+- HTTPS-only startup with Root CA validation.
+- Bounded HTTP timeout.
+- Controlled command ACK retry.
+- Outcome-aware command handlers.
+- Reference GPIO safety boundary on RELAY_PIN.
+
+### Tooling
+- Automated ESP8266 Arduino compile workflow.
+- Reproducible NodeMCU flashing runbook.
+- Connectivity Center generates firmware using the official Sylvia SDK.
+
+### Hardware target
+
+NodeMCU/ESP8266 → Wi-Fi → TLS → SYLVIA Cloud → heartbeat → telemetry → dashboard command → GPIO/relay → ACK.
+
 ## v0.53.0-alpha.8 — Reproducible Hardware Flash Gate
 
 The first physical-device milestone now has a repeatable repository runbook and an automated ESP8266 compile gate.
