@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.53.4-rest-first-hardware';
+const DEPLOYMENT_MARKER = 'v0.53.5-rest-first-hardware';
 
 function present(name: string): boolean {
   const value = process.env[name];
