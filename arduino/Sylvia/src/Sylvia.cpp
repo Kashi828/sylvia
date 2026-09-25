@@ -123,7 +123,6 @@ bool Sylvia::telemetry(const char* streamId, double value) {
 
   StaticJsonDocument<384> body;
   body["datastreamId"] = streamId;
-  body["datastreamId"] = streamId;
   body["streamId"] = streamId;
   body["key"] = streamId;
   body["value"] = value;
@@ -151,6 +150,7 @@ bool Sylvia::telemetry(const char* streamId, bool value) {
   if (!streamId || !streamId[0]) return false;
 
   StaticJsonDocument<384> body;
+  body["datastreamId"] = streamId;
   body["streamId"] = streamId;
   body["key"] = streamId;
   body["value"] = value;
