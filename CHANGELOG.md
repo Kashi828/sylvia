@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.53.0-alpha.6 — Physical Device Verification Gate
+
+The hosted verification flow is now a strict readiness gate and the generated ESP8266 firmware matches the official SDK example.
+
+### Verification
+- Checks execute in order: cloud → device → datastream → telemetry → heartbeat → command acknowledgement.
+- Verification stops on the first blocking failure.
+- A queued command is no longer treated as a hardware verification pass.
+
+### Firmware parity
+- Connectivity Center generated firmware uses the official Sylvia SDK.
+- Generated firmware includes TLS/Root CA sanity checks, Wi-Fi timeout protection, and bounded HTTP timeout.
+- Reference GPIO control remains restricted to RELAY_PIN.
+
+### Next gate
+- Flash one physical ESP8266/NodeMCU and validate the complete cloud-to-GPIO-to-ACK loop.
+
 ## v0.53.0-alpha.5 — Hardware Safety Gate
 
 The first-flash reference path now rejects GPIO commands aimed at pins other than its configured relay pin. This keeps the physical test focused on one known actuator while the cloud command contract remains extensible.
