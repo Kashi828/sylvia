@@ -1,7 +1,7 @@
 {
   "name": "sylvia-iot",
   "private": true,
-  "version": "0.53.0-alpha.4",
+  "version": "0.53.0-alpha.5",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
