@@ -21,8 +21,11 @@ export async function GET(
   const limit = Number.isFinite(rawLimit) ? Math.trunc(rawLimit) : 10;
   const history = url.searchParams.get("history") === "true";
   const timeoutSeconds = Number(url.searchParams.get("timeoutSeconds") ?? "120");
+  const recoveryCommandId = history ? undefined : url.searchParams.get("recoveryCommandId") || undefined;
   const recovered = history ? [] : await recoverStalePersistentCommands(id, timeoutSeconds);
-  const commands = history ? await listPersistentCommands(id, limit) : await claimPersistentCommands(id, limit);
+  const commands = history
+    ? await listPersistentCommands(id, limit)
+    : await claimPersistentCommands(id, limit, recoveryCommandId);
 
   return NextResponse.json({
     ok: true,
