@@ -232,7 +232,9 @@ function DeviceDetailPanel({device,streams,onClose,onUpdateStream,setNotice}:{de
        <div><span>Wi-Fi RSSI</span><b>{liveState.wifiRssi!==undefined?String(liveState.wifiRssi)+' dBm':'—'}</b></div>
        <div><span>Uptime</span><b>{liveState.uptimeMs!==undefined?(Math.floor(Number(liveState.uptimeMs)/1000)+' s'):'—'}</b></div>
        <div><span>Connection</span><b className={stateConnected?'statusGood':'statusDim'}>{stateConnected?'Realtime':'Waiting'}</b></div>
+       <div><span>Last command</span><b className={liveState.lastCommandOk===true?'statusGood':liveState.lastCommandId?'statusDim':'statusDim'}>{liveState.lastCommandId?String(liveState.lastCommandOk===true?'Success':liveState.lastCommandOk===false?'Failed':'Unknown'):'—'}</b></div>
       </div>
+      {liveState.lastCommandId&&<div className="provisionBox" style={{marginTop:10}}><div><b>Command outcome</b><span className="mono">{String(liveState.lastCommandId)} · {String(liveState.lastCommandMessage||'No message')}</span></div></div>}
      </div>
     )}
     <div className="stateConfirmation">
