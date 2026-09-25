@@ -1,5 +1,21 @@
 # SYLVIA Changelog
 
+## v0.53.5 — Command Outcome Observability
+
+SYLVIA now carries the most recent command outcome in the device heartbeat, making cloud-side troubleshooting easier during hardware control.
+
+### Device telemetry
+- Reports the last command ID.
+- Reports whether the last command succeeded.
+- Reports the last command result message.
+- Existing SDK version, uptime, and Wi-Fi diagnostics remain available.
+
+### Console
+- Device Control Center displays the most recent command outcome alongside hardware diagnostics.
+
+### Hardware target
+A physical NodeMCU test can now correlate a dashboard command with the device-reported execution result.
+
 ## v0.53.4 — Idempotent Command Execution
 
 This release hardens command handling for real hardware networks where an acknowledgement can be delayed or lost.
