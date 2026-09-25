@@ -1,8 +1,8 @@
-# SYLVIA v0.53.1 Hardware Flash Runbook
+# SYLVIA v0.53.2 Hardware Flash Runbook
 
 ## Target
 
-Version: **v0.53.1**
+Version: **v0.53.2**
 
 Validate one ESP8266/NodeMCU against the deployed SYLVIA cloud using the official Sylvia Arduino SDK.
 
@@ -73,7 +73,7 @@ A successful startup should show:
 Connecting Wi-Fi....
 IP: ...
 RSSI: ...
-SYLVIA SDK 0.53.1 initialized
+SYLVIA SDK 0.53.2 initialized
 SYLVIA: telemetry sent
 ```
 
