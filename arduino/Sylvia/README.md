@@ -18,7 +18,7 @@ Official SYLVIA cloud SDK for ESP8266 and ESP32.
 - Persistent command polling
 - Command acknowledgement
 - identify, sync, and custom command handlers with success/failure ACKs
-- GPIO command handling in the example
+- GPIO command handling in the example, restricted to its configured relay pin
 - Device state reporting
 - ESP8266 and ESP32
 
