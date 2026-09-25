@@ -7,6 +7,7 @@ Sylvia::Sylvia()
     _lastHandshakeAt(0),
     _persistenceReady(false),
     _recoveryPollPending(false),
+    _wifiSessionActive(false),
     _configured(false),
     _heartbeatIntervalMs(15000),
     _commandPollIntervalMs(2000),
@@ -467,7 +468,31 @@ void Sylvia::pollCommands() {
   }
 }
 void Sylvia::loop() {
-  if (!_configured || WiFi.status() != WL_CONNECTED) return;
+  if (!_configured) return;
+
+  const bool wifiConnected = WiFi.status() == WL_CONNECTED;
+  if (!wifiConnected) {
+    if (_wifiSessionActive) {
+      _wifiSessionActive = false;
+      _handshakeComplete = false;
+      _recoveryPollPending = _lastCommandId.length() > 0;
+      _lastHandshakeAt = 0;
+      _lastHeartbeatAt = 0;
+      _lastPollAt = 0;
+      _lastAckRetryAt = 0;
+    }
+    return;
+  }
+
+  if (!_wifiSessionActive) {
+    _wifiSessionActive = true;
+    _handshakeComplete = false;
+    _recoveryPollPending = _lastCommandId.length() > 0;
+    _lastHandshakeAt = 0;
+    _lastHeartbeatAt = 0;
+    _lastPollAt = 0;
+    _lastAckRetryAt = 0;
+  }
 
   const unsigned long now = millis();
 
