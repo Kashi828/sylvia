@@ -1,4 +1,4 @@
-/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.4 */
+/* SYLVIA Arduino SDK — ESP8266 Cloud Test — v0.53.0-alpha.5 */
 #include <ESP8266WiFi.h>
 #include <Sylvia.h>
 
@@ -30,7 +30,7 @@ bool handleSync(JsonObjectConst payload) {
 bool handleDigitalWrite(JsonObjectConst payload) {
   const int pin = payload["pin"] | RELAY_PIN;
   const int value = payload["value"] | -1;
-  if (pin < 0 || value < 0 || value > 1) { Serial.println("SYLVIA: invalid digital_write payload"); return false; }
+  if (pin != RELAY_PIN || value < 0 || value > 1) { Serial.println("SYLVIA: rejected digital_write payload"); return false; }
   pinMode(pin, OUTPUT); digitalWrite(pin, value ? HIGH : LOW);
   sylvia.reportState("relayPin", pin); sylvia.reportState("relayOn", value == 1);
   Serial.printf("SYLVIA: GPIO %d = %d\n", pin, value);
