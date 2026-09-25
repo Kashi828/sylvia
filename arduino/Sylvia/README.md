@@ -17,7 +17,7 @@ Official SYLVIA cloud SDK for ESP8266 and ESP32.
 - Authenticated telemetry
 - Persistent command polling
 - Command acknowledgement
-- identify, sync, and custom command handlers
+- identify, sync, and custom command handlers with success/failure ACKs
 - GPIO command handling in the example
 - Device state reporting
 - ESP8266 and ESP32
@@ -29,3 +29,16 @@ Do not use setInsecure() on production devices. Keep device tokens secret and ne
 ## Hardware-alpha flow
 
 Arduino → Wi-Fi → HTTPS/TLS → SYLVIA Cloud → heartbeat → telemetry → command → GPIO action → acknowledgement
+
+## Command handlers
+
+Command callbacks return `bool`. Return `true` only after the hardware action succeeds; return `false` when validation or execution fails. SYLVIA sends the result through the persistent command acknowledgement.
+
+```cpp
+bool handleDigitalWrite(JsonObjectConst payload) {
+  // validate and perform the hardware action
+  return true;
+}
+
+sylvia.onCommand("digital_write", handleDigitalWrite);
+```
