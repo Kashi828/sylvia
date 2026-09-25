@@ -73,6 +73,8 @@ private:
   String _baseUrl;
   String _rootCA;
   String _lastCommandId;
+  bool _lastCommandOk;
+  String _lastCommandMessage;
 
   bool _configured;
   uint32_t _heartbeatIntervalMs;
