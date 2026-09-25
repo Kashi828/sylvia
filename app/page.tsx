@@ -398,19 +398,27 @@ PASTE_SERVER_ROOT_CA_HERE
 const uint8_t RELAY_PIN = D2;
 const uint32_t HEARTBEAT_INTERVAL_MS = 15000;
 const uint32_t COMMAND_POLL_INTERVAL_MS = 2000;
+const uint32_t TELEMETRY_INTERVAL_MS = 30000;
+const uint32_t WIFI_RETRY_INTERVAL_MS = 5000;
 unsigned long lastHeartbeatAt = 0;
 unsigned long lastPollAt = 0;
+unsigned long lastTelemetryAt = 0;
+unsigned long lastWifiRetryAt = 0;
 String lastCommandId = "";
+String pendingAckId = "";
+bool pendingAckOk = false;
+String pendingAckMessage = "";
 
 String commandsUrl() {
   return String(SYLVIA_BASE_URL) + "/api/v1/devices/" + SYLVIA_DEVICE_ID + "/commands";
 }
 
-void ackCommand(const String& commandId, bool ok, const String& message) {
+bool ackCommand(const String& commandId, bool ok, const String& message) {
+  if (WiFi.status() != WL_CONNECTED) return false;
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   client->setCACert(SYLVIA_ROOT_CA);
   HTTPClient http;
-  if (!http.begin(*client, commandsUrl())) return;
+  if (!http.begin(*client, commandsUrl())) return false;
   http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
   http.addHeader("Content-Type", "application/json");
   StaticJsonDocument<256> body;
@@ -420,8 +428,18 @@ void ackCommand(const String& commandId, bool ok, const String& message) {
   result["message"] = message;
   String json;
   serializeJson(body, json);
-  Serial.printf("ACK %s -> HTTP %d\\n", commandId.c_str(), http.POST(json));
+  const int code = http.POST(json);
+  Serial.printf("ACK %s -> HTTP %d\\n", commandId.c_str(), code);
   http.end();
+  return code >= 200 && code < 300;
+}
+
+void flushPendingAck() {
+  if (!pendingAckId.length()) return;
+  if (ackCommand(pendingAckId, pendingAckOk, pendingAckMessage)) {
+    pendingAckId = "";
+    pendingAckMessage = "";
+  }
 }
 
 void sendHeartbeat() {
@@ -472,11 +490,17 @@ void executeCommand(JsonObject command) {
   String name = command["command"] | "";
   JsonVariant payload = command["payload"];
 
-  if (id == lastCommandId) return;
+  if (!id.length() || id == lastCommandId || id == pendingAckId) return;
+  lastCommandId = id;
 
   if (name == "restart") {
-    ackCommand(id, true, "restart requested");
-    delay(100);
+    if (!ackCommand(id, true, "restart requested")) {
+      pendingAckId = id;
+      pendingAckOk = true;
+      pendingAckMessage = "restart requested";
+      return;
+    }
+    delay(150);
     ESP.restart();
     return;
   }
@@ -504,8 +528,11 @@ void executeCommand(JsonObject command) {
     }
   }
 
-  ackCommand(id, ok, message);
-  if (ok) lastCommandId = id;
+  if (!ackCommand(id, ok, message)) {
+    pendingAckId = id;
+    pendingAckOk = ok;
+    pendingAckMessage = message;
+  }
 }
 
 void pollCommands() {
@@ -513,12 +540,16 @@ void pollCommands() {
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   client->setCACert(SYLVIA_ROOT_CA);
   HTTPClient http;
-  if (!http.begin(*client, commandsUrl())) return;
+  if (!http.begin(*client, commandsUrl())) {
+    Serial.println("SYLVIA poll: HTTPS begin failed");
+    return;
+  }
   http.addHeader("Authorization", String("Bearer ") + SYLVIA_DEVICE_TOKEN);
 
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
-    Serial.printf("SYLVIA poll HTTP %d\\n", code);
+    String errorBody = http.getString();
+    Serial.printf("SYLVIA poll HTTP %d: %s\\n", code, errorBody.c_str());
     http.end();
     return;
   }
@@ -534,21 +565,36 @@ void pollCommands() {
   for (JsonObject command : response["commands"].as<JsonArray>()) executeCommand(command);
 }
 
+void connectWifi() {
+  Serial.printf("Wi-Fi connecting to %s\\n", WIFI_SSID);
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(false);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  connectWifi();
 }
 
 void loop() {
+  const unsigned long now = millis();
+
   if (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    if (now - lastWifiRetryAt >= WIFI_RETRY_INTERVAL_MS) {
+      lastWifiRetryAt = now;
+      Serial.printf("Wi-Fi disconnected (status %d), retrying...\\n", WiFi.status());
+      WiFi.disconnect();
+      connectWifi();
+    }
+    delay(50);
     return;
   }
 
-  const unsigned long now = millis();
+  flushPendingAck();
 
   if (lastHeartbeatAt == 0 || now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
     lastHeartbeatAt = now;
@@ -560,8 +606,7 @@ void loop() {
     pollCommands();
   }
 
-  static unsigned long lastTelemetryAt = 0;
-  if (lastTelemetryAt == 0 || now - lastTelemetryAt >= 30000) {
+  if (lastTelemetryAt == 0 || now - lastTelemetryAt >= TELEMETRY_INTERVAL_MS) {
     lastTelemetryAt = now;
     sendTelemetry("${selected?.remoteId||"YOUR_DATASTREAM_ID"}", (float)digitalRead(RELAY_PIN));
   }
