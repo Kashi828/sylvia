@@ -1,5 +1,18 @@
 # SYLVIA Changelog
 
+## v0.53.2 — Device Observability
+
+The device heartbeat now carries built-in diagnostics for field troubleshooting.
+
+### Device diagnostics
+- Reports SDK version automatically.
+- Reports device uptime in milliseconds.
+- Reports Wi-Fi RSSI.
+- Keeps application-reported state alongside the built-in diagnostics.
+
+### Verification target
+These fields appear in the existing realtime device state stream, making the first physical hardware test easier to diagnose without extra endpoints.
+
 ## v0.53.1 — Stable Hardware Connectivity
 
 This release starts the stable numbered hardware track. The previous alpha labels remain in the historical changelog below.
