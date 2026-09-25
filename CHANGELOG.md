@@ -1,3 +1,14 @@
+## v0.53.0-alpha.8 — Reproducible Hardware Flash Gate
+
+The first physical-device milestone now has a repeatable repository runbook and an automated ESP8266 compile gate.
+
+### Developer tooling
+- Added `.github/workflows/arduino-ci.yml` to compile the official ESP8266 Cloud Test example with Arduino CLI.
+- Added `docs/HARDWARE_ALPHA_FLASH.md` with cloud preparation, Arduino IDE setup, TLS, flashing, serial expectations, and the success condition.
+
+### Next gate
+- Flash one physical ESP8266/NodeMCU and verify the full cloud-to-GPIO-to-ACK loop.
+
 # SYLVIA Changelog
 
 ## v0.53.0-alpha.6 — Physical Device Verification Gate
