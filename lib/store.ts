@@ -1,6 +1,6 @@
 import { hashDeviceToken, tokenMatchesHash, generateDeviceToken, tokenFingerprint } from './device-auth';
 
-export type ServerDevice={id:number;name:string;type:string;tokenHash:string;tokenPreview:string;online:boolean;temperature:number;battery:number;lastSeen:string};
+export type ServerDevice={id:number;name:string;type:string;tokenHash:string;tokenPreview:string;online:boolean;temperature:number;battery:number;lastSeen:string;tokenGeneration?:number;tokenRevoked?:boolean;tokenRotatedAt?:string|null;tokenLastAuthenticatedAt?:string|null};
 export type ServerStream={id:number;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number|boolean;updatedAt:string};
 
 const seed=(token:string)=>({tokenHash:hashDeviceToken(token),tokenPreview:tokenFingerprint(token)});
