@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSessionUserAsync, sessionCookie } from "@/lib/auth";
 import { createProjectApiKey, listProjectApiKeys, revokeProjectApiKey } from "@/lib/project-api-keys";
 import { requireWorkspaceRole } from "@/lib/workspace-auth";
 import { recordAuditEvent } from "@/lib/audit-log";
 import { requestPrincipal } from "@/lib/request-auth";
 
-function sessionToken(request:Request){return request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+"="))?.slice(sessionCookie.length+1)||undefined;}
-async function user(request:Request){return getSessionUserAsync(sessionToken(request));}
 export const dynamic="force-dynamic";
 
 export async function GET(request:Request){
