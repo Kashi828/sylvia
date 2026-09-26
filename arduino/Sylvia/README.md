@@ -93,4 +93,4 @@ This keeps cloud state from depending on a stale pre-disconnect transport sessio
 
 ## Cloud MQTT session resilience
 
-The v0.53.9 cloud release restores the MQTT telemetry, heartbeat, and command-ACK subscriptions whenever the broker reconnects. The Arduino REST SDK remains compatible and continues to use its v0.53.8 reconnect/session behavior.
+The v0.53.9 cloud release restores the MQTT telemetry, heartbeat, and command-ACK subscriptions whenever the broker reconnects. The v0.53.10 cloud release makes the persistent command record authoritative before MQTT publish. The Arduino REST SDK remains compatible and continues to use its v0.53.8 reconnect/session behavior.
