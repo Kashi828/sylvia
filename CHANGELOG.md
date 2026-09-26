@@ -1,5 +1,19 @@
 # SYLVIA Changelog
 
+## v0.60.0 — Device Token Lifecycle
+
+SYLVIA now supports revocable and rotatable hardware credentials without deleting or recreating the device.
+
+### Device security
+- Added token generation, revocation, rotation timestamp and last-authenticated tracking to the persistent device registry.
+- Revoked device tokens stop authenticating REST telemetry, heartbeat and command-poll requests immediately.
+- Token rotation invalidates the previous token and returns the replacement secret only once.
+- Added `/api/v1/devices/{id}/token` for token status, rotation and revocation.
+- Production deployments now require `SYLVIA_DEVICE_TOKEN_SECRET` for hardware-token HMAC signing.
+
+### Cloud readiness
+- Health now includes the v0.60 device token secret in production readiness checks.
+- Platform version is now v0.60.0; Arduino SDK remains v0.53.8.
 ## v0.59.0 — Persistent Identity & Workspace Roles
 
 SYLVIA now keeps user identities, sessions, and workspace membership in PostgreSQL instead of relying on process memory.
