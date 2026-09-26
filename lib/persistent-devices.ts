@@ -35,8 +35,8 @@ export async function registerPersistentDevice(name: string, type: string, owner
   const result = await query(
     `INSERT INTO device_registry
       (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,token_generation,token_revoked)
-     VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6)
-     RETURNING device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id`,
+     VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6,$7,$8)
+     RETURNING device_id,name,type,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
     [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, 1, false],
   );
 
@@ -50,7 +50,6 @@ export async function findPersistentDeviceById(deviceId: string | number, ownerI
       `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at
        FROM device_registry
        WHERE device_id = $1
-         AND token_revoked = false
          AND ($2::text IS NULL OR owner_id = $2::text)
        LIMIT 1`,
       [String(deviceId), ownerId ?? null],
@@ -74,7 +73,7 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
 
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at
        FROM device_registry
        WHERE token_revoked = false AND ${where}
        LIMIT 1`,
