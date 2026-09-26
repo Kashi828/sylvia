@@ -75,7 +75,7 @@ export async function GET() {
 
   const restReady = db.configured && db.connected && runtimeSchema.connected;
   const realtimeReady = restReady && mqtt.configured && mqtt.connected && mqtt.subscriptionsReady;
-  const ready = realtimeReady;
+  const ready = restReady;
   const databaseEnv = ['POSTGRES_URL'].filter(present);
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
