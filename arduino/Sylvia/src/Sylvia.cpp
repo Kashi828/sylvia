@@ -89,13 +89,13 @@ void Sylvia::loadPersistentState() {
   char pendingMessage[129];
 
   memcpy(lastId, snapshot.lastCommandId, sizeof(lastId));
-  lastId[sizeof(lastId) - 1] = '0';
+  lastId[sizeof(lastId) - 1] = '\0';
   memcpy(lastMessage, snapshot.lastCommandMessage, sizeof(lastMessage));
-  lastMessage[sizeof(lastMessage) - 1] = '0';
+  lastMessage[sizeof(lastMessage) - 1] = '\0';
   memcpy(pendingId, snapshot.pendingAckId, sizeof(pendingId));
-  pendingId[sizeof(pendingId) - 1] = '0';
+  pendingId[sizeof(pendingId) - 1] = '\0';
   memcpy(pendingMessage, snapshot.pendingAckMessage, sizeof(pendingMessage));
-  pendingMessage[sizeof(pendingMessage) - 1] = '0';
+  pendingMessage[sizeof(pendingMessage) - 1] = '\0';
 
   _lastCommandId = lastId;
   _lastCommandOk = snapshot.lastCommandOk != 0;
@@ -305,7 +305,7 @@ bool Sylvia::heartbeat(const char* firmware, double temperature, double battery)
   if (!_configured) return false;
 
   StaticJsonDocument<1024> body;
-  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.53.7";
+  body["firmware"] = firmware ? firmware : "sylvia-arduino-0.53.8";
 
   if (!isnan(temperature)) body["temperature"] = temperature;
   if (!isnan(battery)) body["battery"] = battery;
