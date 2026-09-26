@@ -47,7 +47,7 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
 
     if (projectId) {
       values.push(projectId);
-      clauses.push(`project_id = ${values.length}`);
+      clauses.push(`project_id = $${values.length}`);
     }
     if (deviceId) {
       values.push(deviceId);
