@@ -1,4 +1,4 @@
-﻿name: SYLVIA Web CI
+name: SYLVIA Web CI
 
 on:
   push:
