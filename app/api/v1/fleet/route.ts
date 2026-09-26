@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
-import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { requestOwnerId } from "@/lib/request-auth";
 import { databaseConfigured, query } from "@/lib/db";
 import { listPersistentFleetDevices } from "@/lib/persistent-devices";
-
-function sessionUser(request: Request) {
-  const token = request.headers.get("cookie")?.split(";").map(x => x.trim()).find(x => x.startsWith(sessionCookie + "="))?.split("=")[1];
-  return getSessionUser(token);
-}
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const user = sessionUser(request);
-  if (!user) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
+  const auth = await requestOwnerId(request);
+  if (!auth) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
 
   if (!databaseConfigured()) {
     return NextResponse.json({ ok: true, devices: [], persistent: false, staleAfterSeconds: 90 });
@@ -31,10 +26,10 @@ export async function GET(request: Request) {
          AND lifecycle='online'
          AND last_seen IS NOT NULL
          AND last_seen < now() - ($2::text || ' seconds')::interval`,
-      [user.id, staleAfterSeconds],
+      [auth.ownerId, staleAfterSeconds],
     );
 
-    const devices = await listPersistentFleetDevices(user.id);
+    const devices = await listPersistentFleetDevices(auth.ownerId);
     const counts = devices.reduce((acc: Record<string, number>, device: { lifecycle: string }) => {
       acc[device.lifecycle] = (acc[device.lifecycle] || 0) + 1;
       return acc;
@@ -63,7 +58,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const user = sessionUser(request);
-  if (!user) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
+  if (!auth) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
 
   return NextResponse.json({
     ok: false,
