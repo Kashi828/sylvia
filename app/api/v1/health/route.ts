@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.53.9-mqtt-session-resilience';
+const DEPLOYMENT_MARKER = 'v0.53.10-persistent-command-authority';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -94,7 +94,7 @@ export async function GET() {
     restReady,
     realtimeReady,
     service: 'sylvia',
-    version: '0.53.9',
+    version: '0.53.10',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
