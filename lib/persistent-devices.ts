@@ -36,7 +36,7 @@ export async function registerPersistentDevice(name: string, type: string, owner
   const result = await query(
     `INSERT INTO device_registry
       (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,project_id,token_generation,token_revoked)
-     VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6,$7,$8)
+     VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6,$7,$8,$9,$10)
      RETURNING device_id,name,type,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
     [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, projectId, 1, false],
   );
