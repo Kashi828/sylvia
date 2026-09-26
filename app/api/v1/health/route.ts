@@ -49,7 +49,7 @@ export async function GET() {
     try {
       await query('select 1');
       db.connected = true;
-      const requiredTables = ['device_registry','telemetry_events','datastream_registry','device_commands'];
+      const requiredTables = ['device_registry','telemetry_events','datastream_registry','device_commands','device_events','project_api_keys','automation_rules','schedules','automation_runs','alert_rules','alert_events','alert_deliveries'];
       const schemaResult = await query(
         `select table_name from information_schema.tables where table_schema='public' and table_name = any($1::text[])`,
         [requiredTables],
