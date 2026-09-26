@@ -34,10 +34,9 @@ The application connects server-side through PostgreSQL. SYLVIA now persists app
 3. Apply `supabase/migrations/20260917000000_sylvia_core.sql` to the new project.
 4. Apply `supabase/migrations/20260920000000_persistent_device_auth.sql` as well when upgrading an existing database.
 5. Apply `supabase/migrations/20260921000000_persistent_commands.sql` to enable persistent command queue and acknowledgement history.
-6. Redeploy SYLVIA.
-7. Apply `supabase/migrations/20260926000007_v062_project_isolation.sql` when upgrading to v0.62.0.
-8. Redeploy SYLVIA.
-9. Open `/api/v1/health` and confirm the database reports `configured: true`, `connected: true`, and no missing `workspace_projects` table.
+6. Apply `supabase/migrations/20260926000007_v062_project_isolation.sql` when upgrading to v0.62.0.
+7. Redeploy SYLVIA.
+8. Open `/api/v1/health` and confirm the database reports `configured: true`, `connected: true`, and no missing `workspace_projects` table.
 
 Do not commit database passwords, Supabase secret keys, or other credentials.
 
