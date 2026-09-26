@@ -18,7 +18,7 @@
 
 class Sylvia {
 public:
-  static const char* sdkVersion() { return "0.53.7"; }
+  static const char* sdkVersion() { return "0.53.8"; }
   static const char* protocolVersion() { return "1"; }
   using CommandHandler = bool (*)(JsonObjectConst payload);
 
