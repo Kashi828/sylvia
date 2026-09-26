@@ -25,6 +25,6 @@ export async function DELETE(req:Request){
  if(!auth)return NextResponse.json({ok:false,error:"Authenticated user session required"},{status:401});
  const id=new URL(req.url).searchParams.get('id');
  if(!id)return NextResponse.json({ok:false,error:'id is required'},{status:400});
- await deleteSubscription(id);
+ await deleteSubscription(id,auth.ownerId,auth.projectId);
  return NextResponse.json({ok:true});
 }
