@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.58.0 — Persistent Alerting**
+**v0.59.0 — Persistent Identity & Workspace Roles**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -25,7 +25,7 @@ Supabase PostgreSQL
        └── notifications / subscriptions
 ```
 
-The application currently connects server-side through PostgreSQL. Supabase Auth and Realtime can be added later without changing the core device/MQTT architecture.
+The application connects server-side through PostgreSQL. SYLVIA now persists application users, sessions and workspace memberships directly in the database while keeping the device/MQTT architecture independent.
 
 ## New database setup
 
@@ -73,6 +73,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.56.0 adds persistent telemetry automations, schedules, execution history, and a secured scheduler worker.
 - v0.57.0 adds persistent project API keys, scoped cloud-control authentication, revocation, last-used tracking, and a default-safe hardware command policy.
 - v0.58.0 adds persistent alert rules, alert events, acknowledgements, webhook delivery history, and durable notification sourcing.
+- v0.59.0 adds persistent users, hashed session records, workspace membership, role enforcement, and production secret requirements.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
@@ -94,7 +95,7 @@ Fleet health is owner-scoped and reports online, offline, provisioning and stale
 
 ## v0.56.0 — Cloud Automation Engine
 
-Telemetry can trigger persistent device commands or events. Clock-based schedules can issue persistent commands through MQTT or leave them queued for REST polling. Automation runs are retained in PostgreSQL, scheduled execution is deduplicated, and the automation worker evaluates due schedules every minute.
+Telemetry can trigger persistent device commands or events. Clock-based schedules can issue persistent commands through MQTT or leave them queued for REST polling. Automation runs are retained in PostgreSQL, scheduled execution is deduplicated, and the automation worker evaluates due schedules every 5 minutes through GitHub Actions.
 
 
 ## v0.56.0 scheduler setup
@@ -119,3 +120,30 @@ The default hardware command policy allows `restart`, `sync`, `identify`, and `d
 ## v0.58.0 alert setup
 
 Apply `supabase/migrations/20260926000003_v058_persistent_alerts.sql` after the v0.57 migration. Alert rules are scoped to the owning workspace and selected device/datastream. Numeric telemetry from REST or MQTT is evaluated against the persistent rules, with cooldown claims performed in PostgreSQL before an event is created.
+
+
+## v0.59.0 identity setup
+
+Apply `supabase/migrations/20260926000004_v059_persistent_identity.sql` after the v0.58 migration.
+
+Set these deployment environment variables:
+
+```env
+POSTGRES_URL=...
+SYLVIA_DEMO_PASSWORD=your-owner-password
+SYLVIA_API_KEY_SECRET=your-long-random-api-key-secret
+# Optional:
+SYLVIA_OWNER_EMAIL=owner@sylvia.local
+SYLVIA_OWNER_NAME=SYLVIA Owner
+```
+
+On the first authenticated login, SYLVIA creates the owner account `usr_owner` and its `Owner` workspace membership when the persistent identity tables are available. The full session token is never stored in PostgreSQL; only its SHA-256 hash is stored.
+
+Workspace roles are:
+
+- **Owner** — full workspace control.
+- **Admin** — members, API keys and workspace administration.
+- **Builder** — device registration and cloud automation/device mutations.
+- **Viewer** — read-only workspace access.
+
+The first production login uses the owner credentials represented by `SYLVIA_OWNER_EMAIL` and `SYLVIA_DEMO_PASSWORD`.
