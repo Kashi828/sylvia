@@ -2,7 +2,12 @@ import crypto from "node:crypto";
 import { databaseConfigured, query } from "@/lib/db";
 
 const prefix="syl_sk_";
-function pepper(){return process.env.SYLVIA_API_KEY_SECRET||process.env.SYLVIA_DEVICE_TOKEN_SECRET||"sylvia-beta-api-secret-change-me";}
+function pepper(){
+  const value=process.env.SYLVIA_API_KEY_SECRET||process.env.SYLVIA_DEVICE_TOKEN_SECRET;
+  if(value)return value;
+  if(process.env.NODE_ENV==="production")throw new Error("SYLVIA_API_KEY_SECRET must be configured in production");
+  return "sylvia-beta-api-secret-change-me";
+}
 function hash(token:string){return crypto.createHmac("sha256",pepper()).update(token).digest("hex");}
 function generate(){return prefix+crypto.randomBytes(24).toString("base64url");}
 function preview(token:string){return token.slice(0,12)+"…"+token.slice(-5);}
