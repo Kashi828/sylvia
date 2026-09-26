@@ -59,14 +59,15 @@ function normalize(row: Record<string, unknown>): DeviceEvent {
 }
 
 export async function listDeviceEvents(ownerId: string, options?: {
+  projectId?: string;
   deviceId?: string;
   kind?: string;
   limit?: number;
 }) {
   if (!databaseConfigured()) return [];
   const limit = Math.max(1, Math.min(Math.trunc(options?.limit ?? 100), 200));
-  const values: unknown[] = [ownerId];
-  const clauses = ["owner_id=$1"];
+  const values: unknown[] = [ownerId, options?.projectId ?? null];
+  const clauses = ["owner_id=$1", "($2::text IS NULL OR project_id=$2::text)"];
 
   if (options?.deviceId) {
     values.push(String(options.deviceId));
@@ -80,7 +81,7 @@ export async function listDeviceEvents(ownerId: string, options?: {
 
   try {
     const result = await query(
-      `SELECT id,owner_id,device_id,kind,severity,message,data,occurred_at
+      `SELECT id,owner_id,project_id,device_id,kind,severity,message,data,occurred_at
        FROM public.device_events
        WHERE ${clauses.join(" AND ")}
        ORDER BY occurred_at DESC
