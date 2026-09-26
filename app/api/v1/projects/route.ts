@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
+import { getSessionUserAsync, sessionCookie } from "@/lib/auth";
 import { requestPrincipal } from "@/lib/request-auth";
 import { createWorkspaceProject, ensureDefaultWorkspaceProject, listWorkspaceProjects } from "@/lib/workspace-projects";
 import { requireWorkspaceRole } from "@/lib/workspace-auth";
 
+function sessionToken(request:Request){
+  return request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+"="))?.slice(sessionCookie.length+1)||undefined;
+}
+
 export async function GET(request:Request){
-  const auth=await requestPrincipal(request);
-  if(!auth || auth.method!=="session" || !auth.user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
-  await ensureDefaultWorkspaceProject(auth.user);
-  return NextResponse.json({ok:true,projects:await listWorkspaceProjects(auth.user.id)});
+  const user=await getSessionUserAsync(sessionToken(request));
+  if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
+  await ensureDefaultWorkspaceProject(user);
+  return NextResponse.json({ok:true,projects:await listWorkspaceProjects(user.id)});
 }
 
 export async function POST(request:Request){
