@@ -3,7 +3,8 @@ import { addEvent, queueCommand, markCommandInFlight, validBearer, publicDevice,
 import { findPersistentDeviceByToken, findPersistentDeviceById } from "@/lib/persistent-devices";
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
-import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { getSessionUserAsync, sessionCookie } from "@/lib/auth";
+import { requireWorkspaceRole } from "@/lib/workspace-auth";
 import { authenticateProjectApiKey } from "@/lib/project-api-keys";
 import { recordDeviceEvent } from "@/lib/device-events";
 import { validateCommand } from "@/lib/command-policy";
@@ -16,7 +17,8 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const rawToken=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"").trim() || "";
   const projectKey=rawToken ? await authenticateProjectApiKey(rawToken) : null;
   const sessionToken=request.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.split('=')[1];
-  const sessionUser= sessionToken ? getSessionUser(sessionToken) : null;
+  const sessionUser= sessionToken ? await getSessionUserAsync(sessionToken) : null;
+  if(sessionUser){const access=await requireWorkspaceRole(sessionUser,"sylvia-local-workspace","Builder");if(!access.ok)return NextResponse.json({ok:false,error:access.error},{status:access.status});}
 
   const persistentByToken=rawToken ? await findPersistentDeviceByToken(rawToken,id) : null;
   const persistentById=sessionUser ? await findPersistentDeviceById(id, sessionUser.id) : projectKey ? await findPersistentDeviceById(id, projectKey.ownerId) : null;
