@@ -43,6 +43,25 @@ export async function registerPersistentDevice(name: string, type: string, owner
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
 }
 
+export async function rotatePersistentDeviceToken(deviceId:string|number,ownerId:string){
+  if(!databaseConfigured())return null;
+  const token=generateDeviceToken();
+  const r=await query(
+    `UPDATE public.device_registry
+       SET token_hash=$3, token_preview=$4, token_generation=token_generation+1,
+           token_revoked=false, token_rotated_at=NOW(), token_last_authenticated_at=NULL, updated_at=NOW()
+       WHERE device_id=$1 AND owner_id=$2
+       RETURNING device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
+    [String(deviceId),ownerId,hashDeviceToken(token),tokenFingerprint(token)],
+  );
+  return r.rows[0]?{device:normalize(r.rows[0] as Record<string,unknown>),token}:null;
+}
+
+export async function revokePersistentDeviceToken(deviceId:string|number,ownerId:string){
+  if(!databaseConfigured())return false;
+  const r=await query(`UPDATE public.device_registry SET token_revoked=true,updated_at=NOW() WHERE device_id=$1 AND owner_id=$2 AND token_revoked=false`,[String(deviceId),ownerId]);
+  return r.rowCount===1;
+}
 export async function findPersistentDeviceById(deviceId: string | number, ownerId?: string) {
   if (!databaseConfigured()) return null;
   try {
