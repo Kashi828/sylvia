@@ -1,18 +1,24 @@
-
 import { NextRequest,NextResponse } from "next/server";
-import { requestOwnerId } from "@/lib/request-auth";
+import { requestPrincipal } from "@/lib/request-auth";
+import { requireWorkspaceRole } from "@/lib/workspace-auth";
 import { createPersistentAlertRule, deletePersistentAlertRule, listPersistentAlertRules, updatePersistentAlertRule } from "@/lib/persistent-alerts";
 import { listAlertRules as listMemoryRules, createAlertRule as createMemoryRule, deleteAlertRule as deleteMemoryRule, updateAlertRule as updateMemoryRule } from "@/lib/alerts";
 
 export async function GET(req:NextRequest){
-  const auth=await requestOwnerId(req);
+  const auth=await requestPrincipal(req);
   if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
   if(!process.env.POSTGRES_URL)return NextResponse.json({ok:true,rules:listMemoryRules(),persistent:false});
   return NextResponse.json({ok:true,rules:await listPersistentAlertRules(auth.ownerId),persistent:true});
 }
+async function builderGuard(req:NextRequest){
+  const auth=await requestPrincipal(req);
+  if(!auth)return {auth:null,response:NextResponse.json({ok:false,error:"Authentication required"},{status:401})};
+  if(auth.method==="session"){const access=await requireWorkspaceRole(auth.user!,"sylvia-local-workspace","Builder");if(!access.ok)return {auth:null,response:NextResponse.json({ok:false,error:access.error},{status:access.status})};}
+  return {auth,response:null};
+}
 export async function POST(req:NextRequest){
-  const auth=await requestOwnerId(req);
-  if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
+  const gate=await builderGuard(req);if(!gate.auth)return gate.response!;
+  const auth=gate.auth;
   const b=await req.json().catch(()=>null);
   if(!b?.name||!b?.deviceId||!b?.streamId||typeof b.threshold!=="number")return NextResponse.json({ok:false,error:"name, deviceId, streamId and numeric threshold are required"},{status:400});
   try{
@@ -25,8 +31,8 @@ export async function POST(req:NextRequest){
   }catch(e){return NextResponse.json({ok:false,error:e instanceof Error?e.message:"Alert creation failed"},{status:400});}
 }
 export async function PATCH(req:NextRequest){
-  const auth=await requestOwnerId(req);
-  if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
+  const gate=await builderGuard(req);if(!gate.auth)return gate.response!;
+  const auth=gate.auth;
   const b=await req.json().catch(()=>null);const id=String(b?.id||"");
   if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400});
   const patch={...b};delete patch.id;delete patch.ownerId;
@@ -34,7 +40,8 @@ export async function PATCH(req:NextRequest){
   const rule=await updatePersistentAlertRule(id,auth.ownerId,patch);return rule?NextResponse.json({ok:true,rule,persistent:true}):NextResponse.json({ok:false,error:"Rule not found or unchanged"},{status:404});
 }
 export async function DELETE(req:NextRequest){
-  const auth=await requestOwnerId(req);if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
+  const gate=await builderGuard(req);if(!gate.auth)return gate.response!;
+  const auth=gate.auth;
   const id=req.nextUrl.searchParams.get("id");if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400});
   if(!process.env.POSTGRES_URL)return NextResponse.json({ok:deleteMemoryRule(id),persistent:false});
   return NextResponse.json({ok:await deletePersistentAlertRule(id,auth.ownerId),persistent:true});
