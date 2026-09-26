@@ -18,7 +18,7 @@ export async function GET(request: Request) {
        SET lifecycle='offline', online=false, updated_at=now()
        WHERE owner_id=$1 AND project_id=$2 AND lifecycle='online'
          AND last_seen IS NOT NULL
-         AND last_seen < now() - ($2::text || ' seconds')::interval`,
+         AND last_seen < now() - ($3::text || ' seconds')::interval`,
       [auth.ownerId, auth.projectId, staleAfterSeconds],
     );
     const devices = await listPersistentFleetDevices(auth.ownerId,auth.projectId);
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     );
     const telemetry = await query(
       `SELECT count(*)::int AS count FROM public.telemetry_events t JOIN public.device_registry d ON d.device_id=t.device_id WHERE d.owner_id=$1 AND d.project_id=$2 AND t.occurred_at > now() - interval '24 hours'`,
-      [auth.ownerId],
+      [auth.ownerId,auth.projectId],
     );
     const latestHeartbeat = devices.map(device => device.lastSeen ? Date.parse(device.lastSeen) : 0).filter(Number.isFinite).sort((a,b)=>b-a)[0] || null;
     return NextResponse.json({
