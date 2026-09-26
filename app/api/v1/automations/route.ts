@@ -31,4 +31,4 @@ export async function PATCH(request: Request) {
   const rule=await updateAutomationRule(id,auth.ownerId,patch as never); if(!rule)return NextResponse.json({ok:false,error:"Automation not found or unchanged"},{status:404});
   return NextResponse.json({ok:true,automation:rule});
 }
-export async function DELETE(request: Request) { const user=sessionUser(request); if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); const id=new URL(request.url).searchParams.get("id"); if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400}); return NextResponse.json({ok:true,deleted:await deleteAutomationRule(id,auth.ownerId)}); }
+export async function DELETE(request: Request) { const auth=await requestOwnerId(request); if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); const id=new URL(request.url).searchParams.get("id"); if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400}); return NextResponse.json({ok:true,deleted:await deleteAutomationRule(id,auth.ownerId)}); }
