@@ -13,6 +13,7 @@ let reconnectCount = 0;
 let lastConnectedAt: string | null = null;
 let lastDisconnectedAt: string | null = null;
 let lastError: string | null = null;
+let subscriptionPromise: Promise<void> | null = null;
 
 function brokerUrl() {
   return process.env.SYLVIA_MQTT_BROKER || "mqtt://localhost:1883";
@@ -51,15 +52,20 @@ function subscriptionTopics() {
 
 function restoreSubscriptions(activeClient: MqttClient) {
   subscriptionsReady = false;
-  activeClient.subscribe(subscriptionTopics(), { qos: 1 }, (error) => {
-    if (error) {
-      subscriptionsReady = false;
-      lastError = error.message || "MQTT subscription restore failed";
-      return;
-    }
-    subscriptionsReady = true;
-    lastError = null;
+  subscriptionPromise = new Promise<void>((resolve, reject) => {
+    activeClient.subscribe(subscriptionTopics(), { qos: 1 }, (error) => {
+      if (error) {
+        subscriptionsReady = false;
+        lastError = error.message || "MQTT subscription restore failed";
+        reject(error);
+        return;
+      }
+      subscriptionsReady = true;
+      lastError = null;
+      resolve();
+    });
   });
+  void subscriptionPromise.catch(() => undefined);
 }
 
 export async function ensureMqtt() {
@@ -104,13 +110,23 @@ export async function ensureMqtt() {
 
   }
 
-  if (client.connected) return client;
+  if (client.connected) {
+    if (subscriptionsReady) return client;
+    if (subscriptionPromise) {
+      await Promise.race([
+        subscriptionPromise,
+        new Promise<void>((_, reject) => setTimeout(() => reject(new Error("MQTT subscription restore timeout")), 5000)),
+      ]);
+      return client;
+    }
+  }
 
   return new Promise<MqttClient>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("MQTT connection timeout")), 5000);
     client!.once("connect", () => {
       clearTimeout(timer);
-      resolve(client!);
+      const subscriptions = subscriptionPromise || Promise.resolve();
+      void subscriptions.then(() => resolve(client!)).catch(reject);
     });
     client!.once("error", (error) => {
       clearTimeout(timer);
