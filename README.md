@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.59.0 — Persistent Identity & Workspace Roles**
+**v0.60.0 — Device Token Lifecycle**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -74,6 +74,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.57.0 adds persistent project API keys, scoped cloud-control authentication, revocation, last-used tracking, and a default-safe hardware command policy.
 - v0.58.0 adds persistent alert rules, alert events, acknowledgements, webhook delivery history, and durable notification sourcing.
 - v0.59.0 adds persistent users, hashed session records, workspace membership, role enforcement, and production secret requirements.
+- v0.60.0 adds device-token rotation, revocation, token-generation tracking, and production device-secret requirements.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
@@ -147,3 +148,17 @@ Workspace roles are:
 - **Viewer** — read-only workspace access.
 
 The first production login uses the owner credentials represented by `SYLVIA_OWNER_EMAIL` and `SYLVIA_DEMO_PASSWORD`.
+
+## v0.60.0 device token setup
+
+Apply `supabase/migrations/20260926000005_v060_device_token_lifecycle.sql` after the v0.59 migration.
+
+Set the production hardware credential secret:
+
+```env
+SYLVIA_DEVICE_TOKEN_SECRET=your-long-random-device-token-secret
+```
+
+Device tokens are HMAC-protected and are not stored in plaintext. Rotating a token immediately invalidates the previous token. Revoking a token disables the device credential without deleting the device, telemetry or command history.
+
+`POST /api/v1/devices/{id}/token` with `{ "action": "rotate" }` returns the new token once. Use `{ "action": "revoke" }` to disable the current credential.
