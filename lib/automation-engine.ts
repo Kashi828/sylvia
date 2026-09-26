@@ -27,6 +27,37 @@ export async function createSchedule(input:{ownerId:string;projectId?:string;nam
 export async function updateSchedule(id:string,ownerId:string,patch:Record<string,unknown>){if(!databaseConfigured())return null;const fieldMap:{[key:string]:string}={name:'name',command:'command',payload:'payload',hour:'hour',minute:'minute',daysOfWeek:'days_of_week',timezone:'timezone',enabled:'enabled',projectId:'project_id'};const entries=Object.entries(patch).filter(([k,v])=>fieldMap[k]&&v!==undefined);if(!entries.length)return null;const values:unknown[]=[id,ownerId];const sets:string[]=[];for(const [k,v] of entries){let value=v;if(k==='payload')value=JSON.stringify(v);if(k==='hour')value=Math.max(0,Math.min(23,Math.trunc(Number(v))));if(k==='minute')value=Math.max(0,Math.min(59,Math.trunc(Number(v))));if(k==='daysOfWeek')value=Array.isArray(v)?v.filter(x=>Number.isInteger(x)&&x>=0&&x<=6):[0,1,2,3,4,5,6];values.push(value);sets.push(`${fieldMap[k]}=$${values.length}${k==='payload'?'::jsonb':''}`);}values.push(new Date().toISOString());const r=await query(`UPDATE public.schedules SET ${sets.join(',')},updated_at=$${values.length} WHERE id=$1 AND owner_id=$2 RETURNING id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at`,values);return r.rows[0]?normalizeSchedule(r.rows[0] as Record<string,unknown>):null;}
 export async function deleteSchedule(id:string,ownerId:string){if(!databaseConfigured())return false;const r=await query(`DELETE FROM public.schedules WHERE id=$1 AND owner_id=$2`,[id,ownerId]);return r.rowCount===1;}
 function localParts(date:Date,timezone:string){try{const parts=new Intl.DateTimeFormat('en-US',{timeZone:timezone,hour:'2-digit',minute:'2-digit',hourCycle:'h23',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);const get=(type:string)=>parts.find(x=>x.type===type)?.value||'';const weekdays:{[key:string]:number}={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};return{year:get('year'),month:get('month'),day:get('day'),hour:Number(get('hour')),minute:Number(get('minute')),weekday:weekdays[get('weekday')]};}catch{return null;}}
-async function executeSchedule(schedule:Schedule,now:Date,manual=false){const parts=localParts(now,schedule.timezone);if(!parts)return{status:'failed',error:'Invalid schedule timezone'};if(!manual&&(!schedule.enabled||!schedule.daysOfWeek.includes(parts.weekday)||schedule.hour!==parts.hour||schedule.minute!==parts.minute))return{status:'skipped'};const executionKey=`schedule:${schedule.id}:${parts.year}-${parts.month}-${parts.day}-${String(parts.hour).padStart(2,'0')}-${String(parts.minute).padStart(2,'0')}`;if(!manual){const claim=await query(`UPDATE public.schedules SET last_run_at=now(),updated_at=now() WHERE id=$1 AND enabled=true AND (last_run_at IS NULL OR last_run_at < date_trunc('minute',now())) RETURNING id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at`,[schedule.id]);if(!claim.rows[0])return{status:'duplicate'};}try{const dispatched=await dispatchCommand(schedule.ownerId,schedule.deviceId,schedule.command,schedule.payload);const run=await createRun({ownerId:schedule.ownerId,sourceType:'schedule',sourceId:schedule.id,deviceId:schedule.deviceId,action:schedule.command,status:dispatched.status,commandId:dispatched.commandId,error:dispatched.error||null,executionKey:manual?undefined:executionKey});await recordDeviceEvent({deviceId:schedule.deviceId,ownerId:schedule.ownerId,kind:'schedule.executed',severity:dispatched.status==='queued'?'info':'success',message:`Schedule ${schedule.name} executed`,data:{scheduleId:schedule.id,command:schedule.command,status:dispatched.status,commandId:dispatched.commandId,manual}});return{status:dispatched.status,commandId:dispatched.commandId,error:dispatched.error||null,run};}catch(error){const message=error instanceof Error?error.message:'Schedule execution failed';const run=await createRun({ownerId:schedule.ownerId,sourceType:'schedule',sourceId:schedule.id,deviceId:schedule.deviceId,action:schedule.command,status:'failed',error:message,executionKey:manual?undefined:executionKey});return{status:'failed',error:message,run};}}
+async function executeSchedule(schedule:Schedule,now:Date,manual=false){
+  const parts=localParts(now,schedule.timezone);
+  if(!parts)return{status:'failed',error:'Invalid schedule timezone'};
+  const currentMinutes=parts.hour*60+parts.minute;
+  const scheduledMinutes=schedule.hour*60+schedule.minute;
+  if(!manual&&(!schedule.enabled||!schedule.daysOfWeek.includes(parts.weekday)||currentMinutes<scheduledMinutes))return{status:'skipped'};
+  const localDate=`${parts.year}-${parts.month}-${parts.day}`;
+  const executionKey=`schedule:${schedule.id}:${localDate}`;
+  if(!manual){
+    const claim=await query(
+      `UPDATE public.schedules
+       SET last_run_at=now(),updated_at=now()
+       WHERE id=$1 AND enabled=true
+         (EXTRACT(DOW FROM now() AT TIME ZONE timezone)::int = ANY(days_of_week))
+         AND (EXTRACT(HOUR FROM now() AT TIME ZONE timezone)::int*60 + EXTRACT(MINUTE FROM now() AT TIME ZONE timezone)::int >= hour*60 + minute)
+         AND (last_run_at IS NULL OR (last_run_at AT TIME ZONE timezone)::date < (now() AT TIME ZONE timezone)::date)
+       RETURNING id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at`,
+      [schedule.id],
+    );
+    if(!claim.rows[0])return{status:'duplicate'};
+  }
+  try{
+    const dispatched=await dispatchCommand(schedule.ownerId,schedule.deviceId,schedule.command,schedule.payload);
+    const run=await createRun({ownerId:schedule.ownerId,sourceType:'schedule',sourceId:schedule.id,deviceId:schedule.deviceId,action:schedule.command,status:dispatched.status,commandId:dispatched.commandId,error:dispatched.error||null,executionKey:manual?undefined:executionKey});
+    await recordDeviceEvent({deviceId:schedule.deviceId,ownerId:schedule.ownerId,kind:'schedule.executed',severity:dispatched.status==='queued'?'info':'success',message:`Schedule ${schedule.name} executed`,data:{scheduleId:schedule.id,command:schedule.command,status:dispatched.status,commandId:dispatched.commandId,manual}});
+    return{status:dispatched.status,commandId:dispatched.commandId,error:dispatched.error||null,run};
+  }catch(error){
+    const message=error instanceof Error?error.message:'Schedule execution failed';
+    const run=await createRun({ownerId:schedule.ownerId,sourceType:'schedule',sourceId:schedule.id,deviceId:schedule.deviceId,action:schedule.command,status:'failed',error:message,executionKey:manual?undefined:executionKey});
+    return{status:'failed',error:message,run};
+  }
+}
 export async function runDueSchedules(now=new Date()){if(!databaseConfigured())return[];const r=await query(`SELECT id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at FROM public.schedules WHERE enabled=true ORDER BY hour ASC,minute ASC`);const out=[];for(const raw of r.rows){out.push({schedule:normalizeSchedule(raw as Record<string,unknown>),result:await executeSchedule(normalizeSchedule(raw as Record<string,unknown>),now,false)});}return out;}
 export async function runScheduleNow(id:string,ownerId:string){if(!databaseConfigured())return null;const r=await query(`SELECT id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at FROM public.schedules WHERE id=$1 AND owner_id=$2 LIMIT 1`,[id,ownerId]);if(!r.rows[0])return null;return executeSchedule(normalizeSchedule(r.rows[0] as Record<string,unknown>),new Date(),true);}
