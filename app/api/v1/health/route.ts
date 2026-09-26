@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.58.0-persistent-alerts';
+const DEPLOYMENT_MARKER = 'v0.59.0-persistent-identity';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -49,7 +49,7 @@ export async function GET() {
     try {
       await query('select 1');
       db.connected = true;
-      const requiredTables = ['device_registry','telemetry_events','datastream_registry','device_commands','device_events','project_api_keys','automation_rules','schedules','automation_runs','alert_rules','alert_events','alert_deliveries'];
+      const requiredTables = ['device_registry','telemetry_events','datastream_registry','device_commands','device_events','project_api_keys','automation_rules','schedules','automation_runs','alert_rules','alert_events','alert_deliveries','app_users','app_sessions','workspace_members'];
       const schemaResult = await query(
         `select table_name from information_schema.tables where table_schema='public' and table_name = any($1::text[])`,
         [requiredTables],
@@ -75,8 +75,10 @@ export async function GET() {
 
   const restReady = db.configured && db.connected && runtimeSchema.connected;
   const realtimeReady = restReady && mqtt.configured && mqtt.connected && mqtt.subscriptionsReady;
-  const ready = restReady;
+  const identityReady = db.configured && db.connected && runtimeSchema.connected && (process.env.NODE_ENV !== 'production' || (present('SYLVIA_DEMO_PASSWORD') && present('SYLVIA_API_KEY_SECRET')));
+  const ready = restReady && identityReady;
   const databaseEnv = ['POSTGRES_URL'].filter(present);
+  const identityEnv = ['SYLVIA_DEMO_PASSWORD','SYLVIA_API_KEY_SECRET','SYLVIA_OWNER_EMAIL','SYLVIA_OWNER_NAME'].filter(present);
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
     'SYLVIA_MQTT_USERNAME',
@@ -94,7 +96,7 @@ export async function GET() {
     restReady,
     realtimeReady,
     service: 'sylvia',
-    version: '0.58.0',
+    version: '0.59.0',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
@@ -103,6 +105,8 @@ export async function GET() {
       databaseTarget: safeDatabaseTarget(),
       databaseEnv,
       databaseError,
+      identityReady,
+      identityEnv,
       mqttEnv,
       mqttError,
       nodeEnv: process.env.NODE_ENV || 'unknown',
