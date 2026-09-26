@@ -22,7 +22,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(auth&&auth.method==="session"){
     const access=await requireWorkspaceRole(auth.user!,auth.projectId,"Admin");if(!access.ok)return NextResponse.json({ok:false,error:access.error},{status:access.status});
     const body=await request.json().catch(()=>({})) as {action?:string}; const action=body.action==="revoke"?"revoke":"rotate";
-    const device=await findPersistentDeviceById(id,auth.ownerId);
+    const device=await findPersistentDeviceById(id,auth.ownerId,auth.projectId);
     if(!device)return NextResponse.json({ok:false,error:"Device not found"},{status:404});
     if(action==="revoke"){
       const changed=await revokePersistentDeviceToken(id,auth.ownerId,auth.projectId);
