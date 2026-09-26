@@ -1,5 +1,36 @@
 # SYLVIA Changelog
 
+## v0.56.0 — Cloud Automation Engine
+
+SYLVIA reaches the cloud automation milestone with durable telemetry rules, schedules, and execution history.
+
+### Automation
+- Persistent telemetry rules can create events or dispatch real device commands.
+- Rule cooldowns are claimed atomically in PostgreSQL to reduce duplicate triggers.
+- Device ownership is enforced before automated command dispatch.
+
+### Scheduling
+- Persistent schedules support local day, time, timezone, and command payloads.
+- Manual schedule execution is available from the console.
+- Scheduled executions use a deterministic execution key to prevent duplicate runs.
+- A secured `/api/cron/automations` worker evaluates due schedules and refreshes stale fleet state.
+
+### Console
+- Automations and Schedules now use the cloud APIs instead of local-only demo actions.
+- Durable automation run history is visible in the console.
+- The platform shell is v0.56.0 while the Arduino SDK remains v0.53.8.
+
+## v0.55.0 — Fleet Reliability
+
+- Added owner-scoped fleet health and durable device event history.
+- Added hardware diagnostics and stale-device lifecycle handling.
+- Added durable command acknowledgement activity to the hardware event path.
+
+## v0.54.0 — Physical Hardware Foundation
+
+- Added explicit device ownership to the persistent registry.
+- Added durable device events for heartbeat, telemetry and command dispatch activity.
+- Added an authenticated hardware diagnostics endpoint for the first physical-device validation.
 ## v0.53.10 — Persistent Command Authority
 
 SYLVIA now treats the PostgreSQL persistent command record as the authoritative cloud command state whenever the database is configured.
