@@ -7,6 +7,12 @@ import { persistTelemetry } from "./telemetry-persistence";
 
 let client: MqttClient | null = null;
 let connected = false;
+let subscriptionsReady = false;
+let connectionCount = 0;
+let reconnectCount = 0;
+let lastConnectedAt: string | null = null;
+let lastDisconnectedAt: string | null = null;
+let lastError: string | null = null;
 
 function brokerUrl() {
   return process.env.SYLVIA_MQTT_BROKER || "mqtt://localhost:1883";
@@ -25,7 +31,35 @@ export function mqttStatus() {
     configured: Boolean(process.env.SYLVIA_MQTT_BROKER),
     broker: brokerUrl(),
     connected,
+    subscriptionsReady,
+    connectionCount,
+    reconnectCount,
+    lastConnectedAt,
+    lastDisconnectedAt,
+    lastError,
   };
+}
+
+function subscriptionTopics() {
+  const prefix = topicPrefix();
+  return [
+    prefix + "/devices/+/telemetry",
+    prefix + "/devices/+/heartbeat",
+    prefix + "/devices/+/command-ack",
+  ];
+}
+
+function restoreSubscriptions(activeClient: MqttClient) {
+  subscriptionsReady = false;
+  activeClient.subscribe(subscriptionTopics(), { qos: 1 }, (error) => {
+    if (error) {
+      subscriptionsReady = false;
+      lastError = error.message || "MQTT subscription restore failed";
+      return;
+    }
+    subscriptionsReady = true;
+    lastError = null;
+  });
 }
 
 export async function ensureMqtt() {
@@ -47,20 +81,27 @@ export async function ensureMqtt() {
     });
 
     client.on("connect", () => {
+      const wasConnected = connected;
       connected = true;
-      client!.subscribe(`${topicPrefix()}/devices/+/telemetry`, { qos: 1 });
-      client!.subscribe(`${topicPrefix()}/devices/+/heartbeat`, { qos: 1 });
-      client!.subscribe(`${topicPrefix()}/devices/+/command-ack`, { qos: 1 });
+      ++connectionCount;
+      if (wasConnected) ++reconnectCount;
+      lastConnectedAt = new Date().toISOString();
+      restoreSubscriptions(client!);
     });
     client.on("message", (topic, raw) => {
       void handleDeviceMessage(topic, raw);
     });
     client.on("close", () => {
       connected = false;
+      subscriptionsReady = false;
+      lastDisconnectedAt = new Date().toISOString();
     });
-    client.on("error", () => {
+    client.on("error", (error) => {
       connected = false;
+      subscriptionsReady = false;
+      lastError = error?.message || "MQTT connection error";
     });
+
   }
 
   if (client.connected) return client;
@@ -73,6 +114,7 @@ export async function ensureMqtt() {
     });
     client!.once("error", (error) => {
       clearTimeout(timer);
+      lastError = error?.message || "MQTT connection error";
       reject(error);
     });
   });
