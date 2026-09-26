@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.62.0 — Project Isolation Foundation
+
+SYLVIA now establishes a persistent project boundary across the control plane while keeping the existing default workspace compatible.
+
+### Project registry
+- Added persistent `workspace_projects` registry with active/archived state and project membership lookup.
+- Added authenticated `GET/POST /api/v1/projects` for project discovery and creation.
+- Requests can select the active project with `X-SYLVIA-Project`.
+
+### Resource isolation
+- Persistent devices, device events, datastreams, telemetry, API keys, automations, schedules, alert rules, alert events, deliveries, audit history and automation runs are scoped to the active project.
+- Existing default-workspace data is migrated to `sylvia-local-workspace`.
+- Machine API keys are bound to their project and must present the matching project context.
+
+### Platform
+- Platform version is now v0.62.0; Arduino SDK remains v0.53.8.
+
 ## v0.61.0 — Durable Audit Log
 
 SYLVIA now records privileged security and control-plane actions in PostgreSQL for operational review.
