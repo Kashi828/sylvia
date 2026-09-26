@@ -4,9 +4,9 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.61.0 — Durable Audit Log**
+**v0.62.0 — Project Isolation Foundation**
 
-SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
+SYLVIA now has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The main console can switch projects and create new projects for authorized workspace admins.
 
 ## Database architecture
 
@@ -35,7 +35,9 @@ The application connects server-side through PostgreSQL. SYLVIA now persists app
 4. Apply `supabase/migrations/20260920000000_persistent_device_auth.sql` as well when upgrading an existing database.
 5. Apply `supabase/migrations/20260921000000_persistent_commands.sql` to enable persistent command queue and acknowledgement history.
 6. Redeploy SYLVIA.
-7. Open `/api/v1/health` and confirm the database reports `configured: true` and `connected: true`.
+7. Apply `supabase/migrations/20260926000007_v062_project_isolation.sql` when upgrading to v0.62.0.
+8. Redeploy SYLVIA.
+9. Open `/api/v1/health` and confirm the database reports `configured: true`, `connected: true`, and no missing `workspace_projects` table.
 
 Do not commit database passwords, Supabase secret keys, or other credentials.
 
@@ -76,6 +78,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.59.0 adds persistent users, hashed session records, workspace membership, role enforcement, and production secret requirements.
 - v0.60.0 adds device-token rotation, revocation, token-generation tracking, and production device-secret requirements.
 - v0.61.0 adds a durable audit trail for authentication, workspace administration, API keys, device tokens and hardware commands.
+- v0.62.0 adds persistent project registry, project selection, project-bound API keys, device/datastream/telemetry isolation, project-scoped automations/alerts/notifications, and authenticated workspace membership boundaries.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
