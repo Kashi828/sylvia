@@ -16,6 +16,7 @@ export type DeviceEvent = {
 export async function recordDeviceEvent(input: {
   deviceId: string | number;
   ownerId?: string | null;
+  projectId?: string | null;
   kind: string;
   severity?: DeviceEventSeverity;
   message: string;
@@ -26,13 +27,17 @@ export async function recordDeviceEvent(input: {
   try {
     const result = await query(
       `INSERT INTO public.device_events
-        (id, owner_id, device_id, kind, severity, message, data)
-       VALUES ($1,COALESCE($2,(SELECT owner_id FROM public.device_registry WHERE device_id=$3 LIMIT 1)),$3,$4,$5,$6,$7::jsonb)
+        (id, owner_id, project_id, device_id, kind, severity, message, data)
+       VALUES ($1,
+               COALESCE($2,(SELECT owner_id FROM public.device_registry WHERE device_id=$3 LIMIT 1)),
+               COALESCE($4,(SELECT project_id FROM public.device_registry WHERE device_id=$3 LIMIT 1),'sylvia-local-workspace'),
+               $3,$5,$6,$7,$8::jsonb)
        RETURNING id,owner_id,device_id,kind,severity,message,data,occurred_at`,
       [
         id,
         input.ownerId ?? null,
         String(input.deviceId),
+        input.projectId ?? null,
         input.kind,
         input.severity ?? "info",
         input.message,
@@ -59,6 +64,7 @@ function normalize(row: Record<string, unknown>): DeviceEvent {
 }
 
 export async function listDeviceEvents(ownerId: string, options?: {
+  projectId?: string;
   projectId?: string;
   deviceId?: string;
   kind?: string;
