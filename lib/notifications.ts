@@ -55,9 +55,9 @@ async function persistSourceNotifications(items:Notification[]) {
   if(!databaseConfigured() || !items.length) return;
   try {
     for(const n of items) await query(
-      `INSERT INTO notifications (id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind,severity=EXCLUDED.severity,title=EXCLUDED.title,message=EXCLUDED.message,timestamp=EXCLUDED.timestamp,device_id=EXCLUDED.device_id,stream_id=EXCLUDED.stream_id,source_id=EXCLUDED.source_id`,
+      `INSERT INTO notifications (id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id,project_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind,severity=EXCLUDED.severity,title=EXCLUDED.title,message=EXCLUDED.message,timestamp=EXCLUDED.timestamp,device_id=EXCLUDED.device_id,stream_id=EXCLUDED.stream_id,source_id=EXCLUDED.source_id,project_id=EXCLUDED.project_id`,
       [n.id,n.kind,n.severity,n.title,n.message,n.timestamp,n.read,n.deviceId??null,n.streamId??null,n.sourceId??null,n.projectId??"sylvia-local-workspace"]
     );
   } catch { /* retain in-memory operation */ }
