@@ -4,6 +4,7 @@ import { markDeviceSeen } from "./device-registry";
 import { listPersistentDatastreams } from "./persistent-datastreams";
 import { findPersistentDeviceByToken } from "./persistent-devices";
 import { persistTelemetry } from "./telemetry-persistence";
+import { evaluateAutomationTelemetry } from "./automation-engine";
 
 let client: MqttClient | null = null;
 let connected = false;
@@ -166,7 +167,12 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
         if (!validType) return;
       }
       const sample = await ingestMqttTelemetry({ deviceId, key, streamId, value, timestamp: body.timestamp, firmware: body.firmware }, token);
-      if (persistent) await persistTelemetry({ ...sample, transport: "mqtt" });
+      if (persistent) {
+        await persistTelemetry({ ...sample, transport: "mqtt" });
+        if (typeof value === "number" && Number.isFinite(value)) {
+          await evaluateAutomationTelemetry(deviceId, streamId, value);
+        }
+      }
     } catch { /* invalid or unauthorized device telemetry is ignored */ }
   } else if (channel === "command-ack") {
     if (!token || typeof body?.commandId !== "string") return;
