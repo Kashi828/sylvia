@@ -65,7 +65,6 @@ function normalize(row: Record<string, unknown>): DeviceEvent {
 
 export async function listDeviceEvents(ownerId: string, options?: {
   projectId?: string;
-  projectId?: string;
   deviceId?: string;
   kind?: string;
   limit?: number;
