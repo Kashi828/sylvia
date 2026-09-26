@@ -24,11 +24,11 @@ export async function POST(request: Request) {
   catch(error){return NextResponse.json({ok:false,error:error instanceof Error?error.message:"Automation creation failed"},{status:400});}
 }
 export async function PATCH(request: Request) {
-  const user=sessionUser(request); if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
+  const auth=await requestOwnerId(request); if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null; const id=typeof body?.id==="string"?body.id:"";
   if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400});
   const patch={...body}; delete patch.id; delete patch.ownerId; delete patch.deviceId; delete patch.streamId; delete patch.projectId;
-  const rule=await updateAutomationRule(id,user.id,patch as never); if(!rule)return NextResponse.json({ok:false,error:"Automation not found or unchanged"},{status:404});
+  const rule=await updateAutomationRule(id,auth.ownerId,patch as never); if(!rule)return NextResponse.json({ok:false,error:"Automation not found or unchanged"},{status:404});
   return NextResponse.json({ok:true,automation:rule});
 }
-export async function DELETE(request: Request) { const user=sessionUser(request); if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); const id=new URL(request.url).searchParams.get("id"); if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400}); return NextResponse.json({ok:true,deleted:await deleteAutomationRule(id,user.id)}); }
+export async function DELETE(request: Request) { const user=sessionUser(request); if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); const id=new URL(request.url).searchParams.get("id"); if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400}); return NextResponse.json({ok:true,deleted:await deleteAutomationRule(id,auth.ownerId)}); }
