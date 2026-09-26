@@ -3,10 +3,10 @@ import { databaseConfigured, query } from "@/lib/db";
 
 const prefix="syl_sk_";
 function pepper(){
-  const value=process.env.SYLVIA_API_KEY_SECRET||process.env.SYLVIA_DEVICE_TOKEN_SECRET;
-  if(value)return value;
+  const apiSecret=process.env.SYLVIA_API_KEY_SECRET;
+  if(apiSecret)return apiSecret;
   if(process.env.NODE_ENV==="production")throw new Error("SYLVIA_API_KEY_SECRET must be configured in production");
-  return "sylvia-beta-api-secret-change-me";
+  return process.env.SYLVIA_DEVICE_TOKEN_SECRET||"sylvia-beta-api-secret-change-me";
 }
 function hash(token:string){return crypto.createHmac("sha256",pepper()).update(token).digest("hex");}
 function generate(){return prefix+crypto.randomBytes(24).toString("base64url");}
