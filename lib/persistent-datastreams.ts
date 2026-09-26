@@ -1,4 +1,5 @@
 import { query, databaseConfigured } from "@/lib/db";
+import { DEFAULT_PROJECT_ID } from "@/lib/workspace-projects";
 
 export type PersistentDatastream = {
   id: string;
@@ -28,7 +29,7 @@ export function persistentDatastreamsAvailable() {
   return databaseConfigured();
 }
 
-export async function listPersistentDatastreams(deviceId?: string) {
+export async function listPersistentDatastreams(deviceId?: string, projectId?: string) {
   if (!databaseConfigured()) return [];
   const result = await query(
     `SELECT datastream_id,device_id,name,value_type,unit,created_at,last_value_json,last_occurred_at
@@ -45,25 +46,26 @@ export async function createPersistentDatastream(
   name: string,
   type: PersistentDatastream["type"],
   unit = "",
+  projectId=DEFAULT_PROJECT_ID,
 ) {
   if (!databaseConfigured()) return null;
   const id = `ds_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
   const result = await query(
     `INSERT INTO public.datastream_registry
-      (datastream_id,device_id,name,value_type,unit)
-     VALUES ($1,$2,$3,$4,$5)
+      (datastream_id,device_id,project_id,name,value_type,unit)
+     VALUES ($1,$2,$3,$4,$5,$6)
      RETURNING datastream_id,device_id,name,value_type,unit,created_at,last_value_json,last_occurred_at`,
-    [id, String(deviceId), name.trim(), type, unit.trim()],
+    [id, String(deviceId), projectId, name.trim(), type, unit.trim()],
   );
   return normalize(result.rows[0] as Record<string, unknown>);
 }
 
-export async function deletePersistentDatastream(id: string, ownerId?: string) {
+export async function deletePersistentDatastream(id: string, ownerId?: string, projectId=DEFAULT_PROJECT_ID) {
   if (!databaseConfigured()) return false;
   if (!ownerId) return false;
   const result = await query(
-    "DELETE FROM public.datastream_registry d USING public.device_registry dev WHERE d.datastream_id=$1 AND d.device_id=dev.device_id AND dev.owner_id=$2 RETURNING d.datastream_id",
-    [id, ownerId],
+    "DELETE FROM public.datastream_registry d USING public.device_registry dev WHERE d.datastream_id=$1 AND d.device_id=dev.device_id AND dev.owner_id=$2 AND dev.project_id=$3 AND d.project_id=$3 RETURNING d.datastream_id",
+    [id, ownerId, projectId],
   );
   return result.rowCount === 1;
 }
