@@ -10,8 +10,8 @@ export async function persistTelemetry(sample: TelemetrySample) {
     try {
       await db.query(
         `INSERT INTO telemetry_events
-         (device_id, datastream_id, value, value_json, occurred_at)
-         VALUES ($1, $2, $3, $4::jsonb, $5)`,
+         (project_id, device_id, datastream_id, value, value_json, occurred_at)
+         VALUES (COALESCE((SELECT project_id FROM public.device_registry WHERE device_id=$1 LIMIT 1),'sylvia-local-workspace'), $1, $2, $3, $4::jsonb, $5)`,
         [
           sample.deviceId,
           sample.streamId,
@@ -37,7 +37,7 @@ export async function persistTelemetry(sample: TelemetrySample) {
   }
 }
 
-export async function loadPersistedTelemetry(deviceId?: string, streamId?: string) {
+export async function loadPersistedTelemetry(deviceId?: string, streamId?: string, projectId?: string) {
   const db = getPool();
   if (!db) return getTelemetry(deviceId, streamId);
 
@@ -45,6 +45,10 @@ export async function loadPersistedTelemetry(deviceId?: string, streamId?: strin
     const clauses: string[] = [];
     const values: unknown[] = [];
 
+    if (projectId) {
+      values.push(projectId);
+      clauses.push(`project_id = ${values.length}`);
+    }
     if (deviceId) {
       values.push(deviceId);
       clauses.push(`device_id = $${values.length}`);
