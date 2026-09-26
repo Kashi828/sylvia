@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.52.0-beta.2 — REST Command Polling**
+**v0.53.10 — Persistent Command Authority**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -66,7 +66,8 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - The console synchronizes hardware presence from the fleet registry.
 - Persistent telemetry and persistent device metrics are supported.
 - Persistent command queue and acknowledgement storage are supported.
-- REST command polling is now available as a hardware transport fallback.
+- Persistent command state is authoritative before MQTT publish.
+- REST command polling is available as a hardware transport fallback.
 - ESP8266/NodeMCU support remains the next real-hardware validation path; physical hardware testing is intentionally manual.
 
 ### v0.52.0-beta.2
