@@ -93,7 +93,7 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
   }
   if (projectId !== undefined) {
     params.push(String(projectId));
-    where += ` AND project_id = ${params.length}`;
+    where += ` AND project_id = $${params.length}`;
   }
 
   try {
