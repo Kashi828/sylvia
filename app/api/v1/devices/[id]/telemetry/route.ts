@@ -41,6 +41,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       firmware:body.firmware,
     },token);
     const persisted=await persistTelemetry({...sample,transport:'rest'});
+    await recordDeviceEvent({
+      deviceId:id,
+      kind:'telemetry.received',
+      severity:'info',
+      message:`Telemetry received for ${String(datastreamId)}`,
+      data:{streamId:String(datastreamId),value:body.value,transport:'rest'},
+    });
     return NextResponse.json({ok:true,sample:persisted,persistent:true},{status:201});
   }catch(error){
     const message=error instanceof Error?error.message:'Telemetry ingestion failed';
