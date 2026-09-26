@@ -12,6 +12,7 @@ type Stream={id:number;remoteId?:string;name:string;deviceId:number;type:'Number
 type Widget={id:number;title:string;kind:'Gauge'|'Value'|'Switch'|'Chart';streamId:number};
 type Rule={id:number;name:string;streamId:number;operator:'>'|'<'|'='|'!=';threshold:string;action:'Event'|'Switch device'|'Set datastream';enabled:boolean};
 type ApiKey={id:string|number;name:string;token?:string;tokenPreview?:string;created:number;revoked?:boolean;lastUsedAt?:string|null};
+type WorkspaceProject={id:string;name:string;slug:string;status:string;role?:string};
 type Webhook={id:number;name:string;url:string;event:string;enabled:boolean};
 type Schedule={id:number;name:string;time:string;days:string;action:string;enabled:boolean};
 type ZyraConfig={enabled:boolean;mode:'Bridge'|'Webhook';endpoint:string;label:string;project:string};
