@@ -66,7 +66,7 @@ async function persistSourceNotifications(items:Notification[]) {
 async function readDurable(limit:number,projectId="sylvia-local-workspace"):Promise<Notification[]|null> {
   if(!databaseConfigured()) return null;
   try {
-    const r=await query<any>(`SELECT id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id,project_id FROM notifications WHERE project_id=$2 ORDER BY timestamp DESC LIMIT $1`,[limit]);
+    const r=await query<any>(`SELECT id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id,project_id FROM notifications WHERE project_id=$2 ORDER BY timestamp DESC LIMIT $1`,[limit,projectId]);
     return r.rows.map((n:any)=>({id:n.id,kind:n.kind,severity:n.severity,title:n.title,message:n.message,timestamp:new Date(n.timestamp).toISOString(),read:Boolean(n.read),deviceId:n.device_id??undefined,streamId:n.stream_id??undefined,sourceId:n.source_id??undefined,projectId:n.project_id??undefined}));
   } catch { return null; }
 }
