@@ -1,3 +1,11 @@
 import {NextResponse} from 'next/server';
-import {getSessionUser,publicUser,sessionCookie} from '@/lib/auth';
-export async function GET(req:Request){const token=req.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.split('=')[1];return NextResponse.json({authenticated:Boolean(getSessionUser(token)),user:publicUser(getSessionUser(token))});}
+import {getSessionUserAsync,publicUser,sessionCookie} from '@/lib/auth';
+
+function sessionToken(req:Request){
+  return req.headers.get('cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+'='))?.slice(sessionCookie.length+1)||undefined;
+}
+
+export async function GET(req:Request){
+  const user=await getSessionUserAsync(sessionToken(req));
+  return NextResponse.json({authenticated:Boolean(user),user:publicUser(user)});
+}
