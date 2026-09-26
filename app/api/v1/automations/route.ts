@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requestOwnerId } from "@/lib/request-auth";
+import { requestPrincipal } from "@/lib/request-auth";
+import { requireWorkspaceRole } from "@/lib/workspace-auth";
 import { createAutomationRule, deleteAutomationRule, listAutomationRules, updateAutomationRule } from "@/lib/automation-engine";
 
 const operators=[">",">=","<","<=","=","!="];
@@ -7,7 +8,7 @@ const actions=["device_command","event"];
 
 export const dynamic="force-dynamic";
 
-export async function GET(request: Request) { const auth=await requestOwnerId(request); if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); return NextResponse.json({ok:true,automations:await listAutomationRules(auth.ownerId),persistent:true}); }
+export async function GET(request: Request) { const auth=await requestPrincipal(request); if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401}); return NextResponse.json({ok:true,automations:await listAutomationRules(auth.ownerId),persistent:true}); }
 export async function POST(request: Request) {
   const auth=await requestOwnerId(request); if(!auth)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
   const body=await request.json().catch(()=>null) as Record<string,unknown>|null;
