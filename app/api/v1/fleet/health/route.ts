@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requestOwnerId } from "@/lib/request-auth";
+import { requestPrincipal } from "@/lib/request-auth";
 import { databaseConfigured, query } from "@/lib/db";
 import { listPersistentFleetDevices } from "@/lib/persistent-devices";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const auth = await requestOwnerId(request);
+  const auth = await requestPrincipal(request);
   if (!auth) return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
   if (!databaseConfigured()) {
     return NextResponse.json({ok:true,persistent:false,summary:{total:0,online:0,offline:0,provisioning:0,disabled:0,stale:0},mqtt:{configured:Boolean(process.env.SYLVIA_MQTT_BROKER)},recentEvents:0});
@@ -16,20 +16,20 @@ export async function GET(request: Request) {
     await query(
       `UPDATE public.device_registry
        SET lifecycle='offline', online=false, updated_at=now()
-       WHERE owner_id=$1 AND lifecycle='online'
+       WHERE owner_id=$1 AND project_id=$2 AND lifecycle='online'
          AND last_seen IS NOT NULL
          AND last_seen < now() - ($2::text || ' seconds')::interval`,
-      [auth.ownerId, staleAfterSeconds],
+      [auth.ownerId, auth.projectId, staleAfterSeconds],
     );
-    const devices = await listPersistentFleetDevices(auth.ownerId);
+    const devices = await listPersistentFleetDevices(auth.ownerId,auth.projectId);
     const counts = {provisioning:0,online:0,offline:0,disabled:0};
     for (const device of devices) counts[device.lifecycle] += 1;
     const recent = await query(
-      `SELECT count(*)::int AS count FROM public.device_events WHERE owner_id=$1 AND occurred_at > now() - interval '24 hours'`,
-      [auth.ownerId],
+      `SELECT count(*)::int AS count FROM public.device_events WHERE owner_id=$1 AND project_id=$2 AND occurred_at > now() - interval '24 hours'`,
+      [auth.ownerId,auth.projectId],
     );
     const telemetry = await query(
-      `SELECT count(*)::int AS count FROM public.telemetry_events t JOIN public.device_registry d ON d.device_id=t.device_id WHERE d.owner_id=$1 AND t.occurred_at > now() - interval '24 hours'`,
+      `SELECT count(*)::int AS count FROM public.telemetry_events t JOIN public.device_registry d ON d.device_id=t.device_id WHERE d.owner_id=$1 AND d.project_id=$2 AND t.occurred_at > now() - interval '24 hours'`,
       [auth.ownerId],
     );
     const latestHeartbeat = devices.map(device => device.lastSeen ? Date.parse(device.lastSeen) : 0).filter(Number.isFinite).sort((a,b)=>b-a)[0] || null;
