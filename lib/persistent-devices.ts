@@ -1,6 +1,7 @@
 import { query, databaseConfigured } from "@/lib/db";
 import { hashDeviceToken, tokenFingerprint, generateDeviceToken } from "@/lib/device-auth";
 import type { ServerDevice } from "@/lib/store";
+import { DEFAULT_PROJECT_ID } from "@/lib/workspace-projects";
 
 function normalize(row: Record<string, unknown>): ServerDevice {
   return {
@@ -25,7 +26,7 @@ export function persistentDevicesAvailable() {
   return databaseConfigured();
 }
 
-export async function registerPersistentDevice(name: string, type: string, ownerId?: string) {
+export async function registerPersistentDevice(name: string, type: string, ownerId?: string, projectId=DEFAULT_PROJECT_ID) {
   if (!databaseConfigured()) return null;
 
   const token = generateDeviceToken();
@@ -34,35 +35,35 @@ export async function registerPersistentDevice(name: string, type: string, owner
 
   const result = await query(
     `INSERT INTO device_registry
-      (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,token_generation,token_revoked)
+      (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,project_id,token_generation,token_revoked)
      VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6,$7,$8)
      RETURNING device_id,name,type,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
-    [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, 1, false],
+    [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, projectId, 1, false],
   );
 
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
 }
 
-export async function rotatePersistentDeviceToken(deviceId:string|number,ownerId:string){
+export async function rotatePersistentDeviceToken(deviceId:string|number,ownerId:string,projectId=DEFAULT_PROJECT_ID){
   if(!databaseConfigured())return null;
   const token=generateDeviceToken();
   const r=await query(
     `UPDATE public.device_registry
        SET token_hash=$3, token_preview=$4, token_generation=token_generation+1,
            token_revoked=false, token_rotated_at=NOW(), token_last_authenticated_at=NULL, updated_at=NOW()
-       WHERE device_id=$1 AND owner_id=$2
+       WHERE device_id=$1 AND owner_id=$2 AND project_id=$5
        RETURNING device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
-    [String(deviceId),ownerId,hashDeviceToken(token),tokenFingerprint(token)],
+    [String(deviceId),ownerId,hashDeviceToken(token),tokenFingerprint(token),projectId],
   );
   return r.rows[0]?{device:normalize(r.rows[0] as Record<string,unknown>),token}:null;
 }
 
-export async function revokePersistentDeviceToken(deviceId:string|number,ownerId:string){
+export async function revokePersistentDeviceToken(deviceId:string|number,ownerId:string,projectId=DEFAULT_PROJECT_ID){
   if(!databaseConfigured())return false;
-  const r=await query(`UPDATE public.device_registry SET token_revoked=true,updated_at=NOW() WHERE device_id=$1 AND owner_id=$2 AND token_revoked=false`,[String(deviceId),ownerId]);
+  const r=await query(`UPDATE public.device_registry SET token_revoked=true,updated_at=NOW() WHERE device_id=$1 AND owner_id=$2 AND project_id=$3 AND token_revoked=false`,[String(deviceId),ownerId,projectId]);
   return r.rowCount===1;
 }
-export async function findPersistentDeviceById(deviceId: string | number, ownerId?: string) {
+export async function findPersistentDeviceById(deviceId: string | number, ownerId?: string, projectId?: string) {
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
@@ -70,8 +71,9 @@ export async function findPersistentDeviceById(deviceId: string | number, ownerI
        FROM device_registry
        WHERE device_id = $1
          AND ($2::text IS NULL OR owner_id = $2::text)
+         AND ($3::text IS NULL OR project_id = $3::text)
        LIMIT 1`,
-      [String(deviceId), ownerId ?? null],
+      [String(deviceId), ownerId ?? null, projectId ?? null],
     );
     return result.rows[0] ? normalize(result.rows[0] as Record<string, unknown>) : null;
   } catch {
@@ -79,7 +81,7 @@ export async function findPersistentDeviceById(deviceId: string | number, ownerI
   }
 }
 
-export async function findPersistentDeviceByToken(token: string, deviceId?: string | number) {
+export async function findPersistentDeviceByToken(token: string, deviceId?: string | number, projectId?: string) {
   if (!databaseConfigured() || !token) return null;
 
   const hash = hashDeviceToken(token);
@@ -88,6 +90,10 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
   if (deviceId !== undefined) {
     params.push(String(deviceId));
     where += " AND device_id = $2";
+  }
+  if (projectId !== undefined) {
+    params.push(String(projectId));
+    where += ` AND project_id = ${params.length}`;
   }
 
   try {
@@ -148,15 +154,16 @@ export async function markPersistentDeviceOnline(
   return refreshed.rows[0] ? normalize(refreshed.rows[0] as Record<string, unknown>) : null;
 }
 
-export async function listPersistentDevices(ownerId?: string) {
+export async function listPersistentDevices(ownerId?: string, projectId?: string) {
   if (!databaseConfigured()) return [];
   try {
     const result = await query(
       `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
        WHERE ($1::text IS NULL OR owner_id = $1::text)
+         AND ($2::text IS NULL OR project_id = $2::text)
        ORDER BY name ASC`,
-      [ownerId ?? null],
+      [ownerId ?? null, projectId ?? null],
     );
     return result.rows.map((row) => normalize(row as Record<string, unknown>));
   } catch {
@@ -165,15 +172,16 @@ export async function listPersistentDevices(ownerId?: string) {
 }
 
 
-export async function listPersistentFleetDevices(ownerId?: string) {
+export async function listPersistentFleetDevices(ownerId?: string, projectId?: string) {
   if (!databaseConfigured()) return [];
   try {
     const result = await query(
       `SELECT device_id,name,type,lifecycle,online,temperature,battery,last_seen,firmware,transport,state,created_at,updated_at
        FROM public.device_registry
        WHERE ($1::text IS NULL OR owner_id = $1::text)
+         AND ($2::text IS NULL OR project_id = $2::text)
        ORDER BY name ASC`,
-      [ownerId ?? null],
+      [ownerId ?? null, projectId ?? null],
     );
     return result.rows.map((row) => ({
       deviceId: String(row.device_id),
