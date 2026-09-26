@@ -89,3 +89,8 @@ On reconnect the SDK:
 - reports a Wi-Fi session counter through heartbeat diagnostics
 
 This keeps cloud state from depending on a stale pre-disconnect transport session.
+
+
+## Cloud MQTT session resilience
+
+The v0.53.9 cloud release restores the MQTT telemetry, heartbeat, and command-ACK subscriptions whenever the broker reconnects. The Arduino REST SDK remains compatible and continues to use its v0.53.8 reconnect/session behavior.
