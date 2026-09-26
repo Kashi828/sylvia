@@ -24,7 +24,7 @@ async function sourceNotifications(): Promise<Notification[]> {
       const deliveries = await query<any>(`SELECT id,url,status,status_code,error,timestamp,project_id FROM public.alert_deliveries ORDER BY timestamp DESC LIMIT 200`);
       return [...alerts.rows.map((e:any)=>({id:`alert:${e.id}`,kind:'alert' as const,severity:String(e.severity) as NotificationSeverity,title:String(e.rule_name),message:String(e.message),timestamp:new Date(e.timestamp).toISOString(),read:Boolean(e.acknowledged),deviceId:String(e.device_id),streamId:String(e.stream_id),sourceId:String(e.id),projectId:String(e.project_id)})),
         ...deliveries.rows.map((d:any)=>({id:`delivery:${d.id}`,kind:'delivery' as const,severity:(d.status==='sent'?'success':'error') as NotificationSeverity,title:d.status==='sent'?'Webhook delivered':'Webhook delivery failed',message:d.error||(`${d.url} responded with HTTP ${d.status_code??'unknown'}`),timestamp:new Date(d.timestamp).toISOString(),read:readIds.has(`delivery:${d.id}`),sourceId:String(d.id),projectId:String(d.project_id)}))]
-      ].sort((a,b)=>Date.parse(b.timestamp)-Date.parse(a.timestamp));
+        .sort((a,b)=>Date.parse(b.timestamp)-Date.parse(a.timestamp));
     } catch {
       // fall through to the existing runtime source
     }
