@@ -10,7 +10,7 @@ export const dynamic="force-dynamic";
 
 export async function GET(request:Request){
   const u=await user(request); if(!u)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});
-  const access=await requireWorkspaceRole(u,PROJECT,"Viewer"); if(!access.ok)return NextResponse.json({ok:false,error:access.error},{status:access.status});
+  const access=await requireWorkspaceRole(u,PROJECT,"Admin"); if(!access.ok)return NextResponse.json({ok:false,error:access.error},{status:access.status});
   return NextResponse.json({ok:true,keys:await listProjectApiKeys(u.id),persistent:true});
 }
 export async function POST(request:Request){
