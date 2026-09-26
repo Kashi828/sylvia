@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.53.10 — Persistent Command Authority**
+**v0.56.0 — Cloud Automation Engine**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -68,7 +68,10 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - Persistent command queue and acknowledgement storage are supported.
 - Persistent command state is authoritative before MQTT publish.
 - REST command polling is available as a hardware transport fallback.
-- ESP8266/NodeMCU support remains the next real-hardware validation path; physical hardware testing is intentionally manual.
+- v0.54.0 adds owner-scoped hardware diagnostics and durable device events.
+- v0.55.0 adds fleet health and durable hardware activity tracking.
+- v0.56.0 adds persistent telemetry automations, schedules, execution history, and a secured scheduler worker.
+- ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
 
@@ -77,3 +80,16 @@ The REST fallback is now accompanied by a real ESP8266 command-polling reference
 Reference firmware: `examples/esp8266/sylvia-rest-command-poller.ino`.
 
 Command acknowledgements now distinguish successful and failed device execution, and terminal command records cannot be acknowledged twice. The ESP8266 reference also ignores a repeated command ID during the same runtime to reduce duplicate GPIO execution.\n\nThe next hardware milestone is a physical ESP8266/NodeMCU test using a real relay or LED load.
+
+
+## v0.54.0 — Physical Hardware Foundation
+
+The cloud/device boundary is prepared for real ESP8266/NodeMCU validation. Device ownership is explicit, fleet state is observable, durable device events record heartbeat, telemetry and command activity, and an authenticated diagnostics endpoint exposes the cloud-side hardware state.
+
+## v0.55.0 — Fleet Reliability
+
+Fleet health is owner-scoped and reports online, offline, provisioning and stale-device state. Recent durable device activity and telemetry volume are available for operational troubleshooting.
+
+## v0.56.0 — Cloud Automation Engine
+
+Telemetry can trigger persistent device commands or events. Clock-based schedules can issue persistent commands through MQTT or leave them queued for REST polling. Automation runs are retained in PostgreSQL, scheduled execution is deduplicated, and the automation worker evaluates due schedules every minute.
