@@ -6,6 +6,7 @@ import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
 import { authenticateProjectApiKey } from "@/lib/project-api-keys";
 import { recordDeviceEvent } from "@/lib/device-events";
+import { validateCommand } from "@/lib/command-policy";
 import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable, requeuePersistentCommand } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -36,17 +37,8 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(!command||command.length>80||!/^[a-zA-Z0-9_.:-]+$/.test(command)) return NextResponse.json({ok:false,error:"Invalid command name"},{status:400});
 
   const payload=body?.payload??null;
-  if (command === "digital_write") {
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return NextResponse.json({ok:false,error:"digital_write requires an object payload"},{status:400});
-    }
-    const candidate = payload as {pin?:unknown;value?:unknown};
-    const pin = Number(candidate.pin);
-    const value = Number(candidate.value);
-    if (!Number.isInteger(pin) || pin < 0 || pin > 16 || !Number.isInteger(value) || (value !== 0 && value !== 1)) {
-      return NextResponse.json({ok:false,error:"digital_write requires GPIO pin 0-16 and value 0 or 1"},{status:400});
-    }
-  }
+  const commandError=validateCommand(command,payload);
+  if(commandError)return NextResponse.json({ok:false,error:commandError},{status:400});
 
   const persistentReady=persistentCommandsAvailable();
   const commandId=persistentReady ? generatePersistentCommandId() : queueCommand(device.id,command,payload).id;
