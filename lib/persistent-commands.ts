@@ -18,6 +18,7 @@ function publishUpdated(command:PersistentCommand,updatedAt?:string){
   publishCommand({type:"device.command.updated",deviceId:command.deviceId,commandId:command.id,status:command.status,command:command.command,result:command.result,updatedAt:updatedAt||command.ackedAt||command.sentAt||new Date().toISOString()});
 }
 export function persistentCommandsAvailable(){return databaseConfigured();}
+export function generatePersistentCommandId(){return `cmd_${Date.now()}_${Math.floor(Math.random()*9999)}`;}
 export async function createPersistentCommand(id:string,deviceId:string|number,command:string,payload:unknown){
   if(!databaseConfigured())return null; try{
     const r=await query("INSERT INTO sylvia_device_commands (id, device_id, command, payload, status) VALUES ($1,$2,$3,$4::jsonb,'queued') ON CONFLICT (id) DO NOTHING RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",[id,String(deviceId),command,JSON.stringify(payload??null)]);
