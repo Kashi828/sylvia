@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.57.0 — Project API Security**
+**v0.58.0 — Persistent Alerting**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -72,6 +72,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.55.0 adds fleet health and durable hardware activity tracking.
 - v0.56.0 adds persistent telemetry automations, schedules, execution history, and a secured scheduler worker.
 - v0.57.0 adds persistent project API keys, scoped cloud-control authentication, revocation, last-used tracking, and a default-safe hardware command policy.
+- v0.58.0 adds persistent alert rules, alert events, acknowledgements, webhook delivery history, and durable notification sourcing.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
@@ -113,3 +114,8 @@ The worker can also be started manually from GitHub Actions. Scheduled workflows
 Project API keys are stored as HMAC-SHA256 hashes and the full secret is returned only at creation time. Configure `SYLVIA_API_KEY_SECRET` in the deployment environment for an independent key-signing secret. The unified cloud-control APIs accept either the authenticated session cookie or a project key in `Authorization: Bearer <key>` or `X-SYLVIA-API-Key: <key>`.
 
 The default hardware command policy allows `restart`, `sync`, `identify`, and `digital_write`. Set `SYLVIA_ALLOW_CUSTOM_COMMANDS=true` only when the connected device firmware intentionally supports additional commands.
+
+
+## v0.58.0 alert setup
+
+Apply `supabase/migrations/20260926000003_v058_persistent_alerts.sql` after the v0.57 migration. Alert rules are scoped to the owning workspace and selected device/datastream. Numeric telemetry from REST or MQTT is evaluated against the persistent rules, with cooldown claims performed in PostgreSQL before an event is created.
