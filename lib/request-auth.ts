@@ -6,13 +6,14 @@ export type RequestPrincipal={
   method:"session"|"api_key";
   role:User["role"];
   userId?:string;
+  user?:User;
 };
 
 export async function requestPrincipal(request:Request):Promise<RequestPrincipal|null>{
   const cookie=request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+"="));
   const token=cookie?.slice(sessionCookie.length+1);
   const session=await getSessionUserAsync(token);
-  if(session)return {ownerId:session.id,method:"session",role:session.role,userId:session.id};
+  if(session)return {ownerId:session.id,method:"session",role:session.role,userId:session.id,user:session};
   const api=await authenticateProjectApiKey(extractApiKey(request));
   if(api)return {ownerId:api.ownerId,method:"api_key",role:"Owner"};
   return null;
