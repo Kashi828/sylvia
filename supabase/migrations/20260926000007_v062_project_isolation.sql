@@ -41,6 +41,9 @@ ALTER TABLE public.datastream_registry
 ALTER TABLE public.telemetry_events
   ADD COLUMN IF NOT EXISTS project_id text NOT NULL DEFAULT 'sylvia-local-workspace';
 
+ALTER TABLE public.automation_runs
+  ADD COLUMN IF NOT EXISTS project_id text NOT NULL DEFAULT 'sylvia-local-workspace';
+
 UPDATE public.datastream_registry d
 SET project_id = dev.project_id
 FROM public.device_registry dev
@@ -76,5 +79,22 @@ CREATE INDEX IF NOT EXISTS idx_datastream_registry_project_device
 
 CREATE INDEX IF NOT EXISTS idx_telemetry_events_project_time
   ON public.telemetry_events(project_id, occurred_at desc);
+
+UPDATE public.automation_runs r
+SET project_id = s.project_id
+FROM public.schedules s
+WHERE r.source_type = 'schedule'
+  AND r.source_id = s.id
+  AND (r.project_id IS NULL OR r.project_id = 'sylvia-local-workspace');
+
+UPDATE public.automation_runs r
+SET project_id = a.project_id
+FROM public.automation_rules a
+WHERE r.source_type = 'rule'
+  AND r.source_id = a.id
+  AND (r.project_id IS NULL OR r.project_id = 'sylvia-local-workspace');
+
+CREATE INDEX IF NOT EXISTS idx_automation_runs_project_time
+  ON public.automation_runs(project_id, owner_id, created_at desc);
 
 ALTER TABLE public.workspace_projects ENABLE ROW LEVEL SECURITY;
