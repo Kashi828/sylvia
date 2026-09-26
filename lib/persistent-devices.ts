@@ -139,3 +139,34 @@ export async function listPersistentDevices(ownerId?: string) {
     return [];
   }
 }
+
+
+export async function listPersistentFleetDevices(ownerId?: string) {
+  if (!databaseConfigured()) return [];
+  try {
+    const result = await query(
+      `SELECT device_id,name,type,lifecycle,online,temperature,battery,last_seen,firmware,transport,state,created_at,updated_at
+       FROM public.device_registry
+       WHERE ($1::text IS NULL OR owner_id = $1::text)
+       ORDER BY name ASC`,
+      [ownerId ?? null],
+    );
+    return result.rows.map((row) => ({
+      deviceId: String(row.device_id),
+      name: String(row.name),
+      type: String(row.type || "ESP32 Device"),
+      lifecycle: String(row.lifecycle) as "provisioning" | "online" | "offline" | "disabled",
+      online: Boolean(row.online),
+      temperature: Number(row.temperature ?? 0),
+      battery: Number(row.battery ?? 0),
+      lastSeen: row.last_seen ? new Date(String(row.last_seen)).toISOString() : null,
+      firmware: row.firmware ? String(row.firmware) : null,
+      transport: String(row.transport || "unknown"),
+      state: row.state && typeof row.state === "object" ? row.state : {},
+      createdAt: new Date(String(row.created_at)).toISOString(),
+      updatedAt: row.updated_at ? new Date(String(row.updated_at)).toISOString() : null,
+    }));
+  } catch {
+    return [];
+  }
+}
