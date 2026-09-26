@@ -14,6 +14,11 @@ SYLVIA now establishes a persistent project boundary across the control plane wh
 - Existing default-workspace data is migrated to `sylvia-local-workspace`.
 - Machine API keys are bound to their project and must present the matching project context.
 
+### Release visibility
+- Added a version-aware "What's new" dialog in the main console.
+- The current release notice opens automatically once per browser storage key and is marked seen after opening.
+- The notice can be reopened manually from the header; it automatically returns when the platform version changes.
+
 ### Platform
 - Platform version is now v0.62.0; Arduino SDK remains v0.53.8.
 
