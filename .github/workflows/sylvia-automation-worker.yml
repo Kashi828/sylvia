@@ -1,0 +1,21 @@
+name: SYLVIA Automation Worker
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  run-automation-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke SYLVIA scheduler
+        env:
+          SYLVIA_CRON_URL: ${{ secrets.SYLVIA_CRON_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$SYLVIA_CRON_URL" || { echo "SYLVIA_CRON_URL secret is required"; exit 1; }
+          test -n "$CRON_SECRET" || { echo "CRON_SECRET secret is required"; exit 1; }
+          curl --fail --silent --show-error --retry 3 --max-time 30 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SYLVIA_CRON_URL"
