@@ -4,7 +4,7 @@ import { findPersistentDeviceByToken, findPersistentDeviceById } from "@/lib/per
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
-import { createPersistentCommand, markPersistentCommandSent, persistentCommandsAvailable } from "@/lib/persistent-commands";
+import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,30); if(limited)return limited;
@@ -45,19 +45,29 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     }
   }
 
-  const queued=queueCommand(device.id,command,payload);
-  const persistentCommand=persistentCommandsAvailable()
-    ? await createPersistentCommand(queued.id,device.id,command,payload)
+  const persistentReady=persistentCommandsAvailable();
+  const commandId=persistentReady ? generatePersistentCommandId() : queueCommand(device.id,command,payload).id;
+  const persistentCommand=persistentReady
+    ? await createPersistentCommand(commandId,device.id,command,payload)
     : null;
+
+  if (persistentReady && !persistentCommand) {
+    addEvent("device.command.persist_failed",device.name + ": " + command + " was rejected because the persistent command record could not be created",device.id);
+    return NextResponse.json(
+      {ok:false,error:"Persistent command storage unavailable; command was not dispatched",commandId},
+      {status:503},
+    );
+  }
+
   let dispatched=false;
   let dispatchError:string|undefined;
 
   if(mqttStatus().configured){
     try{
-      markCommandInFlight(queued.id);
-      await publishDeviceCommand(String(device.id),{commandId:queued.id,command,payload,timestamp:new Date().toISOString()});
+      if (!persistentReady) markCommandInFlight(commandId);
+      await publishDeviceCommand(String(device.id),{commandId,command,payload,timestamp:new Date().toISOString()});
       dispatched=true;
-      if (persistentCommand) await markPersistentCommandSent(queued.id);
+      if (persistentReady) await markPersistentCommandSent(commandId);
       addEvent("device.command.dispatched",device.name + ": " + command + " dispatched over MQTT",device.id);
     }catch(error){
       dispatchError=error instanceof Error?error.message:"MQTT dispatch failed";
@@ -67,5 +77,5 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     dispatchError="MQTT broker is not configured; command remains queued for SDK polling";
   }
 
-  return NextResponse.json({ok:true,queued:true,dispatched,dispatchError,transport:dispatched?"mqtt":"queue",command,payload:body?.payload??null,commandId:queued.id,device:publicDevice(device)});
+  return NextResponse.json({ok:true,queued:true,dispatched,dispatchError,transport:dispatched?"mqtt":"queue",command,payload:body?.payload??null,commandId,device:publicDevice(device)});
 }
