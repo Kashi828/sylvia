@@ -19,6 +19,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     publishState({type:'device.state.updated',deviceId:id,state,updatedAt:new Date().toISOString()});
     await recordDeviceEvent({
       deviceId:id,
+      projectId:undefined,
       kind:'device.heartbeat',
       severity:'success',
       message:`Device ${id} heartbeat received over REST`,
