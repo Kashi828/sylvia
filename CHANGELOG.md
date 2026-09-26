@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.57.0 — Project API Security
+
+SYLVIA now has persistent project API credentials and a default-safe command boundary for cloud-to-hardware control.
+
+### Project API keys
+- Added durable `project_api_keys` storage with hashed secrets.
+- API key creation returns the full secret only once.
+- Added revocation and last-used tracking.
+- Cloud-control APIs now accept either the authenticated session or a scoped project API key.
+
+### Hardware command safety
+- Added a default allowlist for `restart`, `sync`, `identify` and `digital_write`.
+- `digital_write` validates GPIO 0-16 and binary output values.
+- Custom commands are opt-in through `SYLVIA_ALLOW_CUSTOM_COMMANDS=true`.
+
+### Platform
+- Platform version is now v0.57.0; Arduino SDK remains v0.53.8.
 ## v0.56.0 — Cloud Automation Engine
 
 SYLVIA reaches the cloud automation milestone with durable telemetry rules, schedules, and execution history.
