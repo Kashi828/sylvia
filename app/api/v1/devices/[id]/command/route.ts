@@ -4,6 +4,7 @@ import { findPersistentDeviceByToken, findPersistentDeviceById } from "@/lib/per
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { recordDeviceEvent } from "@/lib/device-events";
 import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable, requeuePersistentCommand } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -73,10 +74,12 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       await publishDeviceCommand(String(device.id),{commandId,command,payload,timestamp:new Date().toISOString()});
       dispatched=true;
       addEvent("device.command.dispatched",device.name + ": " + command + " dispatched over MQTT",device.id);
+    await recordDeviceEvent({deviceId:device.id,ownerId:sessionUser?.id,kind:"device.command.dispatched",severity:"success",message:device.name + ": " + command + " dispatched",data:{commandId,command,transport:"mqtt"}});
     }catch(error){
       dispatchError=error instanceof Error?error.message:"MQTT dispatch failed";
       if (persistentReady) await requeuePersistentCommand(commandId);
       addEvent("device.command.dispatch_failed",device.name + ": " + command + " remained queued (" + dispatchError + ")",device.id);
+    await recordDeviceEvent({deviceId:device.id,ownerId:sessionUser?.id,kind:"device.command.dispatch_failed",severity:"warning",message:device.name + ": " + command + " remained queued",data:{commandId,command,error:dispatchError||"unknown"}});
     }
   }else{
     dispatchError="MQTT broker is not configured; command remains queued for SDK polling";
