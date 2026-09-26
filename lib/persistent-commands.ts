@@ -33,6 +33,16 @@ export async function markPersistentCommandSent(id:string){
     return existing.rows[0]?normalize(existing.rows[0] as Record<string,unknown>):null;
   }catch{return null;}
 }
+
+export async function requeuePersistentCommand(id:string){
+  if(!databaseConfigured())return null; try{
+    const r=await query("UPDATE sylvia_device_commands SET status='queued', sent_at=NULL, acked_at=NULL, result=NULL WHERE id=$1 AND status='sent' RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",[id]);
+    if(!r.rows[0])return null;
+    const c=normalize(r.rows[0] as Record<string,unknown>);
+    publishUpdated(c);
+    return c;
+  }catch{return null;}
+}
 export async function getPersistentCommand(id:string){
   if(!databaseConfigured())return null; try{const r=await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM sylvia_device_commands WHERE id=$1 LIMIT 1",[id]);return r.rows[0]?normalize(r.rows[0] as Record<string,unknown>):null;}catch{return null;}
 }
