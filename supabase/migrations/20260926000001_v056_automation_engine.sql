@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.schedules (
 
 CREATE TABLE IF NOT EXISTS public.automation_runs (
   id text primary key,
+  execution_key text unique,
   owner_id text not null,
   source_type text not null check (source_type in ('rule','schedule')),
   source_id text not null,
@@ -53,8 +54,9 @@ CREATE TABLE IF NOT EXISTS public.automation_runs (
   created_at timestamptz not null default now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_automation_runs_schedule_minute
-  ON public.automation_runs(source_id, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_automation_runs_execution_key
+  ON public.automation_runs(execution_key)
+  WHERE execution_key IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_automation_rules_owner
   ON public.automation_rules(owner_id, enabled);
 CREATE INDEX IF NOT EXISTS idx_automation_rules_match
