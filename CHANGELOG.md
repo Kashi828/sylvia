@@ -1,5 +1,26 @@
 # SYLVIA Changelog
 
+## v0.58.0 — Persistent Alerting
+
+SYLVIA now stores alert rules, alert events and webhook deliveries in PostgreSQL and evaluates numeric telemetry against workspace-scoped rules.
+
+### Alert engine
+- Added persistent alert rules with threshold, severity, cooldown and webhook actions.
+- Alert cooldown claims are performed atomically before an alert event is created.
+- Alert creation verifies device ownership and datastream ownership.
+- Alert acknowledgements clear the active rule state.
+
+### Notifications
+- Notification Center can source alert and webhook activity from durable alert tables.
+- Alert and delivery APIs are authenticated and workspace-scoped.
+
+### Cloud path
+- REST and MQTT numeric telemetry now evaluate both cloud automations and persistent alerts.
+- Health readiness now checks the automation, schedule, project-key and alert tables.
+
+### Platform
+- Platform version is now v0.58.0; Arduino SDK remains v0.53.8.
+
 ## v0.57.0 — Project API Security
 
 SYLVIA now has persistent project API credentials and a default-safe command boundary for cloud-to-hardware control.
