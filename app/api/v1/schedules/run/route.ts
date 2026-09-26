@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { runScheduleNow } from "@/lib/automation-engine";
+function sessionUser(request:Request){const token=request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(sessionCookie+"="))?.split("=")[1];return getSessionUser(token);}
+export async function POST(request:Request){const user=sessionUser(request);if(!user)return NextResponse.json({ok:false,error:"Authentication required"},{status:401});const body=await request.json().catch(()=>({}));const id=String(body?.id||"");if(!id)return NextResponse.json({ok:false,error:"id is required"},{status:400});const result=await runScheduleNow(id,user.id);return result?NextResponse.json({ok:true,result}):NextResponse.json({ok:false,error:"Schedule not found"},{status:404});}
