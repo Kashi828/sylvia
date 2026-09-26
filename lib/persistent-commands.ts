@@ -1,5 +1,6 @@
 import { databaseConfigured, query } from "@/lib/db";
 import { publishCommand } from "@/lib/command-events";
+import { recordDeviceEvent } from "@/lib/device-events";
 
 export type PersistentCommand = {
   id: string; deviceId: string; command: string; payload: unknown;
@@ -70,7 +71,12 @@ export async function ackPersistentCommand(deviceId:string|number,id:string,resu
     const failed=resultValue!==null&&typeof resultValue==="object"&&"ok" in resultValue&&(resultValue as {ok?:unknown}).ok===false;
     const status=failed?"failed":"acked";
     const r=await query("UPDATE device_commands SET status=$3, acked_at=now(), result=$4::jsonb WHERE id=$1 AND device_id=$2 AND status IN ('queued','sent') RETURNING id,device_id,command,payload,status,created_at,sent_at,acked_at,result",[id,String(deviceId),status,JSON.stringify(resultValue??null)]);
-    if(r.rows[0]){const c=normalize(r.rows[0] as Record<string,unknown>);publishUpdated(c);return c;}
+    if(r.rows[0]){
+      const c=normalize(r.rows[0] as Record<string,unknown>);
+      publishUpdated(c);
+      void recordDeviceEvent({deviceId:c.deviceId,kind:"device.command.ack",severity:c.status==="acked"?"success":"warning",message:`Device ${c.deviceId}: ${c.command} ${c.status}`,data:{commandId:c.id,status:c.status,result:c.result}});
+      return c;
+    }
     const existing=await query("SELECT id,device_id,command,payload,status,created_at,sent_at,acked_at,result FROM device_commands WHERE id=$1 AND device_id=$2 LIMIT 1",[id,String(deviceId)]);
     return existing.rows[0]?normalize(existing.rows[0] as Record<string,unknown>):null;
   }catch{return null;}
