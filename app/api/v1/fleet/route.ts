@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const user = sessionUser(request);
+  const auth = await requestOwnerId(request);
   if (!auth) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
 
   return NextResponse.json({
