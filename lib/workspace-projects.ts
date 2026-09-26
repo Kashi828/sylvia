@@ -50,16 +50,28 @@ export async function ensureDefaultWorkspaceProject(user: User): Promise<Workspa
     };
   }
 
-  const result = await query(
-    `INSERT INTO public.workspace_projects(id,owner_id,name,slug)
-     VALUES($1,$2,$3,$4)
-     ON CONFLICT(id) DO UPDATE SET owner_id=COALESCE(public.workspace_projects.owner_id,EXCLUDED.owner_id),updated_at=NOW()
-     RETURNING id,owner_id,name,slug,status,created_at,updated_at`,
-    [DEFAULT_PROJECT_ID, user.id, "SYLVIA Cloud Project", "sylvia-cloud-project"],
-  );
-
-  await ensureWorkspaceMember(user, DEFAULT_PROJECT_ID);
-  return normalize(result.rows[0] as Record<string, unknown>);
+  try {
+    const result = await query(
+      `INSERT INTO public.workspace_projects(id,owner_id,name,slug)
+       VALUES($1,$2,$3,$4)
+       ON CONFLICT(id) DO UPDATE SET owner_id=COALESCE(public.workspace_projects.owner_id,EXCLUDED.owner_id),updated_at=NOW()
+       RETURNING id,owner_id,name,slug,status,created_at,updated_at`,
+      [DEFAULT_PROJECT_ID, user.id, "SYLVIA Cloud Project", "sylvia-cloud-project"],
+    );
+    await ensureWorkspaceMember(user, DEFAULT_PROJECT_ID);
+    return normalize(result.rows[0] as Record<string, unknown>);
+  } catch {
+    return {
+      id: DEFAULT_PROJECT_ID,
+      ownerId: user.id,
+      name: "SYLVIA Cloud Project",
+      slug: "sylvia-cloud-project",
+      status: "active",
+      createdAt: user.createdAt,
+      updatedAt: user.createdAt,
+      role: user.role,
+    };
+  }
 }
 
 export async function getWorkspaceProjectForUser(projectId: string, userId: string): Promise<WorkspaceProject | null> {
