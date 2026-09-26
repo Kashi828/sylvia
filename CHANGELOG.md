@@ -4,6 +4,13 @@
 
 SYLVIA now treats the PostgreSQL persistent command record as the authoritative cloud command state whenever the database is configured.
 
+### v0.53.10 correctness follow-up
+- Aligned all persistent command queries and health-schema checks with the canonical `device_commands` migration table.
+- Kept base cloud health REST-ready when MQTT is optional; realtime readiness remains reported separately.
+- Tightened command-state transitions so a command must move from `queued` to `sent` before MQTT publish.
+- Aligned the Arduino runtime-reported SDK version with the published v0.53.8 SDK metadata.
+- Fixed null termination in EEPROM-backed command recovery strings.
+
 ### Command delivery
 - Generates command IDs through the persistent command layer.
 - Rejects dispatch when a persistent command record cannot be created.
