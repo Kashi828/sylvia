@@ -13,7 +13,7 @@ SYLVIA reaches the cloud automation milestone with durable telemetry rules, sche
 - Persistent schedules support local day, time, timezone, and command payloads.
 - Manual schedule execution is available from the console.
 - Scheduled executions use a deterministic execution key to prevent duplicate runs.
-- A secured `/api/cron/automations` worker evaluates due schedules and refreshes stale fleet state.
+- A secured `/api/cron/automations` worker evaluates due schedules and refreshes stale fleet state; the repository invokes it from GitHub Actions every 5 minutes.
 
 ### Console
 - Automations and Schedules now use the cloud APIs instead of local-only demo actions.
