@@ -7,6 +7,7 @@ import { getSessionUserAsync, sessionCookie } from "@/lib/auth";
 import { requireWorkspaceRole } from "@/lib/workspace-auth";
 import { authenticateProjectApiKey } from "@/lib/project-api-keys";
 import { recordDeviceEvent } from "@/lib/device-events";
+import { recordAuditEvent } from "@/lib/audit-log";
 import { validateCommand } from "@/lib/command-policy";
 import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable, requeuePersistentCommand } from "@/lib/persistent-commands";
 
@@ -81,5 +82,6 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     dispatchError="MQTT broker is not configured; command remains queued for SDK polling";
   }
 
+  await recordAuditEvent({ownerId:sessionUser?.id || projectKey?.ownerId || null,actorType:sessionUser?"session":projectKey?"api_key":"unknown",actorId:sessionUser?.id || projectKey?.ownerId || null,action:"device_command.dispatched",resourceType:"device",resourceId:String(device.id),metadata:{command,commandId,transport:dispatched?"mqtt":"queue",dispatched},request});
   return NextResponse.json({ok:true,queued:true,dispatched,dispatchError,transport:dispatched?"mqtt":"queue",command,payload:body?.payload??null,commandId,device:publicDevice(device)});
 }
