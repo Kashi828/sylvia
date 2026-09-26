@@ -5,6 +5,9 @@ import {persistTelemetry} from '@/lib/telemetry-persistence';
 import {listPersistentDatastreams} from '@/lib/persistent-datastreams';
 import {findPersistentDeviceByToken} from '@/lib/persistent-devices';
 import {findDevice, validBearer} from '@/lib/store';
+import { evaluateAutomationTelemetry } from '@/lib/automation-engine';
+import { evaluatePersistentAlerts } from '@/lib/persistent-alerts';
+import { recordDeviceEvent } from '@/lib/device-events';
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,60); if(limited)return limited;
@@ -44,6 +47,9 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     const automationRuns=typeof body.value==='number'&&Number.isFinite(body.value)
       ? await evaluateAutomationTelemetry(id,String(datastreamId),Number(body.value))
       : [];
+    const alerts=typeof body.value==='number'&&Number.isFinite(body.value)
+      ? await evaluatePersistentAlerts(id,String(datastreamId),Number(body.value))
+      : [];
     await recordDeviceEvent({
       deviceId:id,
       kind:'telemetry.received',
@@ -51,7 +57,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       message:`Telemetry received for ${String(datastreamId)}`,
       data:{streamId:String(datastreamId),value:body.value,transport:'rest'},
     });
-    return NextResponse.json({ok:true,sample:persisted,persistent:true,automationRuns},{status:201});
+    return NextResponse.json({ok:true,sample:persisted,persistent:true,automationRuns,alerts},{status:201});
   }catch(error){
     const message=error instanceof Error?error.message:'Telemetry ingestion failed';
     const status=message==='Unauthorized'?401:message==='Device not found'?404:400;
