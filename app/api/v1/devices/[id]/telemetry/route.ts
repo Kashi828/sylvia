@@ -29,7 +29,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
     }
 
-    const registered=await listPersistentDatastreams(id);
+    const registered=await listPersistentDatastreams(id,persistent ? String((persistent as { projectId?: string }).projectId || "") : undefined);
     const stream=registered.find(item=>item.id===String(datastreamId));
     if(!stream)return NextResponse.json({ok:false,error:'Datastream not registered for device'},{status:404});
     const validType=(stream.type==='Number'&&typeof body.value==='number'&&Number.isFinite(body.value))||(stream.type==='Boolean'&&typeof body.value==='boolean')||(stream.type==='String'&&typeof body.value==='string');
@@ -52,6 +52,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       : [];
     await recordDeviceEvent({
       deviceId:id,
+      projectId:persistent ? String((persistent as { projectId?: string }).projectId || "") : undefined,
       kind:'telemetry.received',
       severity:'info',
       message:`Telemetry received for ${String(datastreamId)}`,
