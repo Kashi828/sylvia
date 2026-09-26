@@ -93,3 +93,15 @@ Fleet health is owner-scoped and reports online, offline, provisioning and stale
 ## v0.56.0 — Cloud Automation Engine
 
 Telemetry can trigger persistent device commands or events. Clock-based schedules can issue persistent commands through MQTT or leave them queued for REST polling. Automation runs are retained in PostgreSQL, scheduled execution is deduplicated, and the automation worker evaluates due schedules every minute.
+
+
+## v0.56.0 scheduler setup
+
+The repository keeps the scheduler endpoint in the Next.js app but does not require a Vercel Cron entry. This avoids the deployment restriction on sub-daily Vercel Cron schedules for Hobby plans. The included GitHub Actions worker runs every 5 minutes and calls `/api/cron/automations`.
+
+Configure two repository secrets before enabling scheduled execution:
+
+- `SYLVIA_CRON_URL` — the full deployed URL ending in `/api/cron/automations`.
+- `CRON_SECRET` — the same secret configured in the SYLVIA deployment environment.
+
+The worker can also be started manually from GitHub Actions. Scheduled workflows can be delayed under load, so the scheduler evaluates schedules that are already due rather than requiring an exact minute match.
