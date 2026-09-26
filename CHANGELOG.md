@@ -1,5 +1,28 @@
 # SYLVIA Changelog
 
+## v0.59.0 — Persistent Identity & Workspace Roles
+
+SYLVIA now keeps user identities, sessions, and workspace membership in PostgreSQL instead of relying on process memory.
+
+### Identity
+- Added durable `app_users` and `app_sessions` tables.
+- Password verification uses per-user salts with Node.js `scrypt`.
+- Session cookies contain random tokens while PostgreSQL stores only SHA-256 token hashes.
+- Sessions expire after 7 days and can be revoked on logout.
+- Production deployments require `SYLVIA_DEMO_PASSWORD` and `SYLVIA_API_KEY_SECRET`.
+
+### Workspace authorization
+- Added durable `workspace_members` records with Owner, Admin, Builder and Viewer roles.
+- Added `/api/v1/members` for authenticated membership listing, invitations, role changes and removal.
+- Device registration requires Builder access or higher.
+- API key creation/revocation requires Admin access or higher.
+- Automation, schedule and session-based device-command mutations require Builder access or higher.
+- Project API keys remain available for machine-to-machine cloud control.
+
+### Console
+- Workspace members are loaded from the persistent membership API instead of seeded local demo collaborators.
+- Signed-in role is taken from the authenticated session.
+- Platform shell is now v0.59.0; Arduino SDK remains v0.53.8.
 ## v0.58.0 — Persistent Alerting
 
 SYLVIA now stores alert rules, alert events and webhook deliveries in PostgreSQL and evaluates numeric telemetry against workspace-scoped rules.
