@@ -5,6 +5,7 @@ import { listPersistentDatastreams } from "./persistent-datastreams";
 import { findPersistentDeviceByToken } from "./persistent-devices";
 import { persistTelemetry } from "./telemetry-persistence";
 import { evaluateAutomationTelemetry } from "./automation-engine";
+import { evaluatePersistentAlerts } from "./persistent-alerts";
 
 let client: MqttClient | null = null;
 let connected = false;
@@ -171,6 +172,7 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
         await persistTelemetry({ ...sample, transport: "mqtt" });
         if (typeof value === "number" && Number.isFinite(value)) {
           await evaluateAutomationTelemetry(deviceId, streamId, value);
+          await evaluatePersistentAlerts(deviceId, streamId, value);
         }
       }
     } catch { /* invalid or unauthorized device telemetry is ignored */ }
