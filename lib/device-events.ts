@@ -27,7 +27,7 @@ export async function recordDeviceEvent(input: {
     const result = await query(
       `INSERT INTO public.device_events
         (id, owner_id, device_id, kind, severity, message, data)
-       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb)
+       VALUES ($1,COALESCE($2,(SELECT owner_id FROM public.device_registry WHERE device_id=$3 LIMIT 1)),$3,$4,$5,$6,$7::jsonb)
        RETURNING id,owner_id,device_id,kind,severity,message,data,occurred_at`,
       [
         id,
