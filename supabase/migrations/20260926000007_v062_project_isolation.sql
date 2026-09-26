@@ -44,6 +44,9 @@ ALTER TABLE public.telemetry_events
 ALTER TABLE public.automation_runs
   ADD COLUMN IF NOT EXISTS project_id text NOT NULL DEFAULT 'sylvia-local-workspace';
 
+ALTER TABLE public.notifications
+  ADD COLUMN IF NOT EXISTS project_id text NOT NULL DEFAULT 'sylvia-local-workspace';
+
 UPDATE public.datastream_registry d
 SET project_id = dev.project_id
 FROM public.device_registry dev
@@ -79,6 +82,9 @@ CREATE INDEX IF NOT EXISTS idx_datastream_registry_project_device
 
 CREATE INDEX IF NOT EXISTS idx_telemetry_events_project_time
   ON public.telemetry_events(project_id, occurred_at desc);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_project_time
+  ON public.notifications(project_id, timestamp desc);
 
 UPDATE public.automation_runs r
 SET project_id = s.project_id
