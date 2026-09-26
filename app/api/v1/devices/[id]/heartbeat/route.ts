@@ -1,5 +1,6 @@
 import {NextResponse} from 'next/server';
 import {publishState} from '@/lib/state-events';
+import {recordDeviceEvent} from '@/lib/device-events';
 import {addEvent,findDevice,validBearer} from '@/lib/store';
 import {findPersistentDeviceById,findPersistentDeviceByToken,markPersistentDeviceOnline} from '@/lib/persistent-devices';
 
@@ -16,6 +17,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
       ? Object.fromEntries(Object.entries(body.state).filter(([, value]) => value === null || ['string','number','boolean'].includes(typeof value)))
       : {};
     publishState({type:'device.state.updated',deviceId:id,state,updatedAt:new Date().toISOString()});
+    await recordDeviceEvent({
+      deviceId:id,
+      kind:'device.heartbeat',
+      severity:'success',
+      message:`Device ${id} heartbeat received over REST`,
+      data:{transport:'rest',firmware:body?.firmware||null,state},
+    });
     return NextResponse.json({ok:true,deviceId:id,online:true,lastSeen:updated?.lastSeen||new Date().toISOString(),state,persistent:true});
   }
   if(!validBearer(request,Number(id)))return NextResponse.json({ok:false,error:'Unauthorized'},{status:401});
