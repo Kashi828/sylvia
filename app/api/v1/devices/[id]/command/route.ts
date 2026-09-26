@@ -4,7 +4,7 @@ import { findPersistentDeviceByToken, findPersistentDeviceById } from "@/lib/per
 import { publishDeviceCommand, mqttStatus } from "@/lib/mqtt-transport";
 import { withRateLimit } from "@/lib/http";
 import { getSessionUser, sessionCookie } from "@/lib/auth";
-import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable } from "@/lib/persistent-commands";
+import { createPersistentCommand, generatePersistentCommandId, markPersistentCommandSent, persistentCommandsAvailable, requeuePersistentCommand } from "@/lib/persistent-commands";
 
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
   const limited=withRateLimit(request,30); if(limited)return limited;
@@ -64,13 +64,18 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
 
   if(mqttStatus().configured){
     try{
-      if (!persistentReady) markCommandInFlight(commandId);
+      if (persistentReady) {
+        const sent = await markPersistentCommandSent(commandId);
+        if (!sent) throw new Error("Persistent command could not be marked sent");
+      } else {
+        markCommandInFlight(commandId);
+      }
       await publishDeviceCommand(String(device.id),{commandId,command,payload,timestamp:new Date().toISOString()});
       dispatched=true;
-      if (persistentReady) await markPersistentCommandSent(commandId);
       addEvent("device.command.dispatched",device.name + ": " + command + " dispatched over MQTT",device.id);
     }catch(error){
       dispatchError=error instanceof Error?error.message:"MQTT dispatch failed";
+      if (persistentReady) await requeuePersistentCommand(commandId);
       addEvent("device.command.dispatch_failed",device.name + ": " + command + " remained queued (" + dispatchError + ")",device.id);
     }
   }else{
