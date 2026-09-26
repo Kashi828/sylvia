@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.59.0-persistent-identity';
+const DEPLOYMENT_MARKER = 'v0.60.0-device-token-lifecycle';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -75,10 +75,10 @@ export async function GET() {
 
   const restReady = db.configured && db.connected && runtimeSchema.connected;
   const realtimeReady = restReady && mqtt.configured && mqtt.connected && mqtt.subscriptionsReady;
-  const identityReady = db.configured && db.connected && runtimeSchema.connected && (process.env.NODE_ENV !== 'production' || (present('SYLVIA_DEMO_PASSWORD') && present('SYLVIA_API_KEY_SECRET')));
+  const identityReady = db.configured && db.connected && runtimeSchema.connected && (process.env.NODE_ENV !== 'production' || (present('SYLVIA_DEMO_PASSWORD') && present('SYLVIA_API_KEY_SECRET') && present('SYLVIA_DEVICE_TOKEN_SECRET')));
   const ready = restReady && identityReady;
   const databaseEnv = ['POSTGRES_URL'].filter(present);
-  const identityEnv = ['SYLVIA_DEMO_PASSWORD','SYLVIA_API_KEY_SECRET','SYLVIA_OWNER_EMAIL','SYLVIA_OWNER_NAME'].filter(present);
+  const identityEnv = ['SYLVIA_DEMO_PASSWORD','SYLVIA_API_KEY_SECRET','SYLVIA_OWNER_EMAIL','SYLVIA_OWNER_NAME','SYLVIA_DEVICE_TOKEN_SECRET'].filter(present);
   const mqttEnv = [
     'SYLVIA_MQTT_BROKER',
     'SYLVIA_MQTT_USERNAME',
@@ -96,7 +96,7 @@ export async function GET() {
     restReady,
     realtimeReady,
     service: 'sylvia',
-    version: '0.59.0',
+    version: '0.60.0',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {
