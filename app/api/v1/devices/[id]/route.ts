@@ -25,7 +25,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   if(!device)return NextResponse.json({ok:false,error:'Device not found'},{status:404});
 
   const streams=Number.isFinite(numericId)
-    ? [1,2,3,4,5,6].map(streamId=>findStream(streamId)).filter((s):s is NonNullable<typeof s=>Boolean(s)).filter(s=>s.deviceId===numericId)
+    ? [1,2,3,4,5,6].map(streamId=>findStream(streamId)).filter((s):s is NonNullable<typeof s> => Boolean(s)).filter(s=>s.deviceId===numericId)
     : [];
 
   return NextResponse.json({ok:true,projectId:auth?.projectId,device:publicDevice(device),state:(device as typeof device & {state?:Record<string,unknown>}).state||{},datastreams:streams});
