@@ -10,6 +10,10 @@ function normalize(row: Record<string, unknown>): ServerDevice {
     state: (row.state && typeof row.state === "object") ? row.state as Record<string, unknown> : {},
     tokenHash: String(row.token_hash || ""),
     tokenPreview: String(row.token_preview || ""),
+    tokenGeneration: Number(row.token_generation ?? 1),
+    tokenRevoked: Boolean(row.token_revoked),
+    tokenRotatedAt: row.token_rotated_at ? new Date(String(row.token_rotated_at)).toISOString() : null,
+    tokenLastAuthenticatedAt: row.token_last_authenticated_at ? new Date(String(row.token_last_authenticated_at)).toISOString() : null,
     online: Boolean(row.online),
     temperature: Number(row.temperature ?? 0),
     battery: Number(row.battery ?? 0),
@@ -30,10 +34,10 @@ export async function registerPersistentDevice(name: string, type: string, owner
 
   const result = await query(
     `INSERT INTO device_registry
-      (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id)
+      (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,token_generation,token_revoked)
      VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6)
      RETURNING device_id,name,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id`,
-    [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null],
+    [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, 1, false],
   );
 
   return { device: normalize(result.rows[0] as Record<string, unknown>), token };
@@ -43,9 +47,10 @@ export async function findPersistentDeviceById(deviceId: string | number, ownerI
   if (!databaseConfigured()) return null;
   try {
     const result = await query(
-      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
+      `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at
        FROM device_registry
        WHERE device_id = $1
+         AND token_revoked = false
          AND ($2::text IS NULL OR owner_id = $2::text)
        LIMIT 1`,
       [String(deviceId), ownerId ?? null],
@@ -71,11 +76,12 @@ export async function findPersistentDeviceByToken(token: string, deviceId?: stri
     const result = await query(
       `SELECT device_id,name,type,online,temperature,battery,last_seen,token_hash,token_preview,state
        FROM device_registry
-       WHERE ${where}
+       WHERE token_revoked = false AND ${where}
        LIMIT 1`,
       params,
     );
     if (!result.rows[0]) return null;
+    void query("UPDATE device_registry SET token_last_authenticated_at=NOW(), updated_at=NOW() WHERE device_id=$1",[String(result.rows[0].device_id)]).catch(()=>undefined);
     return normalize(result.rows[0] as Record<string, unknown>);
   } catch {
     return null;
