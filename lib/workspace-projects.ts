@@ -32,7 +32,8 @@ function normalize(row: Record<string, unknown>): WorkspaceProject {
 
 export function requestedProjectId(request: Request): string {
   const headerValue = request.headers.get(PROJECT_HEADER)?.trim();
-  const cookieValue = request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(PROJECT_COOKIE+"="))?.slice(PROJECT_COOKIE.length+1);
+  const cookieRaw = request.headers.get("cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith(PROJECT_COOKIE+"="))?.slice(PROJECT_COOKIE.length+1);
+  const cookieValue = cookieRaw ? decodeURIComponent(cookieRaw) : "";
   const raw = headerValue || cookieValue || "";
   if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{2,63}$/.test(raw)) return DEFAULT_PROJECT_ID;
   return raw;
