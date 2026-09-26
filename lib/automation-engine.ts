@@ -40,7 +40,7 @@ async function executeSchedule(schedule:Schedule,now:Date,manual=false){
       `UPDATE public.schedules
        SET last_run_at=now(),updated_at=now()
        WHERE id=$1 AND enabled=true
-         (EXTRACT(DOW FROM now() AT TIME ZONE timezone)::int = ANY(days_of_week))
+         AND (EXTRACT(DOW FROM now() AT TIME ZONE timezone)::int = ANY(days_of_week))
          AND (EXTRACT(HOUR FROM now() AT TIME ZONE timezone)::int*60 + EXTRACT(MINUTE FROM now() AT TIME ZONE timezone)::int >= hour*60 + minute)
          AND (last_run_at IS NULL OR (last_run_at AT TIME ZONE timezone)::date < (now() AT TIME ZONE timezone)::date)
        RETURNING id,owner_id,project_id,name,device_id,command,payload,hour,minute,days_of_week,timezone,enabled,last_run_at,created_at,updated_at`,
