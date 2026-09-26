@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.56.0 — Cloud Automation Engine**
+**v0.57.0 — Project API Security**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -71,6 +71,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.54.0 adds owner-scoped hardware diagnostics and durable device events.
 - v0.55.0 adds fleet health and durable hardware activity tracking.
 - v0.56.0 adds persistent telemetry automations, schedules, execution history, and a secured scheduler worker.
+- v0.57.0 adds persistent project API keys, scoped cloud-control authentication, revocation, last-used tracking, and a default-safe hardware command policy.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
@@ -105,3 +106,10 @@ Configure two repository secrets before enabling scheduled execution:
 - `CRON_SECRET` — the same secret configured in the SYLVIA deployment environment.
 
 The worker can also be started manually from GitHub Actions. Scheduled workflows can be delayed under load, so the scheduler evaluates schedules that are already due rather than requiring an exact minute match.
+
+
+## v0.57.0 setup
+
+Project API keys are stored as HMAC-SHA256 hashes and the full secret is returned only at creation time. Configure `SYLVIA_API_KEY_SECRET` in the deployment environment for an independent key-signing secret. The unified cloud-control APIs accept either the authenticated session cookie or a project key in `Authorization: Bearer <key>` or `X-SYLVIA-API-Key: <key>`.
+
+The default hardware command policy allows `restart`, `sync`, `identify`, and `digital_write`. Set `SYLVIA_ALLOW_CUSTOM_COMMANDS=true` only when the connected device firmware intentionally supports additional commands.
