@@ -1,5 +1,24 @@
 # SYLVIA Changelog
 
+## v0.53.9 — MQTT Session Resilience
+
+SYLVIA now treats the cloud MQTT broker as an observable session rather than a simple connected/disconnected socket.
+
+### MQTT reliability
+- Automatically restores telemetry, heartbeat, and command-ACK subscriptions after broker reconnects.
+- Exposes connection count and reconnect count.
+- Exposes last connect/disconnect timestamps and the most recent MQTT error.
+- Waits for subscription restoration before reporting realtime readiness.
+- Prevents an immediate post-reconnect command from racing ahead of ACK subscription recovery.
+
+### Console and health
+- Health now requires the MQTT subscription set to be restored before `realtimeReady` becomes true.
+- Connectivity verification surfaces the MQTT session count.
+
+### Hardware target
+
+REST device session resilience from v0.53.8 and cloud MQTT session resilience now share an explicit reconnect/recovery model.
+
 ## v0.53.7 — Persistent Command Recovery
 
 SYLVIA now preserves the latest device command outcome across ESP8266/ESP32 reboots and can recover an unacknowledged command without executing the hardware handler twice.
