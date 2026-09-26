@@ -1,5 +1,20 @@
 # SYLVIA Changelog
 
+## v0.61.0 — Durable Audit Log
+
+SYLVIA now records privileged security and control-plane actions in PostgreSQL for operational review.
+
+### Audit trail
+- Added durable `audit_events` storage with actor, action, resource, metadata, IP address, user agent and timestamp.
+- Login success/failure and logout events are recorded.
+- Workspace member invitations, role changes and removals are recorded.
+- Project API-key creation and revocation are recorded.
+- Device-token rotation/revocation and device command dispatch are recorded.
+- Added Admin-session-only `GET /api/v1/audit` for filtered audit history.
+- Audit logging is best-effort and does not block the primary operation when audit storage is unavailable.
+
+### Platform
+- Platform version is now v0.61.0; Arduino SDK remains v0.53.8.
 ## v0.60.0 — Device Token Lifecycle
 
 SYLVIA now supports revocable and rotatable hardware credentials without deleting or recreating the device.
