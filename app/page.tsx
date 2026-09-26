@@ -6,7 +6,7 @@ import NotificationCenter from '@/components/NotificationCenter';
 import NotificationSubscriptions from '@/components/NotificationSubscriptions';
 import { Activity, Cpu, LayoutDashboard, Radio, Zap, Settings, Plus, Gauge, Trash2, RotateCcw, KeyRound, Plug, Moon, Sun, Code2, Boxes, RefreshCw, Bot, Clock3, Network, Users, ShieldCheck, UserPlus, LogOut, Wifi, WifiOff, ToggleRight, Copy, Terminal, Link2, Hash, ExternalLink, Send, Power, Play, Bell, MoreHorizontal, ServerCog, LineChart, SlidersHorizontal, Save, X } from 'lucide-react';
 
-type Device={id:number;name:string;type:string;templateId:number;token:string;tokenPreview?:string;temperature:number;online:boolean;battery:number;lastSeen:number};
+type Device={id:number;name:string;type:string;templateId:number;token:string;tokenPreview?:string;tokenGeneration?:number;tokenRevoked?:boolean;tokenRotatedAt?:string|null;tokenLastAuthenticatedAt?:string|null;temperature:number;online:boolean;battery:number;lastSeen:number};
 type Template={id:number;name:string;description:string;protocol:string;created:number};
 type Stream={id:number;remoteId?:string;name:string;deviceId:number;type:'Number'|'Boolean'|'String';unit:string;value:string|number|boolean;}
 type Widget={id:number;title:string;kind:'Gauge'|'Value'|'Switch'|'Chart';streamId:number};
@@ -74,7 +74,7 @@ export default function Home(){
          const local=cleanDevices.find(d=>d.id===Number(item.id));
          return {
            id:Number(item.id), name:item.name, type:item.type, templateId:local?.templateId||1,
-           token:local?.token||'', temperature:Number(item.temperature||0), online:Boolean(item.online),
+           token:local?.token||'', tokenPreview:item.tokenPreview, tokenGeneration:local?.tokenGeneration, tokenRevoked:local?.tokenRevoked, tokenRotatedAt:local?.tokenRotatedAt, tokenLastAuthenticatedAt:local?.tokenLastAuthenticatedAt, temperature:Number(item.temperature||0), online:Boolean(item.online),
            battery:Number(item.battery||0), lastSeen:item.lastSeen?Date.parse(item.lastSeen):0
          } as Device;
        }));
@@ -112,7 +112,7 @@ export default function Home(){
              type:String(remote.transport||'ESP32 Device').toUpperCase()==='MQTT'?'ESP32 / MQTT':'ESP32 Device',
              templateId:1,
              token:localDevice?.token||'',
-             tokenPreview:localDevice?.tokenPreview,
+             tokenPreview:localDevice?.tokenPreview, tokenGeneration:localDevice?.tokenGeneration, tokenRevoked:localDevice?.tokenRevoked, tokenRotatedAt:localDevice?.tokenRotatedAt, tokenLastAuthenticatedAt:localDevice?.tokenLastAuthenticatedAt,
              temperature:Number(remote.temperature||0),
              online:remote.online===true||remote.lifecycle==='online',
              battery:Number(remote.battery||0),
