@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.60.0 — Device Token Lifecycle**
+**v0.61.0 — Durable Audit Log**
 
 SYLVIA now has a persistent command path that can operate through MQTT or authenticated REST polling. The main console remains the single workspace for registering real hardware, device control, telemetry and automation.
 
@@ -75,6 +75,7 @@ This gives hardware a cloud command path even when an MQTT client is not connect
 - v0.58.0 adds persistent alert rules, alert events, acknowledgements, webhook delivery history, and durable notification sourcing.
 - v0.59.0 adds persistent users, hashed session records, workspace membership, role enforcement, and production secret requirements.
 - v0.60.0 adds device-token rotation, revocation, token-generation tracking, and production device-secret requirements.
+- v0.61.0 adds a durable audit trail for authentication, workspace administration, API keys, device tokens and hardware commands.
 - ESP8266/NodeMCU remains the primary physical validation target.
 
 ### v0.52.0-beta.2
@@ -162,3 +163,8 @@ SYLVIA_DEVICE_TOKEN_SECRET=your-long-random-device-token-secret
 Device tokens are HMAC-protected and are not stored in plaintext. Rotating a token immediately invalidates the previous token. Revoking a token disables the device credential without deleting the device, telemetry or command history.
 
 `POST /api/v1/devices/{id}/token` with `{ "action": "rotate" }` returns the new token once. Use `{ "action": "revoke" }` to disable the current credential.
+
+
+## v0.61.0 audit setup
+
+Apply `supabase/migrations/20260926000006_v061_audit_log.sql` after the v0.60 migration. Admin users can review the resulting audit history through `GET /api/v1/audit`. Audit records include the actor type, action, affected resource, request metadata and timestamp; secrets and raw device/API tokens are not written to the audit metadata.
