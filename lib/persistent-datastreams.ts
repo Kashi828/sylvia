@@ -34,9 +34,9 @@ export async function listPersistentDatastreams(deviceId?: string, projectId?: s
   const result = await query(
     `SELECT datastream_id,device_id,name,value_type,unit,created_at,last_value_json,last_occurred_at
      FROM public.datastream_registry
-     ${deviceId ? "WHERE device_id=$1" : ""}
+     ${deviceId || projectId ? `WHERE ${[deviceId ? "device_id=$1" : "", projectId ? `project_id=${deviceId ? 2 : 1}` : ""].filter(Boolean).join(" AND ")}` : ""}
      ORDER BY name ASC`,
-    deviceId ? [String(deviceId)] : [],
+    [deviceId, projectId].filter(v => v !== undefined).map(String),
   );
   return result.rows.map(row => normalize(row as Record<string, unknown>));
 }
