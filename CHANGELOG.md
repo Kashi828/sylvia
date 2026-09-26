@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.53.10 — Persistent Command Authority
+
+SYLVIA now treats the PostgreSQL persistent command record as the authoritative cloud command state whenever the database is configured.
+
+### Command delivery
+- Generates command IDs through the persistent command layer.
+- Rejects dispatch when a persistent command record cannot be created.
+- Marks a persistent command `sent` before MQTT publish to prevent a successful publish from remaining visible as `queued`.
+- Returns failed MQTT publishes to `queued` safely for REST polling.
+- Clears stale send/ack/result fields when a command is requeued.
+
+### Reliability boundary
+This removes the cloud-side MQTT/REST duplicate-execution race caused by a publish succeeding while the persistent state transition fails.
+
+### Versioning
+The cloud platform is v0.53.10. The Arduino SDK remains v0.53.8 because this release does not require a firmware protocol change.
+
 ## v0.53.9 — MQTT Session Resilience
 
 SYLVIA now treats the cloud MQTT broker as an observable session rather than a simple connected/disconnected socket.
