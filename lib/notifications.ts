@@ -58,16 +58,16 @@ async function persistSourceNotifications(items:Notification[]) {
       `INSERT INTO notifications (id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
        ON CONFLICT (id) DO UPDATE SET kind=EXCLUDED.kind,severity=EXCLUDED.severity,title=EXCLUDED.title,message=EXCLUDED.message,timestamp=EXCLUDED.timestamp,device_id=EXCLUDED.device_id,stream_id=EXCLUDED.stream_id,source_id=EXCLUDED.source_id`,
-      [n.id,n.kind,n.severity,n.title,n.message,n.timestamp,n.read,n.deviceId??null,n.streamId??null,n.sourceId??null]
+      [n.id,n.kind,n.severity,n.title,n.message,n.timestamp,n.read,n.deviceId??null,n.streamId??null,n.sourceId??null,n.projectId??"sylvia-local-workspace"]
     );
   } catch { /* retain in-memory operation */ }
 }
 
-async function readDurable(limit:number):Promise<Notification[]|null> {
+async function readDurable(limit:number,projectId="sylvia-local-workspace"):Promise<Notification[]|null> {
   if(!databaseConfigured()) return null;
   try {
-    const r=await query<any>(`SELECT id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id FROM notifications ORDER BY timestamp DESC LIMIT $1`,[limit]);
-    return r.rows.map((n:any)=>({id:n.id,kind:n.kind,severity:n.severity,title:n.title,message:n.message,timestamp:new Date(n.timestamp).toISOString(),read:Boolean(n.read),deviceId:n.device_id??undefined,streamId:n.stream_id??undefined,sourceId:n.source_id??undefined}));
+    const r=await query<any>(`SELECT id,kind,severity,title,message,timestamp,read,device_id,stream_id,source_id,project_id FROM notifications WHERE project_id=$2 ORDER BY timestamp DESC LIMIT $1`,[limit]);
+    return r.rows.map((n:any)=>({id:n.id,kind:n.kind,severity:n.severity,title:n.title,message:n.message,timestamp:new Date(n.timestamp).toISOString(),read:Boolean(n.read),deviceId:n.device_id??undefined,streamId:n.stream_id??undefined,sourceId:n.source_id??undefined,projectId:n.project_id??undefined}));
   } catch { return null; }
 }
 
@@ -89,20 +89,20 @@ export async function listNotifications(limit=100, userId='usr_owner', projectId
   await loadPreferencesFromDb();
   const sources=await sourceNotifications();
   await persistSourceNotifications(sources);
-  const durable=await readDurable(Math.min(200,Math.max(1,limit)));
+  const durable=await readDurable(Math.min(200,Math.max(1,limit)),projectId);
   const routed=await routeNotifications(durable ?? sources,userId,projectId);
   return applyPreferences(routed).slice(0,limit);
 }
 
-export async function markNotificationRead(id:string) {
+export async function markNotificationRead(id:string,projectId="sylvia-local-workspace") {
   readIds.add(id);
-  if(databaseConfigured()) { try { await query('UPDATE notifications SET read=TRUE WHERE id=$1',[id]); } catch {} }
+  if(databaseConfigured()) { try { await query('UPDATE notifications SET read=TRUE WHERE id=$1 AND project_id=$2',[id,projectId]); } catch {} }
   return true;
 }
 
-export async function markAllNotificationsRead() {
+export async function markAllNotificationsRead(projectId="sylvia-local-workspace") {
   for(const n of await sourceNotifications()) readIds.add(n.id);
-  if(databaseConfigured()) { try { await query('UPDATE notifications SET read=TRUE WHERE id LIKE $1 OR id LIKE $2',['alert:%','delivery:%']); } catch {} }
+  if(databaseConfigured()) { try { await query('UPDATE notifications SET read=TRUE WHERE project_id=$1 AND (id LIKE $2 OR id LIKE $3)',[projectId,'alert:%','delivery:%']); } catch {} }
   return true;
 }
 
@@ -114,7 +114,7 @@ export async function updateNotificationPreferences(patch:Partial<NotificationPr
   return {...preferences};
 }
 
-export async function getNotificationStats() {
-  const items=await listNotifications(200);
+export async function getNotificationStats(userId='usr_owner',projectId='sylvia-local-workspace') {
+  const items=await listNotifications(200,userId,projectId);
   return {total:items.length,unread:items.filter(n=>!n.read).length,alerts:items.filter(n=>n.kind==='alert').length,deliveries:items.filter(n=>n.kind==='delivery').length};
 }
