@@ -31,18 +31,18 @@ Supabase PostgreSQL
 
 The application connects server-side through PostgreSQL. SYLVIA now persists application users, sessions and workspace memberships directly in the database while keeping the device/MQTT architecture independent.
 
-## New database setup
+## Database setup and upgrade path
 
-1. Create a new project at [Supabase](https://supabase.com/).
-2. In Vercel, connect the Supabase integration to the SYLVIA project, or set the Supabase PostgreSQL connection as `POSTGRES_URL`.
-3. Apply `supabase/migrations/20260917000000_sylvia_core.sql` to the new project.
-4. Apply `supabase/migrations/20260920000000_persistent_device_auth.sql` as well when upgrading an existing database.
-5. Apply `supabase/migrations/20260921000000_persistent_commands.sql` to enable persistent command queue and acknowledgement history.
-6. Apply `supabase/migrations/20260926000007_v062_project_isolation.sql` when upgrading to v0.62.0.
-7. Redeploy SYLVIA.
-8. Open `/api/v1/health` and confirm the database reports `configured: true`, `connected: true`, and no missing `workspace_projects` table.
+1. Create or select the Supabase PostgreSQL project used by SYLVIA.
+2. In Vercel, connect the Supabase integration to the SYLVIA project, or set the PostgreSQL connection as `POSTGRES_URL`.
+3. For a fresh SYLVIA database, apply the core/runtime migrations through `20260923173759_sylvia_runtime_compatibility.sql`, then apply the v0.54–v0.62 migrations in timestamp order.
+4. For the current hybrid database layout created by earlier SYLVIA releases, apply `20260927000000_legacy_runtime_schema_reconciliation.sql` before the v0.58/v0.62 migrations. This migration reconciles the empty legacy UUID-based alert/notification tables with the text-ID runtime schema.
+5. Apply `20260927000001_runtime_index_hardening.sql` for the runtime foreign-key indexes.
+6. Set the production secrets required by the current identity/device security model: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, and `SYLVIA_DEVICE_TOKEN_SECRET`.
+7. Redeploy SYLVIA after any Vercel environment-variable change.
+8. Open `/api/v1/health` and require `ready: true`, `restReady: true`, a connected database, and an empty `runtimeSchema.missingTables` list before hardware acceptance.
 
-Do not commit database passwords, Supabase secret keys, or other credentials.
+Do not commit database passwords, Supabase secret keys, device tokens, or other credentials.
 
 ## Runtime environment
 
