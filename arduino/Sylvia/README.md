@@ -94,3 +94,10 @@ This keeps cloud state from depending on a stale pre-disconnect transport sessio
 ## Cloud MQTT session resilience
 
 The v0.53.9 cloud release restores the MQTT telemetry, heartbeat, and command-ACK subscriptions whenever the broker reconnects. The v0.53.10 cloud release makes the persistent command record authoritative before MQTT publish. The Arduino REST SDK remains compatible and continues to use its v0.53.8 reconnect/session behavior.
+## v0.64 hardware acceptance contract
+
+The SDK now enforces the same protocol order used by the cloud acceptance gate:
+
+Wi-Fi → authenticated handshake → heartbeat/telemetry → command poll → GPIO action → ACK.
+
+Telemetry returns a local handshake-required error until protocol negotiation succeeds, and command polling is disabled until the handshake is complete. A Wi-Fi reconnect invalidates the handshake and normal polling resumes only after a new successful negotiation.
