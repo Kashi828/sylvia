@@ -6,6 +6,7 @@ SYLVIA v0.64.1 closes a production hardware-path gap discovered during the v0.64
 
 ### Telemetry and alerts
 - Numeric telemetry now evaluates the persistent PostgreSQL alert engine when the database is configured.
+- Authenticated REST telemetry now rejects unregistered datastream IDs and values that do not match the registered datastream type.
 - Telemetry receipt is recorded as a durable `telemetry.received` device event.
 - Database-backed telemetry ingestion no longer silently falls back to in-memory storage when persistence fails.
 
