@@ -1,5 +1,17 @@
 # SYLVIA Changelog
 
+## v0.64.1 — Hardware Path Correctness
+
+SYLVIA v0.64.1 closes a production hardware-path gap discovered during the v0.64 acceptance review.
+
+### Telemetry and alerts
+- Numeric telemetry now evaluates the persistent PostgreSQL alert engine when the database is configured.
+- Telemetry receipt is recorded as a durable `telemetry.received` device event.
+- Database-backed telemetry ingestion no longer silently falls back to in-memory storage when persistence fails.
+
+### Release
+- Platform version is now v0.64.1; Arduino SDK remains v0.53.8.
+
 ## v0.64.0 — Hardware Acceptance & Production Runbook
 
 SYLVIA v0.64.0 makes physical ESP8266/NodeMCU verification an explicit release gate.
