@@ -1,14 +1,22 @@
 import { NextRequest } from "next/server";
 import { subscribeCommand, type CommandEvent } from "@/lib/command-events";
-import { getSessionUser, sessionCookie } from "@/lib/auth";
+import { findPersistentDeviceById } from "@/lib/persistent-devices";
+import { requestPrincipal } from "@/lib/request-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const deviceId = request.nextUrl.searchParams.get("deviceId");
-  const sessionToken = request.cookies.get(sessionCookie)?.value;
-  if (!getSessionUser(sessionToken)) {
+  const auth = await requestPrincipal(request);
+  if (!auth) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+  if (!deviceId) {
+    return new Response(JSON.stringify({ ok: false, error: "deviceId is required" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  }
+  const device = await findPersistentDeviceById(deviceId, auth.ownerId, auth.projectId);
+  if (!device) {
+    return new Response(JSON.stringify({ ok: false, error: "Device not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
   }
 
   const encoder = new TextEncoder();
