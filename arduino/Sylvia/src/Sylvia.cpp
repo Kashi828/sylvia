@@ -260,6 +260,7 @@ bool Sylvia::getJson(const String& url, JsonDocument& document, int* statusCode)
 }
 
 bool Sylvia::telemetry(const char* streamId, double value) {
+  if (!_handshakeComplete) { _lastError = "Protocol handshake required"; return false; }
   if (!streamId || !streamId[0] || isnan(value)) return false;
 
   StaticJsonDocument<384> body;
@@ -274,6 +275,7 @@ bool Sylvia::telemetry(const char* streamId, double value) {
 }
 
 bool Sylvia::telemetry(const char* streamId, const char* value) {
+  if (!_handshakeComplete) { _lastError = "Protocol handshake required"; return false; }
   if (!streamId || !streamId[0]) return false;
 
   StaticJsonDocument<512> body;
@@ -288,6 +290,7 @@ bool Sylvia::telemetry(const char* streamId, const char* value) {
 }
 
 bool Sylvia::telemetry(const char* streamId, bool value) {
+  if (!_handshakeComplete) { _lastError = "Protocol handshake required"; return false; }
   if (!streamId || !streamId[0]) return false;
 
   StaticJsonDocument<384> body;
@@ -463,6 +466,7 @@ void Sylvia::retryPendingAck() {
 }
 
 void Sylvia::pollCommands() {
+  if (!_handshakeComplete) return;
   StaticJsonDocument<4096> response;
   String url = "/api/v1/devices/" + _deviceId + "/commands";
   if (_recoveryPollPending && _lastCommandId.length()) {
@@ -521,7 +525,7 @@ void Sylvia::loop() {
     heartbeat();
   }
 
-  if (_lastPollAt == 0 || now - _lastPollAt >= _commandPollIntervalMs) {
+  if (_handshakeComplete && (_lastPollAt == 0 || now - _lastPollAt >= _commandPollIntervalMs)) {
     _lastPollAt = now;
     pollCommands();
   }
