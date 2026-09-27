@@ -4,9 +4,13 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.63.0 — Stabilization & Production Acceptance**
+**v0.64.0 — Hardware Acceptance & Production Runbook**
 
-SYLVIA now has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. v0.63.0 adds stabilization fixes and formalizes the production-acceptance gate. The main console can switch projects and create new projects for authorized workspace admins.
+SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. v0.64.0 makes real ESP8266/NodeMCU validation an explicit acceptance gate and adds protocol-handshake verification to the Connectivity flow. The main console can switch projects and create new projects for authorized workspace admins.
+
+## Physical hardware acceptance
+
+Use [`docs/PRODUCTION-ACCEPTANCE-v0.64.md`](docs/PRODUCTION-ACCEPTANCE-v0.64.md) for the reproducible ESP8266/NodeMCU acceptance sequence, recovery tests, REST fallback and v1.0 gate.
 
 ## Database architecture
 
