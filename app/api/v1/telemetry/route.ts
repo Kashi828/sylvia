@@ -6,6 +6,9 @@ import { ingestMqttTelemetry } from "@/lib/mqtt-telemetry";
 import { getTelemetryStats } from "@/lib/telemetry-store";
 import { loadPersistedTelemetry, persistTelemetry } from "@/lib/telemetry-persistence";
 import { evaluateTelemetry } from "@/lib/alerts";
+import { evaluatePersistentAlerts } from "@/lib/persistent-alerts";
+import { databaseConfigured } from "@/lib/db";
+import { recordDeviceEvent } from "@/lib/device-events";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,8 +19,21 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     const sample = await ingestMqttTelemetry({ ...body }, token || undefined);
     const persisted = await persistTelemetry(sample);
-    const alerts = typeof sample.value === "number" ? evaluateTelemetry(sample.deviceId, sample.streamId, sample.value) : [];
-    return NextResponse.json({ ok: true, sample: persisted, alerts }, { status: 201 });
+    if (databaseConfigured()) {
+      await recordDeviceEvent({
+        deviceId: sample.deviceId,
+        kind: "telemetry.received",
+        severity: "success",
+        message: `Telemetry received for ${sample.streamId}`,
+        data: { streamId: sample.streamId, valueType: typeof sample.value, transport: sample.transport },
+      });
+    }
+    const alerts = typeof sample.value === "number"
+      ? (databaseConfigured()
+          ? await evaluatePersistentAlerts(sample.deviceId, sample.streamId, sample.value)
+          : evaluateTelemetry(sample.deviceId, sample.streamId, sample.value))
+      : [];
+    return NextResponse.json({ ok: true, sample: persisted, alerts, persistent: databaseConfigured() }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Telemetry ingestion failed";
     const status = message === "Unauthorized" ? 401 : message === "Device not found" ? 404 : 400;
