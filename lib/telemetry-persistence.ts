@@ -32,8 +32,8 @@ export async function persistTelemetry(sample: TelemetrySample) {
       throw error;
     }
     return sample;
-  } catch {
-    return addTelemetrySample(sample);
+  } catch (error) {
+    throw new Error(error instanceof Error ? `Telemetry persistence failed: ${error.message}` : "Telemetry persistence failed");
   }
 }
 
