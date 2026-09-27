@@ -9,7 +9,7 @@ export const RELEASE_NOTES = {
       title: 'Physical hardware acceptance',
       items: [
         'Connectivity verification now checks the authenticated device protocol handshake before telemetry and command tests.',
-        'REST telemetry now enforces registered datastream ownership and declared value types, matching the MQTT ingestion contract.'
+        'REST telemetry now enforces registered datastream ownership and declared value types, matching the MQTT ingestion contract.',
         'The v0.64 acceptance sequence is cloud → device → handshake → datastream → telemetry → heartbeat → command → ACK.',
         'Power-cycle, reconnect, MQTT failure and REST-poll fallback remain explicit acceptance tests.'
       ]
