@@ -6,6 +6,7 @@ import { findPersistentDeviceByToken } from "./persistent-devices";
 import { persistTelemetry } from "./telemetry-persistence";
 import { evaluateAutomationTelemetry } from "./automation-engine";
 import { evaluatePersistentAlerts } from "./persistent-alerts";
+import { recordDeviceEvent } from "./device-events";
 
 let client: MqttClient | null = null;
 let connected = false;
@@ -170,6 +171,13 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
       const sample = await ingestMqttTelemetry({ deviceId, key, streamId, value, timestamp: body.timestamp, firmware: body.firmware }, token);
       if (persistent) {
         await persistTelemetry({ ...sample, transport: "mqtt" });
+        await recordDeviceEvent({
+          deviceId,
+          kind: "telemetry.received",
+          severity: "success",
+          message: `Telemetry received for ${streamId}`,
+          data: { streamId, valueType: typeof value, transport: "mqtt" },
+        });
         if (typeof value === "number" && Number.isFinite(value)) {
           await evaluateAutomationTelemetry(deviceId, streamId, value);
           await evaluatePersistentAlerts(deviceId, streamId, value);
@@ -216,6 +224,13 @@ async function handleDeviceMessage(topic: string, raw: Buffer) {
           : {};
         const { publishState } = await import("./state-events");
         publishState({ type: "device.state.updated", deviceId, state, updatedAt: new Date().toISOString() });
+        await recordDeviceEvent({
+          deviceId,
+          kind: "device.heartbeat",
+          severity: "success",
+          message: `Device ${deviceId} heartbeat received over MQTT`,
+          data: { transport: "mqtt", firmware: typeof body.firmware === "string" ? body.firmware : null, state },
+        });
         return;
       }
       if (Number.isFinite(numericId)) {
