@@ -1,10 +1,25 @@
-export const CURRENT_RELEASE = '0.63.0';
+export const CURRENT_RELEASE = '0.64.0';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Stabilization & Production Acceptance',
-  summary: 'SYLVIA v0.63.0 consolidates the project-isolation foundation and hardens the console/API path for reproducible production acceptance.',
+  title: 'Hardware Acceptance & Production Runbook',
+  summary: 'SYLVIA v0.64.0 turns physical ESP8266/NodeMCU validation into an explicit acceptance gate with protocol-handshake verification and a reproducible production runbook.',
   changes: [
+    {
+      title: 'Physical hardware acceptance',
+      items: [
+        'Connectivity verification now checks the authenticated device protocol handshake before telemetry and command tests.',
+        'The v0.64 acceptance sequence is cloud → device → handshake → datastream → telemetry → heartbeat → command → ACK.',
+        'Power-cycle, reconnect, MQTT failure and REST-poll fallback remain explicit acceptance tests.'
+      ]
+    },
+    {
+      title: 'Production runbook',
+      items: [
+        'Added docs/PRODUCTION-ACCEPTANCE-v0.64.md with cloud, hardware, recovery and project-isolation checklists.',
+        'v1.0 remains gated by successful real-device acceptance rather than version number alone.'
+      ]
+    },
     {
       title: 'Build & console stability',
       items: [
