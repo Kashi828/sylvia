@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.64.0 — Hardware Acceptance & Production Runbook
+
+SYLVIA v0.64.0 makes physical ESP8266/NodeMCU verification an explicit release gate.
+
+### Hardware verification
+- Added authenticated protocol-handshake verification to the Connectivity acceptance sequence.
+- Verification now runs cloud → device → handshake → datastream → telemetry → heartbeat → command acknowledgement.
+- The existing safe identify command remains the first cloud-to-device command test.
+- Power-cycle, reconnect, MQTT failure and REST-poll fallback remain required acceptance tests.
+
+### Documentation
+- Added `docs/PRODUCTION-ACCEPTANCE-v0.64.md` with the reproducible hardware and production acceptance checklist.
+- v1.0 remains gated by real hardware acceptance, project isolation, recovery testing and security verification.
+
+### Platform
+- Platform version is now v0.64.0; Arduino SDK remains v0.53.8.
+
 ## v0.63.0 — Stabilization & Production Acceptance
 
 SYLVIA v0.63.0 consolidates the v0.62 project-isolation foundation and fixes the immediate console/API issues found during production build verification.
