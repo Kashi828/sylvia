@@ -1,6 +1,25 @@
 # SYLVIA Changelog
 
+## v0.63.0 — Stabilization & Production Acceptance
+
+SYLVIA v0.63.0 consolidates the v0.62 project-isolation foundation and fixes the immediate console/API issues found during production build verification.
+
+### Build & console stability
+- Fixed the release-notes JSX boundary in `app/page.tsx` that caused a Turbopack parse failure.
+- Aligned console copy with the current v0.62 cloud architecture.
+- Kept the version-aware "What's new" dialog so each release is surfaced once and returns on the next version.
+
+### Project authorization
+- Automations and schedules now enforce Builder permissions against the selected project instead of the legacy default project.
+- Project-scoped API, device, datastream, telemetry, alert, notification and audit boundaries remain in place.
+
+### Production acceptance
+- Health continues to report REST readiness, realtime MQTT readiness, schema completeness and production secret requirements separately.
+- Vercel build verification remains an explicit release gate.
+- Real ESP8266/NodeMCU acceptance remains required before v1.0.
+
 ## v0.62.0 — Project Isolation Foundation
+
 
 SYLVIA now establishes a persistent project boundary across the control plane while keeping the existing default workspace compatible.
 
