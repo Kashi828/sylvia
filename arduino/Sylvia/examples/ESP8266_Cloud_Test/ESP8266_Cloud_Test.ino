@@ -72,9 +72,9 @@ bool connectWiFi() {
 void setup() {
   Serial.begin(115200); pinMode(LED_BUILTIN, OUTPUT); digitalWrite(LED_BUILTIN, HIGH);
   pinMode(RELAY_PIN, OUTPUT); digitalWrite(RELAY_PIN, LOW);
-  if (!connectWiFi()) return;
   if (!tlsConfigured()) { Serial.println("SYLVIA: replace PASTE_ROOT_CA_HERE with the production Root CA"); return; }
   if (!sylvia.begin(DEVICE_ID, DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) { Serial.println("SYLVIA: begin() failed"); return; }
+  connectWiFi();
   sylvia.setHeartbeatInterval(15000); sylvia.setCommandPollInterval(2000);
   sylvia.setHttpTimeout(10000);
   sylvia.onCommand("identify", handleIdentify); sylvia.onCommand("sync", handleSync); sylvia.onCommand("digital_write", handleDigitalWrite);
