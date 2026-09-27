@@ -11,6 +11,7 @@ export type MqttTelemetrySample = {
   value: number | string | boolean;
   timestamp?: string;
   firmware?: string;
+  transport?: "mqtt" | "rest";
 };
 
 export async function ingestMqttTelemetry(sample: MqttTelemetrySample, token?: string) {
