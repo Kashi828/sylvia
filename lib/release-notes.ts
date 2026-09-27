@@ -1,9 +1,9 @@
-export const CURRENT_RELEASE = '0.64.0';
+export const CURRENT_RELEASE = '0.64.1';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Hardware Acceptance & Production Runbook',
-  summary: 'SYLVIA v0.64.0 turns physical ESP8266/NodeMCU validation into an explicit acceptance gate with protocol-handshake verification and a reproducible production runbook.',
+  title: 'Hardware Path Correctness',
+  summary: 'SYLVIA v0.64.1 closes the real-device telemetry path gap by evaluating persistent alerts, failing closed on database persistence errors, and recording durable telemetry receipt events.',
   changes: [
     {
       title: 'Physical hardware acceptance',
