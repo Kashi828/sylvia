@@ -533,13 +533,13 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-  if (!connectWiFi()) return;
   if (!tlsConfigured()) { Serial.println("SYLVIA: replace PASTE_SERVER_ROOT_CA_HERE with the production Root CA"); return; }
   if (!sylvia.begin(SYLVIA_DEVICE_ID, SYLVIA_DEVICE_TOKEN, SYLVIA_BASE_URL, SYLVIA_ROOT_CA)) {
     Serial.print("SYLVIA: startup failed: ");
     Serial.println(sylvia.lastError());
     return;
   }
+  connectWiFi();
   sylvia.setHeartbeatInterval(15000);
   sylvia.setCommandPollInterval(2000);
   sylvia.setHttpTimeout(10000);
