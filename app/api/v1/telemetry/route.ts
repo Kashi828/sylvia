@@ -9,6 +9,7 @@ import { evaluateTelemetry } from "@/lib/alerts";
 import { evaluatePersistentAlerts } from "@/lib/persistent-alerts";
 import { databaseConfigured } from "@/lib/db";
 import { recordDeviceEvent } from "@/lib/device-events";
+import { evaluateAutomationTelemetry } from "@/lib/automation-engine";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,12 +29,15 @@ export async function POST(request: NextRequest) {
         data: { streamId: sample.streamId, valueType: typeof sample.value, transport: sample.transport },
       });
     }
+    const automations = typeof sample.value === "number" && databaseConfigured()
+      ? await evaluateAutomationTelemetry(sample.deviceId, sample.streamId, sample.value)
+      : [];
     const alerts = typeof sample.value === "number"
       ? (databaseConfigured()
           ? await evaluatePersistentAlerts(sample.deviceId, sample.streamId, sample.value)
           : evaluateTelemetry(sample.deviceId, sample.streamId, sample.value))
       : [];
-    return NextResponse.json({ ok: true, sample: persisted, alerts, persistent: databaseConfigured() }, { status: 201 });
+    return NextResponse.json({ ok: true, sample: persisted, automations, alerts, persistent: databaseConfigured() }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Telemetry ingestion failed";
     const status = message === "Unauthorized" ? 401 : message === "Device not found" ? 404 : 400;
