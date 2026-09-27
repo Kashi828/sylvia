@@ -2,6 +2,7 @@ import { findDevice, validBearer } from "./store";
 import { addTelemetrySample } from "./telemetry-store";
 import { markDeviceSeen } from "./device-registry";
 import { findPersistentDeviceByToken, markPersistentDeviceOnline } from "./persistent-devices";
+import { listPersistentDatastreams } from "./persistent-datastreams";
 
 export type MqttTelemetrySample = {
   deviceId: string;
@@ -26,6 +27,17 @@ export async function ingestMqttTelemetry(sample: MqttTelemetrySample, token?: s
   const memoryDevice = Number.isFinite(numericId) ? findDevice(numericId) : undefined;
   const timestamp = sample.timestamp || new Date().toISOString();
   const streamId = sample.streamId || sample.key;
+
+  if (persistent) {
+    const registered = await listPersistentDatastreams(sample.deviceId);
+    const stream = registered.find(item => item.id === streamId);
+    if (!stream) throw new Error("Datastream not found for device");
+    const validType =
+      (stream.type === "Number" && typeof sample.value === "number" && Number.isFinite(sample.value)) ||
+      (stream.type === "Boolean" && typeof sample.value === "boolean") ||
+      (stream.type === "String" && typeof sample.value === "string");
+    if (!validType) throw new Error("Telemetry value does not match datastream type");
+  }
 
   const stored = addTelemetrySample({
     deviceId: sample.deviceId,
