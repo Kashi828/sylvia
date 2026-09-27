@@ -6,6 +6,7 @@ SYLVIA v0.64.0 makes physical ESP8266/NodeMCU verification an explicit release g
 
 ### Hardware verification
 - The Arduino SDK now blocks telemetry and command polling until the authenticated protocol handshake succeeds.
+- The reference ESP8266 firmware and console-generated firmware now initialize the SDK before attempting Wi-Fi, allowing recovery when Wi-Fi is unavailable during boot.
 - A Wi-Fi reconnect invalidates the handshake and requires renegotiation before normal hardware polling resumes.
 - Added authenticated protocol-handshake verification to the Connectivity acceptance sequence.
 - Verification now runs cloud → device → handshake → datastream → telemetry → heartbeat → command acknowledgement.
