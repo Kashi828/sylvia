@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { findPersistentDeviceByToken } from "@/lib/persistent-devices";
+import { findPersistentDeviceById, findPersistentDeviceByToken } from "@/lib/persistent-devices";
+import { requestPrincipal } from "@/lib/request-auth";
 import { ackPersistentCommand, claimPersistentCommands, listPersistentCommands, recoverStalePersistentCommands } from "@/lib/persistent-commands";
 
-async function authenticate(request: Request, id: string) {
+async function authenticateDeviceToken(request: Request, id: string) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || "";
   if (!token) return null;
   return findPersistentDeviceByToken(token, id);
@@ -13,7 +14,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const device = await authenticate(request, id);
+  const tokenDevice = await authenticateDeviceToken(request, id);
+  const principal = tokenDevice ? null : await requestPrincipal(request);
+  const device = tokenDevice || (principal ? await findPersistentDeviceById(id, principal.ownerId, principal.projectId) : null);
   if (!device) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(request.url);
@@ -47,7 +50,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const device = await authenticate(request, id);
+  const device = await authenticateDeviceToken(request, id);
   if (!device) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => null) as {
