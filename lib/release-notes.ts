@@ -1,48 +1,46 @@
-export const CURRENT_RELEASE = '0.62.0';
+export const CURRENT_RELEASE = '0.63.0';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Project Isolation Foundation',
-  summary: 'SYLVIA now has persistent project boundaries across the cloud control plane, preparing the platform for multi-project operation and a cleaner path toward v1.0.',
+  title: 'Stabilization & Production Acceptance',
+  summary: 'SYLVIA v0.63.0 consolidates the project-isolation foundation and hardens the console/API path for reproducible production acceptance.',
   changes: [
     {
-      title: 'Projects & workspace',
+      title: 'Build & console stability',
       items: [
-        'Persistent workspace project registry with active and archived states.',
-        'Project selector in the main console with create-project support for authorized admins.',
-        'Authenticated project membership is enforced for the selected project context.'
+        'Fixed the release-notes JSX boundary that could stop the production build at app/page.tsx.',
+        'Aligned console copy with the current v0.62 cloud architecture instead of legacy milestone wording.',
+        'Release visibility remains version-aware and automatically reappears on the next platform version.'
       ]
     },
     {
-      title: 'Resource isolation',
+      title: 'Project isolation',
       items: [
-        'Devices, datastreams, telemetry, device events, API keys, automations, schedules, alerts, notifications, audit history and automation runs are project-scoped.',
-        'Machine API keys are bound to their project and require matching project context.',
-        'The existing default workspace remains the migration target for current data.'
+        'Automations and schedules now enforce Builder permissions against the selected project instead of the legacy default project.',
+        'Project-scoped API, device, datastream, telemetry, alert, notification and audit boundaries remain the v0.62 foundation.'
       ]
     },
     {
-      title: 'Security & identity',
+      title: 'Cloud readiness',
       items: [
-        'Persistent users, sessions and workspace roles continue from v0.59.',
-        'Device-token rotation/revocation and durable audit logging continue from v0.60/v0.61.',
-        'Application-layer authorization now checks the selected project before cloud operations.'
+        'Health reports REST readiness, realtime MQTT readiness, schema completeness and production secret requirements separately.',
+        'The required schema includes workspace_projects for the v0.62 project-isolation migration.',
+        'Vercel deployment verification remains a release gate rather than being treated as successful without a successful build.'
       ]
     },
     {
-      title: 'Hardware cloud path',
+      title: 'Hardware acceptance',
       items: [
-        'MQTT remains the preferred realtime path with REST polling as the hardware fallback.',
-        'Persistent command queue, acknowledgement history, heartbeat and telemetry remain the core hardware boundary.',
-        'ESP8266/NodeMCU is still the primary physical acceptance target.'
+        'ESP8266/NodeMCU remains the primary physical acceptance target.',
+        'The v0.63 gate is register → authenticate → heartbeat → telemetry → command → ACK → automation/alert.',
+        'Power-cycle, reconnect, MQTT failure and REST-poll fallback tests remain required before v1.0.'
       ]
     },
     {
-      title: 'Release readiness',
+      title: 'Next milestone',
       items: [
-        'v0.62.0 is an architecture milestone, not the final v1.0 stability gate.',
-        'The next gate is migration/application verification, reproducible builds, and real hardware acceptance.',
-        'The console continues to expose project context so future releases can add product-scale capabilities cleanly.'
+        'v0.64 should focus on real hardware acceptance and production runbook validation rather than another large architectural rewrite.',
+        'v1.0 remains gated by reproducible builds, applied migrations, security verification and successful physical-device acceptance.'
       ]
     }
   ]
