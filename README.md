@@ -4,9 +4,9 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.62.0 — Project Isolation Foundation**
+**v0.63.0 — Stabilization & Production Acceptance**
 
-SYLVIA now has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The main console can switch projects and create new projects for authorized workspace admins.
+SYLVIA now has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. v0.63.0 adds stabilization fixes and formalizes the production-acceptance gate. The main console can switch projects and create new projects for authorized workspace admins.
 
 ## Database architecture
 
