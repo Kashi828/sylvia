@@ -1,9 +1,9 @@
-export const CURRENT_RELEASE = '0.64.1';
+export const CURRENT_RELEASE = '0.64.2';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Hardware Path Correctness',
-  summary: 'SYLVIA v0.64.1 closes the real-device telemetry path gap by evaluating persistent alerts, failing closed on database persistence errors, and recording durable telemetry receipt events.',
+  title: 'Console Access & UI Completion',
+  summary: 'SYLVIA v0.64.2 makes the persistent sign-in flow reachable from the console header, completes the missing console styling, and unblocks production identity readiness by requiring the identity secrets to be configured.',
   changes: [
     {
       title: 'Physical hardware acceptance',

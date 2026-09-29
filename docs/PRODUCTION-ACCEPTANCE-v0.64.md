@@ -8,21 +8,22 @@ ESP8266/NodeMCU → Wi-Fi → HTTPS/TLS → device token authentication → prot
 
 ## 1. Cloud prerequisites
 
-- [ ] Vercel deployment reports success.
-- [ ] `/api/v1/health` returns `ready: true`.
+- [x] Vercel deployment reports success (v0.64.2 deployment `sylvia-awdn1yba9` Ready; production domain `sylvia-orcin.vercel.app`).
+- [ ] `/api/v1/health` returns `ready: true` (identity secrets are now configured; verify on the v0.64.2 deployment).
 - [ ] `restReady: true`.
-- [ ] All required v0.54–v0.62 migrations are applied.
-- [ ] `workspace_projects` exists.
-- [ ] Production secrets are configured: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, `SYLVIA_DEVICE_TOKEN_SECRET`.
+- [x] All required v0.54–v0.62 migrations are applied.
+- [x] `workspace_projects` exists.
+- [x] Production secrets are configured: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, `SYLVIA_DEVICE_TOKEN_SECRET` (set as hidden Vercel secrets).
 - [ ] MQTT is optional for the first REST acceptance; if enabled, verify `realtimeReady`.
 
 ## 2. Provision one physical device
 
 Use the console Connectivity page:
 
-1. Register one ESP8266/NodeMCU device.
-2. Create at least one persistent datastream.
-3. Copy the device token once and store it securely.
+1. Sign in from the console header with the owner account (`SYLVIA_OWNER_EMAIL`, default `owner@sylvia.local`) and the password stored in `SYLVIA_DEMO_PASSWORD`. Device registration requires this session.
+2. Register one ESP8266/NodeMCU device.
+3. Create at least one persistent datastream.
+4. Copy the device token once and store it securely.
 4. Generate the firmware using the console's current firmware template.
 5. Replace Wi-Fi credentials, SYLVIA base URL, device ID, token, datastream ID and Root CA.
 6. Flash the board at 115200 baud.

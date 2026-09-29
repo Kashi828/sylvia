@@ -4,9 +4,9 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.64.1 — Hardware Path Correctness**
+**v0.64.2 — Console Access & UI Completion**
 
-SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. v0.64.0 makes real ESP8266/NodeMCU validation an explicit acceptance gate and adds protocol-handshake verification to the Connectivity flow. The main console can switch projects and create new projects for authorized workspace admins.
+SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The console header now exposes the persistent sign-in flow (device registration requires a session), the workspace UI styling is complete in light and dark themes, and production identity secrets are required for `/api/v1/health` to report `ready: true`. Real ESP8266/NodeMCU validation remains the v1.0 acceptance gate.
 
 ## Physical hardware acceptance
 
@@ -38,7 +38,7 @@ The application connects server-side through PostgreSQL. SYLVIA now persists app
 3. For a fresh SYLVIA database, apply the core/runtime migrations through `20260923173759_sylvia_runtime_compatibility.sql`, then apply the v0.54–v0.62 migrations in timestamp order.
 4. For the current hybrid database layout created by earlier SYLVIA releases, apply `20260927000000_legacy_runtime_schema_reconciliation.sql` before the v0.58/v0.62 migrations. This migration reconciles the empty legacy UUID-based alert/notification tables with the text-ID runtime schema.
 5. Apply `20260927000001_runtime_index_hardening.sql` for the runtime foreign-key indexes.
-6. Set the production secrets required by the current identity/device security model: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, and `SYLVIA_DEVICE_TOKEN_SECRET`.
+6. Set the production secrets required by the current identity/device security model: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, and `SYLVIA_DEVICE_TOKEN_SECRET`. `/api/v1/health` reports `identityReady: false` until all three are present.
 7. Redeploy SYLVIA after any Vercel environment-variable change.
 8. Open `/api/v1/health` and require `ready: true`, `restReady: true`, a connected database, and an empty `runtimeSchema.missingTables` list before hardware acceptance.
 

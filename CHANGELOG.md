@@ -1,5 +1,29 @@
 # SYLVIA Changelog
 
+## v0.64.2 — Console Access & UI Completion
+
+SYLVIA v0.64.2 closes the console access gap and completes the workspace UI surface that v0.64.x hardware acceptance depends on.
+
+### Console authentication
+- The console header now exposes the existing persistent sign-in flow: a Sign in button opens a modal backed by `POST /api/auth/login`, and a signed-in user chip signs out through `POST /api/auth/logout`.
+- Device registration has required a persistent session since v0.59, but no console UI ever called the auth endpoints; real-device onboarding was therefore impossible from the browser until this release.
+- The signed-in chip displays the account name and workspace role; sign-out is a single click.
+
+### Console UI completion
+- Roughly ninety classes referenced by console components had no CSS at all (header actions, telemetry center, dashboard widgets, fleet, device groups, bulk operations, telemetry analytics, notification providers, schedules). All of them now have light and dark styling in `app/sylvia-console.css`.
+- Standalone pages (`/fleet`, `/groups`, `/bulk-operations`, `/telemetry/analytics`, `/notifications/providers`) render outside the console layout and previously appeared unstyled on the dark body.
+- Fixed the Settings tab runtime crash caused by an unimported `RotateCw` icon.
+- Replaced stale `v0.51 BETA` / `v0.64.0` brand labels with the release version constant.
+- The fleet dashboard now explains an authentication failure instead of reporting a generic request error.
+- Added `scripts/audit-css.mjs` so console CSS coverage can be verified; the committed `package-lock.json` makes builds reproducible.
+
+### Production identity readiness
+- Production identity secrets (`SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, `SYLVIA_DEVICE_TOKEN_SECRET`) are configured in the deployment environment, so `/api/v1/health` can now report `ready: true`.
+- Readiness had reported `ready: false` with `identityEnv: []` since the identity model landed in v0.59; production logins and device-token HMAC verification were blocked until now.
+
+### Release
+- Platform version is now v0.64.2; Arduino SDK remains v0.53.8.
+
 ## v0.64.1 — Hardware Path Correctness
 
 SYLVIA v0.64.1 closes a production hardware-path gap discovered during the v0.64 acceptance review.
