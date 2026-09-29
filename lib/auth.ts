@@ -114,7 +114,18 @@ export async function verifyCredentials(email: string, password: string) {
     let row: Record<string, unknown> | undefined;
 
     if (owner && owner.email.toLowerCase() === target) {
-      row = owner as Record<string, unknown>;
+      // ensureDatabaseOwner returns camelCase credentials fields; normalize
+      // them to the snake_case column names used by the verification below.
+      row = {
+        id: owner.id,
+        name: owner.name,
+        email: owner.email,
+        role: owner.role,
+        active: owner.active,
+        created_at: owner.createdAt,
+        password_hash: owner.passwordHash,
+        password_salt: owner.passwordSalt,
+      };
     }
 
     if (!row) {
