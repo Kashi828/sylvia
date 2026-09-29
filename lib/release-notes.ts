@@ -1,9 +1,9 @@
-export const CURRENT_RELEASE = '0.64.2';
+export const CURRENT_RELEASE = '0.65.0';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Console Access & UI Completion',
-  summary: 'SYLVIA v0.64.2 makes the persistent sign-in flow reachable from the console header, completes the missing console styling, and unblocks production identity readiness by requiring the identity secrets to be configured.',
+  title: 'Ops Console Redesign',
+  summary: 'SYLVIA v0.65.0 rebuilds the console into a compact operations surface: fixed app shell with icon rail and status bar, a ⌘K command palette, dense KPI/device/fabric panels, and one coherent dark design system across every page.',
   changes: [
     {
       title: 'Physical hardware acceptance',

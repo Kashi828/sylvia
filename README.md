@@ -4,9 +4,9 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.64.2 — Console Access & UI Completion**
+**v0.65.0 — Ops Console Redesign**
 
-SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The console header now exposes the persistent sign-in flow (device registration requires a session), the workspace UI styling is complete in light and dark themes, and production identity secrets are required for `/api/v1/health` to report `ready: true`. Real ESP8266/NodeMCU validation remains the v1.0 acceptance gate.
+SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The console is a compact operations surface — fixed shell with icon rail, ⌘K command palette, live status bar and dense device/fabric panels — backed by the persistent sign-in flow (`SYLVIA_DEMO_PASSWORD` owner account). Production identity secrets are required for `/api/v1/health` to report `ready: true`. Real ESP8266/NodeMCU validation remains the v1.0 acceptance gate.
 
 ## Physical hardware acceptance
 

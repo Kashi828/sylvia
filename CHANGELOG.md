@@ -1,5 +1,29 @@
 # SYLVIA Changelog
 
+## v0.65.0 — Ops Console Redesign
+
+SYLVIA v0.65.0 replaces the marketing-style console with a compact, interactive operations surface built around the way an IoT fleet is actually operated.
+
+### Application shell
+- The console is now a fixed app shell: 48px command bar, icon navigation rail with hover tooltips, scroll-locked content column, and a persistent 26px status bar showing database state, online device count, stream/automation counts, transport, version and current role at all times.
+- Navigation is a 56px icon rail; active sections are marked with a glowing accent indicator. The legacy stacked header and 18-label text sidebar are gone.
+
+### Command palette
+- `⌘K` / `Ctrl+K` opens a fuzzy-searchable command palette (26 actions: register device, new datastream/template/automation/API key, run hardware verification, sign in, and direct navigation to every section) with live filtering and Escape-to-close.
+- The top-bar search field opens the same palette.
+
+### Overview rebuild
+- The marketing hero is replaced by a dense ops dashboard: four clickable KPI tiles (online devices, datastreams, automations, hardware acceptance status) and a two-column device list + live fabric-status card that polls `/api/v1/health` every 10 seconds.
+- Device rows show temperature, battery meters and online state inline; KPIs navigate to their sections.
+
+### Design system
+- New `app/sylvia-redesign.css` (loaded last) defines the full token system: `--ops-*` colors, compact radii, mono numerics, chips, dense tables, event streams, and unified buttons/inputs/modals/toasts.
+- Every legacy console surface (panels, stats, cards, stream tables, device control center, gauges, event/notification/alert centers, release notes) is restyled onto the new system without changing component behavior.
+- Standalone pages (`/fleet`, `/groups`, `/bulk-operations`, `/telemetry/analytics`, `/notifications/providers`) inherit the same tokens; the legacy `ClientUIEnhancer` DOM injector is disabled so React owns the whole shell.
+
+### Release
+- Platform version is now v0.65.0; Arduino SDK remains v0.53.8. All v0.64.x hardware-path and console-access behavior is unchanged.
+
 ## v0.64.2 — Console Access & UI Completion
 
 SYLVIA v0.64.2 closes the console access gap and completes the workspace UI surface that v0.64.x hardware acceptance depends on.
