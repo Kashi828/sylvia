@@ -38,7 +38,7 @@ function showLaunchScreen() {
 
     </section>
     <section class="sl-sections"><div class="sl-title"><h2>One console. One workspace.</h2><p>From the first virtual device to real hardware, SYLVIA brings the core control plane into one workspace.</p></div><div class="sl-grid"><article class="sl-feature"><div class="sl-icon">⌁</div><b>Device control</b><span>Provision, monitor and control connected devices from one console.</span></article><article class="sl-feature"><div class="sl-icon">◫</div><b>Live telemetry</b><span>Stream values into datastreams, analytics and realtime dashboards.</span></article><article class="sl-feature"><div class="sl-icon">◌</div><b>Dashboard Studio</b><span>Create focused visual controls for the systems you actually operate.</span></article><article class="sl-feature"><div class="sl-icon">⚡</div><b>Automation</b><span>Turn telemetry and device state into rules, events and actions.</span></article></div><div class="sl-flow"><span><b>Device</b> → MQTT/TLS</span><span><b>SYLVIA</b> → Telemetry</span><span><b>Dashboard</b> ↔ Commands</span><span><b>Optional ZYRA</b> → AI bridge</span></div></section>
-    <footer class="sl-foot">SYLVIA · Open IoT platform · v0.51 Beta</footer>
+    <footer class="sl-foot">SYLVIA · Open IoT platform · v0.64.1</footer>
   `;
   document.body.appendChild(page);
   page.querySelectorAll('[data-enter]').forEach((node) => node.addEventListener('click', () => {
@@ -75,11 +75,11 @@ export default function ClientUIEnhancer() {
       const content = document.querySelector('.content');
       if (!content) return;
       const brandVersion = document.querySelector('.brand > div:last-child span');
-      if (brandVersion && brandVersion.textContent !== 'IOT PLATFORM · v0.51 BETA') brandVersion.textContent = 'IOT PLATFORM · v0.51 BETA';
+      if (brandVersion && brandVersion.textContent !== 'IOT PLATFORM · v0.64.1 · REST + MQTT') brandVersion.textContent = 'IOT PLATFORM · v0.64.1 · REST + MQTT';
       const headerStatus = document.querySelector('.headerRight .status');
       if (headerStatus) {
         const textNode = Array.from(headerStatus.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-        if (textNode && textNode.textContent !== ' Cloud fabric online') textNode.textContent = ' Cloud fabric online';
+        if (textNode && textNode.textContent !== ' Cloud workspace online') textNode.textContent = ' Cloud workspace online';
       }
       const overviewGrid = content.querySelector('.deviceGrid');
       const existing = document.getElementById(enhanceId);

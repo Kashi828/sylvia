@@ -2,6 +2,7 @@ import './globals.css';
 import './sylvia-theme.css';
 import './sylvia-ui-fix.css';
 import './sylvia-premium.css';
+import './sylvia-console.css';
 import type {Metadata} from 'next';
 import ClientUIEnhancer from '@/components/ClientUIEnhancer';
 

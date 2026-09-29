@@ -1,0 +1,331 @@
+/* SYLVIA console completion layer — styles for classes referenced by components
+   but previously undefined (header actions, telemetry, charts, fleet, groups,
+   bulk operations, analytics, schedules, auth). Loaded last on purpose. */
+
+/* Standalone pages (/fleet, /groups, /bulk-operations, /telemetry/analytics,
+   /notifications/providers) render outside .layout on the always-dark body,
+   so they need the UI variables that the console gets from .layout. */
+:root{--ui-bg:#07090d;--ui-surface:#0c1016;--ui-surface-2:#10151d;--ui-border:rgba(255,255,255,.09);--ui-border-soft:rgba(255,255,255,.06);--ui-text:#f5f7fb;--ui-muted:#8d98aa;--ui-dim:#687487;--ui-accent:#5f8cff}
+
+/* Standalone pages render directly under <body> (no .layout / .dark wrapper),
+   so base globals.css light styles must be re-themed here. */
+body > .apiPage,body > .fleetDashboard,body > .deviceGroups,body > .bulkPage,body > .telemetryAnalytics{color:var(--ui-text)}
+body > .apiPage .stat,body > .apiPage .panel,body > .apiPage .card,body > .apiPage .streamTable,body > .apiPage .keyRow,body > .apiPage .endpoint,body > .apiPage .hero,body > .apiPage .apiBox{background:var(--ui-surface);color:var(--ui-text);border-color:var(--ui-border)}
+body > .apiPage .hero{background:linear-gradient(145deg,#0d1219,#090c11);box-shadow:0 25px 80px rgba(0,0,0,.22);border-radius:16px}
+body > .apiPage .stat span,body > .apiPage .sectionHead span,body > .apiPage .card p,body > .apiPage .apiBox span,body > .apiPage .keyRow small,body > .apiPage .endpoint small,body > .apiPage .panel p{color:var(--ui-dim)}
+body > .apiPage .stat strong,body > .apiPage .stat b,body > .apiPage h1,body > .apiPage h2,body > .apiPage b{color:var(--ui-text)}
+body > .apiPage input,body > .apiPage select,body > .apiPage .premiumField{background:#0a0e14;color:#f5f7fb;border-color:var(--ui-border)}
+body > .apiPage input::placeholder{color:#566174}
+body > .apiPage .enabled{background:rgba(110,231,183,.1);color:#6ee7b7}
+body > .apiPage .disabled{background:rgba(255,255,255,.05);color:#718096}
+body > .apiPage .settingsGrid input,body > .apiPage .settingsGrid select{background:#0a0e14;color:#f5f7fb;border-color:var(--ui-border);border-radius:10px;min-height:44px}
+body > .apiPage .deviceIcon{background:#141a23;color:#a9b9db;border:1px solid var(--ui-border-soft)}
+body > .fleetDashboard h1,body > .deviceGroups h1,body > .bulkPage h1,body > .telemetryAnalytics h1{color:var(--ui-text)}
+
+/* ---------- Header right actions & auth ---------- */
+.headerRight{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.authArea{position:relative;display:flex;align-items:center;gap:10px}
+.authUserChip{display:flex;align-items:center;gap:9px;padding:6px 8px 6px 12px;border:1px solid var(--ui-border,#e6eaf0);border-radius:999px;background:var(--ui-surface,#fff);font-size:12px;color:var(--ui-muted,#667085);max-width:290px}
+.authUserChip b{color:var(--ui-text,#111827);font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.authUserChip .roleTag{padding:3px 8px;border-radius:999px;background:#eef4ff;color:#2563eb;font-size:10px;font-weight:700;letter-spacing:.04em}
+.authAvatar{width:26px;height:26px;border-radius:50%;background:#111827;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto}
+.authUserChip.signOutBtn{cursor:pointer;transition:border-color .16s ease,background .16s ease}
+.authUserChip.signOutBtn:hover{border-color:#f1b3b3;background:#fdf5f5}
+.authSignIn{display:inline-flex;align-items:center;gap:7px;border:1px solid #111827;background:#111827;color:#fff;border-radius:999px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;transition:background .16s ease}
+.authSignIn:hover{background:#1f2937}
+.authModalForm{display:grid;gap:14px}
+.authModalForm .authError{margin:0;padding:10px 12px;border:1px solid #f3c6c6;background:#fdf3f3;color:#b42318;border-radius:10px;font-size:12.5px}
+.authModalForm .authSuccess{margin:0;padding:10px 12px;border:1px solid #c9ecd9;background:#f2fbf6;color:#15803d;border-radius:10px;font-size:12.5px}
+.authModalForm .authHint{margin:0;color:var(--ui-dim,#98a2b3);font-size:12px;line-height:1.55}
+.dark .authUserChip{background:#11161e;border-color:rgba(255,255,255,.1);color:#8d98aa}
+.dark .authUserChip b{color:#eef3fb}
+.dark .authUserChip .roleTag{background:rgba(95,140,255,.14);color:#9db8ff}
+.dark .authAvatar{background:#1b2330;border:1px solid rgba(255,255,255,.12)}
+.dark .authUserChip.signOutBtn:hover{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)}
+.dark .authSignIn{background:#fff;color:#080a0e;border-color:#fff}
+.dark .authSignIn:hover{background:#e9edf5}
+.dark .authModalForm .authError{background:rgba(255,80,80,.08);border-color:rgba(255,107,107,.3);color:#ff9c9c}
+.dark .authModalForm .authSuccess{background:rgba(87,227,170,.07);border-color:rgba(87,227,170,.28);color:#6ee7b7}
+.dark .authModalForm .authHint{color:#788497}
+
+/* ---------- Generic empty & clickability ---------- */
+.apiTitle{display:flex;align-items:center;gap:12px;min-width:0}
+.apiTitle>svg,.apiTitle>span:first-child{flex:0 0 auto}
+.apiTitle>div{min-width:0;display:grid;gap:3px}
+.apiTitle b{display:block;font-size:13.5px}
+.apiTitle span{display:block;color:var(--ui-dim,#98a2b3);font-size:11.5px;line-height:1.5;overflow-wrap:anywhere}
+.dark .apiTitle b{color:#eef3fb}
+.dark .apiTitle span{color:#788497}
+.subtle{opacity:.55}
+.activity{display:grid}
+.activityRow{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--ui-border-soft,#edf0f4)}
+.activityRow:last-child{border-bottom:0}
+.activityRow>div:nth-child(2){min-width:0;flex:1}
+.activityRow b{font-size:12px}
+.activityRow p{margin:2px 0 0;color:var(--ui-dim,#98a2b3);font-size:11px}
+.activityRow>span:last-child{margin-left:auto;color:var(--ui-dim,#98a2b3);font-size:10px;white-space:nowrap}
+.activityRow .dot.subtle{background:var(--ui-dim,#98a2b3)}
+.empty,.emptyDeviceState{display:grid;place-items:center;gap:10px;text-align:center;padding:34px 18px;color:var(--ui-dim,#98a2b3)}
+.empty b,.emptyDeviceState b{color:var(--ui-text,#111827);font-size:14px}
+.emptyDeviceState svg{color:var(--ui-dim,#98a2b3)}
+.emptyDeviceState span,.empty span{font-size:12.5px;line-height:1.55;max-width:420px}
+.clickable{cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease}
+.clickable:hover{border-color:var(--ui-accent,#2563eb)}
+
+/* ---------- Status chips ---------- */
+.liveStatus,.telemetryLive{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ui-muted,#667085);white-space:nowrap}
+.liveStatus i,.telemetryLive i{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14)}
+.dark .liveStatus,.dark .telemetryLive{color:#8d98aa}
+
+/* ---------- Telemetry center ---------- */
+.telemetryPage{display:grid;gap:20px}
+.telemetryToolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.telemetryToolbar label{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--ui-muted,#667085)}
+.telemetryToolbar select{min-width:190px}
+.telemetryChart{display:grid;gap:14px}
+.chartFrame{height:220px;border:1px solid var(--ui-border-soft,#edf0f4);border-radius:12px;background:var(--ui-surface-2,#fafbfc);padding:12px;color:var(--ui-accent,#2563eb)}
+.chartFrame svg{width:100%;height:100%;display:block}
+.chartEmpty,.telemetryEmpty{display:grid;place-items:center;height:100%;color:var(--ui-dim,#98a2b3);font-size:12.5px;text-align:center;padding:20px}
+.sampleGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.sample{display:grid;gap:4px;padding:12px 13px;border:1px solid var(--ui-border,#e6eaf0);border-radius:11px;background:var(--ui-surface,#fff)}
+.sample b{font-size:15px;font-variant-numeric:tabular-nums}
+.sample span{font-size:10.5px;color:var(--ui-dim,#98a2b3)}
+
+/* ---------- Chart widget (dashboard studio) ---------- */
+.chartWidget{display:grid;gap:8px}
+.chartWidget svg{width:100%;height:110px;display:block;color:var(--ui-accent,#2563eb);background:var(--ui-surface-2,#fafbfc);border-radius:10px;border:1px solid var(--ui-border-soft,#edf0f4)}
+.chartMeta{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.chartMeta b{font-size:15px;font-variant-numeric:tabular-nums}
+.chartMeta span{font-size:10.5px;color:var(--ui-dim,#98a2b3)}
+.liveFoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:12px;color:var(--ui-dim,#98a2b3);font-size:10.5px}
+.liveMetric{display:flex;align-items:baseline;gap:10px;margin:18px 0 10px}
+.liveMetric strong{font-size:30px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.liveMetric strong small{font-size:13px;color:var(--ui-dim,#98a2b3);font-weight:500}
+.liveMetric span{font-size:11px;color:var(--ui-dim,#98a2b3)}
+.eventLive{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:#15803d;white-space:nowrap}
+.eventLive i{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14)}
+.eventError{padding:12px 14px;border:1px solid #f3c6c6;border-radius:11px;background:#fdf3f3;color:#b42318;font-size:12.5px}
+.dark .eventError{background:rgba(255,80,80,.08);border-color:rgba(255,107,107,.3);color:#ff9c9c}
+.dark .eventLive{color:#6ee7b7}
+.dark .liveFoot,.dark .liveMetric span,.dark .liveMetric strong small{color:#687487}
+.widgetGauge{display:grid;place-items:center;gap:8px;padding:6px 0}
+.gaugeRing{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;align-content:center;gap:0;background:
+  radial-gradient(closest-side,var(--ui-surface,#fff) 74%,transparent 75% 100%),
+  conic-gradient(var(--ui-accent,#2563eb) var(--pct,0%),var(--ui-border-soft,#edf0f4) 0)}
+.gaugeRing strong{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.gaugeRing span{font-size:11px;color:var(--ui-dim,#98a2b3)}
+.widgetGauge small{font-size:10.5px;color:var(--ui-dim,#98a2b3)}
+.widgetSwitch{display:flex;align-items:center;gap:16px;padding:8px 0}
+.switchBig{width:62px;height:34px;border-radius:999px;background:var(--ui-dim,#98a2b3);border:0;padding:3px;cursor:pointer;flex:0 0 auto;transition:background .18s ease}
+.switchBig span{display:block;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s ease}
+.switchBig.on{background:#16a34a}
+.switchBig.on span{transform:translateX(28px)}
+.switchBig:disabled{opacity:.6;cursor:wait}
+.widgetSwitch b{display:block;font-size:16px}
+.widgetSwitch small{color:var(--ui-dim,#98a2b3);font-size:11px}
+.widgetValue{display:grid;gap:4px;padding:10px 0}
+.widgetValue strong{font-size:32px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.widgetValue span{font-size:11px;color:var(--ui-dim,#98a2b3)}
+.widgetMissing{display:grid;place-items:center;min-height:80px;color:var(--ui-dim,#98a2b3);font-size:12px;border:1px dashed var(--ui-border,#e6eaf0);border-radius:10px}
+
+/* ---------- Dashboard studio header / editor ---------- */
+.dashboardBuilderHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.dashboardBuilderHeader>div:first-child{min-width:0}
+.dashboardBuilderHeader h2{margin:6px 0 4px;font-size:22px;letter-spacing:-.02em}
+.dashboardBuilderHeader span{color:var(--ui-muted,#667085);font-size:13px}
+.editorPreview{display:grid;gap:10px;padding:14px;border:1px dashed var(--ui-border,#e6eaf0);border-radius:12px;background:var(--ui-surface-2,#fafbfc)}
+.editorPreview>span{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--ui-dim,#98a2b3);text-transform:uppercase}
+.widgetEditor{width:min(560px,100%)}
+
+/* ---------- Template cards ---------- */
+.templateIcon{width:38px;height:38px;border-radius:10px;background:var(--ui-surface-2,#f2f5f9);border:1px solid var(--ui-border-soft,#e7eaf0);display:grid;place-items:center;color:var(--ui-muted,#475467)}
+.templateMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;font-size:11px;color:var(--ui-dim,#98a2b3)}
+.templateMeta span{display:inline-flex;padding:4px 9px;border-radius:999px;background:var(--ui-surface-2,#f2f5f9);border:1px solid var(--ui-border-soft,#e7eaf0)}
+
+/* ---------- Rules / keys / schedules ---------- */
+.ruleList{display:grid}
+.ruleMain{min-width:0;flex:1;display:grid;gap:3px}
+.ruleMain b{font-size:13px;overflow-wrap:anywhere}
+.ruleMain p{margin:0;font-size:11.5px;color:var(--ui-dim,#98a2b3);overflow-wrap:anywhere}
+.keyList{display:grid;gap:10px}
+.schedulePanel{display:grid;gap:0}
+.scheduleRow{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto auto auto;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--ui-border-soft,#edf0f4)}
+.scheduleRow:first-child{border-top:0}
+.scheduleIcon{width:34px;height:34px;border-radius:9px;background:var(--ui-surface-2,#f2f5f9);border:1px solid var(--ui-border-soft,#e7eaf0);display:grid;place-items:center;color:var(--ui-accent,#2563eb)}
+.scheduleMain{min-width:0;display:grid;gap:3px}
+.scheduleMain b{font-size:12.5px;overflow-wrap:anywhere}
+.scheduleMain p{margin:0;font-size:11px;color:var(--ui-dim,#98a2b3);overflow-wrap:anywhere}
+.disabled{display:inline-flex;align-items:center;font-size:10px;background:var(--ui-surface-2,#f2f5f9);color:var(--ui-dim,#98a2b3);border-radius:99px;padding:5px 8px;white-space:nowrap}
+
+/* ---------- Device detail extras ---------- */
+.stateConfirmation{display:flex;align-items:center;gap:11px;margin-top:12px;padding:13px 14px;border:1px solid var(--ui-border-soft,#edf0f4);border-radius:12px;background:var(--ui-surface-2,#fafbfc)}
+.stateConfirmation small{color:var(--ui-dim,#98a2b3);font-size:11.5px;line-height:1.5}
+.stateReportBox{align-items:flex-start}
+.resultBox{min-height:120px;max-height:340px;overflow:auto;padding:14px;border:1px solid var(--ui-border,#e6eaf0);border-radius:12px;background:var(--ui-bg,#f5f7fb);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.endpointList{display:grid;gap:10px}
+.verificationSteps{margin-top:4px}
+.premiumForm{display:grid;gap:14px}
+
+/* ---------- Alerts page helpers ---------- */
+.alertsGrid{display:grid;gap:18px}
+.alertIcon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--ui-surface-2,#f2f5f9);border:1px solid var(--ui-border-soft,#e7eaf0);color:var(--ui-accent,#2563eb);flex:0 0 auto}
+.alertIcon svg{width:16px;height:16px}
+.alertCount{display:inline-flex;align-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--ui-surface-2,#f2f5f9);border:1px solid var(--ui-border-soft,#e7eaf0);color:var(--ui-muted,#667085);font-size:11px;font-weight:700}
+.alertEventAction{display:flex;gap:6px;flex:0 0 auto}
+.subscriptionList{display:grid}
+.notificationUnread{width:8px;height:8px;border-radius:50%;background:var(--ui-accent,#2563eb);flex:0 0 auto}
+
+/* ---------- Standalone: fleet ---------- */
+.fleetDashboard{display:grid;gap:20px;max-width:1240px;margin:0 auto;padding:40px 38px 70px}
+.fleetHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.fleetHeader h1{margin:4px 0 6px;font-size:28px;letter-spacing:-.03em}
+.fleetHeader p{margin:0;color:var(--ui-muted,#667085);font-size:13px}
+.fleetRefresh{border:1px solid var(--ui-border,#d8dee8);background:var(--ui-surface,#fff);color:var(--ui-text,#344054);border-radius:9px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer}
+.fleetRefresh:hover{border-color:var(--ui-accent,#2563eb);color:var(--ui-accent,#2563eb)}
+.fleetStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.fleetStat{display:grid;gap:5px;padding:16px 18px;border:1px solid var(--ui-border,#e7eaf0);border-radius:13px;background:var(--ui-surface,#fff);text-align:left;cursor:pointer;font:inherit;transition:border-color .16s ease}
+.fleetStat:hover{border-color:var(--ui-accent,#2563eb)}
+.fleetStat.active{border-color:var(--ui-accent,#2563eb);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fleetStat strong{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fleetStat span{font-size:11.5px;color:var(--ui-muted,#667085)}
+.fleetError{padding:12px 14px;border:1px solid #f3c6c6;border-radius:11px;background:#fdf3f3;color:#b42318;font-size:12.5px}
+.fleetTableWrap{border:1px solid var(--ui-border,#e7eaf0);border-radius:13px;background:var(--ui-surface,#fff);overflow:auto}
+.fleetTable{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
+.fleetTable th{text-align:left;padding:12px 16px;background:var(--ui-surface-2,#fafbfc);color:var(--ui-dim,#98a2b3);font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--ui-border-soft,#edf0f4)}
+.fleetTable td{padding:13px 16px;border-top:1px solid var(--ui-border-soft,#edf0f4);vertical-align:middle}
+.fleetTable tbody tr:first-child td{border-top:0}
+.fleetDeviceName{font-weight:650;color:var(--ui-text,#111827)}
+.fleetTable code{font-size:10.5px;color:var(--ui-dim,#98a2b3)}
+.fleetBadge{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:capitalize}
+.fleetBadge.online{background:#ecfdf3;color:#15803d}
+.fleetBadge.offline{background:#f2f4f7;color:#667085}
+.fleetBadge.provisioning{background:#eff6ff;color:#1d4ed8}
+.fleetBadge.disabled{background:#fef3f2;color:#b42318}
+
+/* ---------- Standalone: groups ---------- */
+.deviceGroups{display:grid;gap:20px;max-width:1240px;margin:0 auto;padding:40px 38px 70px}
+.groupsHeader h1{margin:4px 0 6px;font-size:28px;letter-spacing:-.03em}
+.groupsHeader p{margin:0;color:var(--ui-muted,#667085);font-size:13px}
+.groupCreate{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:10px;align-items:center}
+.groupCreate input{border:1px solid var(--ui-border,#d8dee8);border-radius:10px;padding:11px 13px;font:inherit;background:var(--ui-surface,#fff);color:var(--ui-text,#111827);min-height:44px}
+.groupCreate button{border:0;background:var(--ui-accent,#2563eb);color:#fff;border-radius:10px;padding:12px 18px;font-weight:650;cursor:pointer;min-height:44px}
+.groupCreate button:hover{background:#1d4ed8}
+.groupGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.groupCard{display:flex;gap:13px;align-items:flex-start;padding:18px;border:1px solid var(--ui-border,#e7eaf0);border-radius:14px;background:var(--ui-surface,#fff)}
+.groupIcon{width:38px;height:38px;border-radius:10px;background:#eef4ff;color:#2563eb;display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto}
+.groupCard h3{margin:0 0 4px;font-size:14px}
+.groupCard p{margin:0 0 8px;font-size:12px;color:var(--ui-dim,#98a2b3);line-height:1.5;overflow-wrap:anywhere}
+.groupCard span{font-size:11px;color:var(--ui-muted,#667085)}
+.groupEmpty{grid-column:1/-1;display:grid;place-items:center;padding:40px 18px;color:var(--ui-dim,#98a2b3);font-size:12.5px;border:1px dashed var(--ui-border,#d8dee8);border-radius:13px}
+
+/* ---------- Standalone: bulk operations ---------- */
+.bulkPage{display:grid;gap:16px;max-width:1240px;margin:0 auto;padding:40px 38px 70px}
+.bulkPage h1{margin:2px 0 4px;font-size:28px;letter-spacing:-.03em}
+.bulkSubtitle{margin:-6px 0 6px;color:var(--ui-muted,#667085);font-size:13px}
+.bulkForm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:start}
+.bulkForm select,.bulkForm input{border:1px solid var(--ui-border,#d8dee8);border-radius:10px;padding:11px 13px;font:inherit;background:var(--ui-surface,#fff);color:var(--ui-text,#111827);min-height:44px}
+.bulkForm textarea{grid-column:1/-1;border:1px solid var(--ui-border,#d8dee8);border-radius:10px;padding:11px 13px;font:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--ui-surface,#fff);color:var(--ui-text,#111827);min-height:88px;resize:vertical}
+.bulkForm button{border:0;background:var(--ui-accent,#2563eb);color:#fff;border-radius:10px;padding:12px 18px;font-weight:650;cursor:pointer;min-height:44px}
+.bulkForm button:hover{background:#1d4ed8}
+.bulkList{display:grid;gap:10px}
+.bulkCard{display:grid;gap:6px;padding:15px 17px;border:1px solid var(--ui-border,#e7eaf0);border-radius:13px;background:var(--ui-surface,#fff)}
+.bulkCard>div:first-child{display:flex;align-items:baseline;gap:12px;min-width:0;flex-wrap:wrap}
+.bulkCard strong{font-size:13.5px}
+.bulkCard span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--ui-dim,#98a2b3);overflow-wrap:anywhere}
+.bulkCard>div:nth-child(2){font-size:12px;color:var(--ui-muted,#667085)}
+.bulkCard small{color:var(--ui-dim,#98a2b3);font-size:10.5px}
+
+/* ---------- Standalone: telemetry analytics ---------- */
+.telemetryAnalytics{display:grid;gap:20px;max-width:1240px;margin:0 auto;padding:40px 38px 70px}
+.telemetryAnalyticsHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.telemetryAnalyticsHeader h1{margin:4px 0 6px;font-size:28px;letter-spacing:-.03em}
+.telemetryAnalyticsHeader p{margin:0;color:var(--ui-muted,#667085);font-size:13px}
+.telemetryRefresh{border:1px solid var(--ui-border,#d8dee8);background:var(--ui-surface,#fff);color:var(--ui-text,#344054);border-radius:9px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer}
+.telemetryRefresh:hover{border-color:var(--ui-accent,#2563eb);color:var(--ui-accent,#2563eb)}
+.telemetryControls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.telemetryControls input,.telemetryControls select{border:1px solid var(--ui-border,#d8dee8);border-radius:10px;padding:11px 13px;font:inherit;background:var(--ui-surface,#fff);color:var(--ui-text,#111827);min-height:44px;width:100%}
+.telemetryMetricGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.telemetryMetricGrid>div{display:grid;gap:6px;padding:17px 18px;border:1px solid var(--ui-border,#e7eaf0);border-radius:13px;background:var(--ui-surface,#fff)}
+.telemetryMetricGrid span{font-size:11.5px;color:var(--ui-muted,#667085)}
+.telemetryMetricGrid strong{font-size:23px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.telemetryChartCard{display:grid;gap:14px;padding:20px;border:1px solid var(--ui-border,#e7eaf0);border-radius:14px;background:var(--ui-surface,#fff)}
+.telemetryCardTitle{font-size:14px;font-weight:700}
+.telemetryBars{display:flex;align-items:flex-end;gap:4px;height:190px;padding:6px 4px 0}
+.telemetryBarWrap{flex:1 1 0;height:100%;display:flex;align-items:flex-end;border-radius:6px 6px 0 0;overflow:hidden}
+.telemetryBar{width:100%;background:linear-gradient(180deg,var(--ui-accent,#2563eb),rgba(37,99,235,.55));border-radius:6px 6px 0 0;min-height:6px;transition:height .25s ease}
+.telemetryEmpty{height:auto;padding:34px 10px}
+.telemetryTableWrap{border:1px solid var(--ui-border,#e7eaf0);border-radius:13px;background:var(--ui-surface,#fff);overflow:auto}
+
+/* ---------- Dark theme parity ---------- */
+.dark .chartFrame{background:#0a0f16;border-color:rgba(255,255,255,.07);color:#5f8cff}
+.dark .chartWidget svg{background:#0a0f16;border-color:rgba(255,255,255,.07);color:#5f8cff}
+.dark .sample,.dark .scheduleIcon,.dark .templateIcon,.dark .groupCard,.dark .bulkCard,.dark .fleetTableWrap,.dark .telemetryChartCard,.dark .telemetryTableWrap{background:#0c1016;border-color:rgba(255,255,255,.09)}
+.dark .sample span,.dark .scheduleMain p,.dark .groupCard p,.dark .bulkCard span,.dark .bulkCard small,.dark .templateMeta,.dark .groupEmpty,.dark .chartEmpty,.dark .telemetryEmpty,.dark .widgetMissing,.dark .chartMeta span,.dark .widgetGauge small,.dark .widgetSwitch small,.dark .widgetValue span,.dark .stateConfirmation small,.dark .fleetStat span,.dark .fleetHeader p,.dark .groupsHeader p,.dark .bulkSubtitle,.dark .telemetryAnalyticsHeader p,.dark .telemetryMetricGrid span,.dark .fleetTable code{color:#788497}
+.dark .fleetTable th{background:#10151d;color:#687487;border-bottom-color:rgba(255,255,255,.06)}
+.dark .fleetTable td{border-top-color:rgba(255,255,255,.06);color:#dfe6f1}
+.dark .fleetDeviceName{color:#eef3fb}
+.dark .sample,.dark .scheduleRow{border-color:rgba(255,255,255,.06)}
+.dark .sample b,.dark .scheduleMain b,.dark .bulkCard strong,.dark .groupCard h3,.dark .telemetryCardTitle{color:#eef3fb}
+.dark .scheduleIcon,.dark .templateIcon,.dark .groupIcon{background:#141b24;border-color:rgba(255,255,255,.08);color:#9db8ff}
+.dark .fleetStat{background:#0c1016;border-color:rgba(255,255,255,.09)}
+.dark .fleetStat:hover{border-color:#5f8cff}
+.dark .fleetStat.active{border-color:#5f8cff;box-shadow:0 0 0 3px rgba(95,140,255,.14)}
+.dark .fleetStat strong{color:#fff}
+.dark .fleetRefresh,.dark .telemetryRefresh{background:#11161e;color:#dfe6f1;border-color:rgba(255,255,255,.1)}
+.dark .fleetRefresh:hover,.dark .telemetryRefresh:hover{border-color:#5f8cff;color:#9db8ff}
+.dark .fleetError{background:rgba(255,80,80,.08);border-color:rgba(255,107,107,.3);color:#ff9c9c}
+.dark .groupCreate input,.dark .groupCreate button,.dark .bulkForm select,.dark .bulkForm input,.dark .bulkForm textarea,.dark .bulkForm button,.dark .telemetryControls input,.dark .telemetryControls select{background:#0a0e14;border-color:rgba(255,255,255,.1);color:#f5f7fb}
+.dark .groupCreate button,.dark .bulkForm button{background:#5f8cff;border-color:#5f8cff}
+.dark .groupCreate button:hover,.dark .bulkForm button:hover{background:#7099ff}
+.dark .groupCreate input::placeholder,.dark .bulkForm input::placeholder,.dark .bulkForm textarea::placeholder,.dark .telemetryControls input::placeholder{color:#566174}
+.dark .groupEmpty{border-color:rgba(255,255,255,.12)}
+.dark .gaugeRing{background:radial-gradient(closest-side,#0c1016 74%,transparent 75% 100%),conic-gradient(#5f8cff var(--pct,0%),#1a212b 0)}
+.dark .gaugeRing strong{color:#fff}
+.dark .switchBig{background:#29313d}
+.dark .switchBig.on{background:#6ee7b7}
+.dark .switchBig.on span{background:#080a0e}
+.dark .editorPreview{background:#0a0f16;border-color:rgba(255,255,255,.1)}
+.dark .editorPreview>span{color:#687487}
+.dark .resultBox{background:#06080c;border-color:rgba(255,255,255,.09);color:#dfe6f1}
+.dark .stateConfirmation{background:#0d1219;border-color:rgba(255,255,255,.07)}
+.dark .stateSyncBadge,.dark .empty,.dark .emptyDeviceState{color:#788497}
+.dark .empty b,.dark .emptyDeviceState b{color:#e9eef6}
+.dark .emptyDeviceState svg{color:#687487}
+.dark .schedulePanel .scheduleRow{border-top-color:rgba(255,255,255,.06)}
+.dark .ruleList .rule{border-bottom-color:rgba(255,255,255,.06)}
+.dark .alertCount{background:#141b25;border-color:rgba(255,255,255,.08);color:#8b98aa}
+.dark .disabled{background:rgba(255,255,255,.05);color:#718096}
+.dark .endpointList .endpoint{border-color:rgba(255,255,255,.07)}
+.dark .notificationUnread{background:#9db8ff}
+.dark .telemetryBar{background:linear-gradient(180deg,#5f8cff,rgba(95,140,255,.5))}
+.dark .fleetBadge.offline{background:#171d27;color:#8d98aa}
+.dark .fleetBadge.online{background:rgba(110,231,183,.1);color:#6ee7b7}
+.dark .fleetBadge.provisioning{background:rgba(95,140,255,.12);color:#9db8ff}
+.dark .fleetBadge.disabled{background:rgba(255,107,107,.1);color:#ff9c9c}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1100px){
+  .fleetStats{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .telemetryControls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .telemetryMetricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sampleGrid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+@media(max-width:800px){
+  .fleetDashboard,.deviceGroups,.bulkPage,.telemetryAnalytics{padding:26px 16px 50px}
+  .fleetStats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .groupCreate{grid-template-columns:1fr}
+  .groupCreate button{width:100%}
+  .bulkForm{grid-template-columns:1fr}
+  .bulkForm button{width:100%}
+  .telemetryControls{grid-template-columns:1fr}
+  .telemetryMetricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scheduleRow{grid-template-columns:34px minmax(0,1fr) auto;grid-auto-flow:row}
+  .scheduleRow .mini,.scheduleRow .trash{grid-row:auto}
+  .headerRight{gap:7px}
+  .authUserChip{max-width:200px}
+}
+@media(max-width:520px){
+  .fleetStats,.telemetryMetricGrid{grid-template-columns:1fr}
+  .sampleGrid{grid-template-columns:1fr 1fr}
+  .authUserChip .roleTag{display:none}
+}

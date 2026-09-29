@@ -23,6 +23,7 @@ export default function FleetDashboard() {
     try {
       setError("");
       const res = await fetch("/api/v1/fleet", { cache: "no-store" });
+      if (res.status === 401) throw new Error("Sign in from the console to view your device fleet.");
       if (!res.ok) throw new Error("Fleet request failed");
       const data = await res.json();
       setDevices(data.devices ?? []);
