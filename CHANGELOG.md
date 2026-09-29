@@ -20,6 +20,7 @@ SYLVIA v0.64.2 closes the console access gap and completes the workspace UI surf
 ### Production identity readiness
 - Production identity secrets (`SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, `SYLVIA_DEVICE_TOKEN_SECRET`) are configured in the deployment environment, so `/api/v1/health` can now report `ready: true`.
 - Readiness had reported `ready: false` with `identityEnv: []` since the identity model landed in v0.59; production logins and device-token HMAC verification were blocked until now.
+- Fixed the owner sign-in path: `verifyCredentials` read snake_case credential fields from the camelCase owner record, so every owner login failed with 401 even with the correct password. Owner login now verifies against the production database end to end (login → session → project-scoped device list).
 
 ### Release
 - Platform version is now v0.64.2; Arduino SDK remains v0.53.8.
