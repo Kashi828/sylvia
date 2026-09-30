@@ -1,62 +1,64 @@
-export const CURRENT_RELEASE = '0.65.0';
+export const CURRENT_RELEASE = '0.66.0';
 
 export const RELEASE_NOTES = {
   version: CURRENT_RELEASE,
-  title: 'Ops Console Redesign',
-  summary: 'SYLVIA v0.65.0 rebuilds the console into a compact operations surface: fixed app shell with icon rail and status bar, a ⌘K command palette, dense KPI/device/fabric panels, and one coherent dark design system across every page.',
+  title: 'Academy Re-theme',
+  summary: 'SYLVIA v0.66.0 re-themes the entire console in the ECT department design language: navy chrome with dot-grid texture, gold action color, ivory content canvas, Fraunces display serif, IBM Plex Mono micro-labels and gold underline bars — one coherent identity across shell, palette, modals and every tab.',
   changes: [
     {
-      title: 'Physical hardware acceptance',
+      title: 'Design language',
       items: [
-        'Connectivity verification now checks the authenticated device protocol handshake before telemetry and command tests.',
-        'REST telemetry now enforces registered datastream ownership and declared value types, matching the MQTT ingestion contract.',
-        'The v0.64 acceptance sequence is cloud → device → handshake → datastream → telemetry → heartbeat → command → ACK.',
-        'Power-cycle, reconnect, MQTT failure and REST-poll fallback remain explicit acceptance tests.'
+        'New app/sylvia-academy.css loads last and retargets the full --ops-* token system: navy #152449, navy-deep #0C1830, gold #C9A227, gold-bright #E8C766, ivory #F6F4EC, ink #16213B, hairline #DEDCD1.',
+        'Display typography is Fraunces for page titles, KPI numerals and section heads; body remains Inter; micro-labels, table headers, status bar and code use IBM Plex Mono.',
+        'The top bar, command palette and section heroes are navy gradient panels with the ECT radial dot-grid texture and a gold rule; the status bar is navy-deep with a 2px gold top border.',
+        'Signature details: gold underline bars on card and section heads, mono eyebrow micro-labels, inset 3px gold active markers on the nav rail, and hover elevation on white cards.'
       ]
     },
     {
-      title: 'Production runbook',
+      title: 'Shell and elements',
       items: [
-        'Added docs/PRODUCTION-ACCEPTANCE-v0.64.md with cloud, hardware, recovery and project-isolation checklists.',
-        'v1.0 remains gated by successful real-device acceptance rather than version number alone.'
+        'Primary buttons are gold with navy-deep uppercase mono text; secondary and ghost variants are hairline outlines; focus rings are gold across all interactive elements.',
+        'KPI tiles, cards, panels, stats and device rows are white on the ivory canvas with #DEDCD1 hairlines; meters and chips keep green/amber/red tuned for light backgrounds.',
+        'The command palette is a navy hero panel with gold group headings and highlighted rows; toasts are navy with a gold left rule; modals are white cards with a gold top rule over a navy overlay.',
+        'Legacy surfaces (event and notification centers, device control center, connection steps, API reference, ZYRA bridge) are retargeted onto the academy palette, including the older --sylvia-* and --ui-* token families.'
       ]
     },
     {
-      title: 'Build & console stability',
+      title: 'Correctness and accessibility',
       items: [
-        'Fixed the release-notes JSX boundary that could stop the production build at app/page.tsx.',
-        'Aligned console copy with the current v0.62 cloud architecture instead of legacy milestone wording.',
-        'Release visibility remains version-aware and automatically reappears on the next platform version.'
+        'Every dark-surface leak from the premium and console layers was neutralized and verified tab-by-tab with computed-style checks across all 18 console sections.',
+        'Text-gold on light backgrounds uses #A8861B for contrast; gold-bright #E8C766 is reserved for navy surfaces.',
+        'Selection color, scrollbars and reduced-motion behavior follow the academy theme.'
       ]
     },
     {
-      title: 'Project isolation',
+      title: 'Release',
       items: [
-        'Automations and schedules now enforce Builder permissions against the selected project instead of the legacy default project.',
-        'Project-scoped API, device, datastream, telemetry, alert, notification and audit boundaries remain the v0.62 foundation.'
+        'Platform version is now v0.66.0; Arduino SDK remains v0.53.8.',
+        'This is a pure visual identity release: the v0.65 ops shell, ⌘K palette, KPI overview and all v0.64 hardware-path behavior are unchanged.'
       ]
     },
     {
-      title: 'Cloud readiness',
+      title: 'Command palette & toasts',
       items: [
-        'Health reports REST readiness, realtime MQTT readiness, schema completeness and production secret requirements separately.',
-        'The required schema includes workspace_projects for the v0.62 project-isolation migration.',
-        'Vercel deployment verification remains a release gate rather than being treated as successful without a successful build.'
+        'Palette groups render as gold-bright mono headings over the navy panel with a blurred navy-deep overlay.',
+        'Toasts carry a gold left rule and navy-deep ground so alerts read at a glance.',
+        'Release-notes visibility remains version-aware and automatically reappears on the next platform version.'
       ]
     },
     {
-      title: 'Hardware acceptance',
+      title: 'Legacy surfaces',
       items: [
-        'ESP8266/NodeMCU remains the primary physical acceptance target.',
-        'The v0.63 gate is register → authenticate → heartbeat → telemetry → command → ACK → automation/alert.',
-        'Power-cycle, reconnect, MQTT failure and REST-poll fallback tests remain required before v1.0.'
+        'ESP8266/NodeMCU hardware-acceptance screens keep every status color semantic: green ready, amber provisioning, red failure.',
+        'Device control center, detail grids and provision boxes are light cards with gold accent rules and mono identifiers.',
+        'API reference result boxes are intentionally navy-deep with green mono text as the single dark code surface.'
       ]
     },
     {
-      title: 'Next milestone',
+      title: 'Verification',
       items: [
-        'v0.64 should focus on real hardware acceptance and production runbook validation rather than another large architectural rewrite.',
-        'v1.0 remains gated by reproducible builds, applied migrations, security verification and successful physical-device acceptance.'
+        'npm run build, tsc --noEmit and the CSS-usage audit gate the release before deploy.',
+        'Production verification checks health version, marker and academy tokens inside the deployed CSS chunk.'
       ]
     }
   ]

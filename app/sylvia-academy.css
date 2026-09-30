@@ -1,0 +1,675 @@
+/* ============================================================================
+   SYLVIA ACADEMY THEME — v0.66.0
+   Design language lifted from the ECT department site:
+   navy #152449 · navy-deep #0C1830 · navy-soft #1F3564
+   gold #C9A227 · gold-bright #E8C766
+   ivory #F6F4EC / #FAF6EC · ink #16213B · muted #5B6478 · line #DEDCD1
+   Display: Fraunces · Body: Inter · Mono: IBM Plex Mono
+   Imported LAST in layout.tsx — every rule here wins on order ties.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+:root{
+  /* ECT palette mapped onto the ops token system */
+  --acad-navy:#152449;
+  --acad-navy-deep:#0C1830;
+  --acad-navy-soft:#1F3564;
+  --acad-gold:#C9A227;
+  --acad-gold-bright:#E8C766;
+  --acad-gold-ink:#A8861B;          /* readable gold on light backgrounds */
+  --acad-ivory:#F6F4EC;
+  --acad-paper:#FAF6EC;
+  --acad-inset:#F3EFE2;
+  --acad-ink:#16213B;
+  --acad-muted:#5B6478;
+  --acad-dim:#8A8FA0;
+  --acad-line:#DEDCD1;
+  --acad-line-2:#CBC8BA;
+  --acad-green:#3E7C4F;
+  --acad-green-bright:#7FC79B;
+  --acad-red:#B4382E;
+  --acad-red-bright:#E28D84;
+  --acad-amber:#B07A18;
+  --acad-amber-bright:#E5BC5F;
+  --acad-blue:#3D6B8F;
+  --acad-blue-bright:#93B7D6;
+
+  /* ops tokens retargeted to the academy palette */
+  --ops-bg:var(--acad-paper);
+  --ops-panel:#ffffff;
+  --ops-panel-2:var(--acad-ivory);
+  --ops-panel-3:var(--acad-inset);
+  --ops-inset:var(--acad-inset);
+  --ops-border:var(--acad-line);
+  --ops-border-2:var(--acad-line-2);
+  --ops-text:var(--acad-ink);
+  --ops-muted:var(--acad-muted);
+  --ops-dim:var(--acad-dim);
+  --ops-accent:var(--acad-gold);
+  --ops-accent-2:var(--acad-gold-ink);
+  --ops-green:var(--acad-green);
+  --ops-red:var(--acad-red);
+  --ops-amber:var(--acad-amber);
+  --ops-cyan:var(--acad-blue);
+  --ops-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ops-sans:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --ops-r-sm:6px;
+  --ops-r-md:8px;
+  --ops-r-lg:10px;
+
+  /* Older token families retargeted so legacy rules resolve light */
+  --sylvia-bg:var(--acad-paper);
+  --sylvia-surface:#ffffff;
+  --sylvia-surface-2:var(--acad-ivory);
+  --sylvia-surface-3:var(--acad-inset);
+  --sylvia-border:var(--acad-line);
+  --sylvia-border-strong:var(--acad-line-2);
+  --sylvia-text:var(--acad-ink);
+  --sylvia-muted:var(--acad-muted);
+  --sylvia-blue:var(--acad-navy-soft);
+  --sylvia-blue-strong:var(--acad-gold-ink);
+  --sylvia-green:var(--acad-green);
+  --sylvia-radius:10px;
+  --ui-bg:var(--acad-paper);
+  --ui-surface:#ffffff;
+  --ui-surface-2:var(--acad-ivory);
+  --ui-border:var(--acad-line);
+  --ui-border-soft:var(--acad-inset);
+  --ui-text:var(--acad-ink);
+  --ui-muted:var(--acad-muted);
+  --ui-dim:var(--acad-dim);
+  --ui-accent:var(--acad-gold-ink);
+  --ui-radius:10px;
+}
+
+/* ---------- Base ---------- */
+html{background:var(--acad-paper)}
+body{background:var(--acad-paper);color:var(--acad-ink);font-family:var(--ops-sans)}
+body:has(main.console-shell){background:var(--acad-paper);color:var(--acad-ink);color-scheme:light}
+::selection{background:rgba(201,162,39,.32);color:var(--acad-ink)}
+*{scrollbar-width:thin;scrollbar-color:var(--acad-line-2) transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--acad-line-2);border:2px solid transparent;background-clip:padding-box;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:var(--acad-gold);background-clip:padding-box}
+
+h1,h2,h3,.k-value,.fleetHeader h1,.groupsHeader h1,.eventCenter h1,.notificationCenter h1,.alertsPage h1,.apiTitle,.releaseCardTitle{
+  font-family:Fraunces,Georgia,'Times New Roman',serif;
+  letter-spacing:-.01em;
+}
+
+:focus-visible{outline:2px solid var(--acad-gold);outline-offset:2px;border-radius:2px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001s !important;transition-duration:.001s !important}
+}
+
+/* ============================================================================
+   SHELL — ivory canvas, navy chrome
+   ============================================================================ */
+main.console-shell{background:var(--acad-paper)}
+
+/* ---------- Top bar: navy hero band with dot-grid ---------- */
+.ops-top{
+  background:
+    radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px) 0 0/22px 22px,
+    linear-gradient(180deg,var(--acad-navy) 0%,var(--acad-navy-deep) 100%);
+  border-bottom:2px solid var(--acad-gold);
+  color:#F6F4EC;
+  padding:0 16px;
+}
+.ops-top::before{content:none}
+
+.ops-logo{
+  border:1px solid rgba(232,199,102,.75);
+  color:var(--acad-gold-bright);
+  background:rgba(255,255,255,.04);
+  font-family:var(--ops-mono);
+  font-weight:600;
+}
+.ops-brand{color:#F6F4EC}
+.ops-brand strong{color:#fff;font-weight:700}
+
+.ops-search{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--acad-ivory);
+}
+.ops-search:hover{border-color:rgba(232,199,102,.55);background:rgba(255,255,255,.1)}
+.ops-search .commandHint{color:rgba(246,244,236,.55);border:1px solid rgba(255,255,255,.22);background:transparent}
+
+.ops-project{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--acad-ivory);
+}
+.ops-project option{color:var(--acad-ink);background:#fff}
+.ops-project:hover{border-color:rgba(232,199,102,.55)}
+
+.ops-iconbtn{
+  color:rgba(246,244,236,.85);
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.05);
+}
+.ops-iconbtn:hover{background:rgba(232,199,102,.16);border-color:rgba(232,199,102,.55);color:var(--acad-gold-bright)}
+
+.ops-signin{
+  background:var(--acad-gold);
+  color:var(--acad-navy-deep);
+  border:1px solid var(--acad-gold);
+  font-family:var(--ops-mono);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.ops-signin:hover{background:var(--acad-gold-bright);border-color:var(--acad-gold-bright)}
+.ops-userchip{
+  border:1px solid rgba(232,199,102,.45);
+  background:rgba(232,199,102,.1);
+  color:var(--acad-ivory);
+}
+.ops-userchip .roletag{
+  background:transparent;
+  border:1px solid rgba(232,199,102,.55);
+  color:var(--acad-gold-bright);
+  font-family:var(--ops-mono);
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+/* ---------- Left rail: navy column, gold active marker ---------- */
+.ops-rail{background:var(--acad-navy-deep);border-right:1px solid rgba(232,199,102,.22)}
+.railBtn{
+  color:rgba(246,244,236,.62);
+  border-radius:var(--ops-r-sm);
+  transition:background .15s,color .15s;
+}
+.railBtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.railBtn.active{
+  background:rgba(232,199,102,.14);
+  color:var(--acad-gold-bright);
+  box-shadow:inset 3px 0 0 var(--acad-gold);
+}
+.railDivider{background:rgba(255,255,255,.14)}
+.railBtn .tip{
+  background:var(--acad-navy-soft);
+  border:1px solid rgba(232,199,102,.5);
+  color:var(--acad-ivory);
+  font-family:var(--ops-mono);
+  font-size:10px;
+  letter-spacing:.08em;
+}
+
+/* ---------- Content canvas ---------- */
+.ops-content{background:var(--acad-paper)}
+
+.ops-pagehead h1{color:var(--acad-navy-deep);font-weight:600}
+.ops-pagehead h1 .sub{color:var(--acad-gold-ink);font-style:italic;font-weight:500}
+.eyebrow{
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--acad-gold-ink);
+}
+
+/* ---------- KPIs: white cards, hairlines, Fraunces numerals ---------- */
+.ops-kpis .kpi{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.ops-kpis .kpi:hover{border-color:var(--acad-gold);box-shadow:0 6px 18px -8px rgba(21,36,73,.25);transform:translateY(-1px)}
+.ops-kpis .kpi .k-value{color:var(--acad-navy-deep);font-weight:600}
+.ops-kpis .kpi .k-label{
+  font-family:var(--ops-mono);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--acad-muted);
+}
+.ops-kpis .kpi .k-sub{color:var(--acad-dim)}
+
+/* ---------- Cards: white on ivory, gold underline head ---------- */
+.ops-card{background:#fff;border:1px solid var(--acad-line);box-shadow:0 1px 0 rgba(22,33,59,.04)}
+.ops-cardhead{border-bottom:1px solid var(--acad-line);padding-bottom:8px;position:relative}
+.ops-cardhead .t{color:var(--acad-navy-deep);font-weight:600;position:relative;padding-bottom:7px}
+.ops-cardhead .t::after{
+  content:'';
+  position:absolute;
+  left:0;bottom:-9px;
+  width:34px;height:3px;
+  background:var(--acad-gold);
+}
+.ops-cardhead .m{font-family:var(--ops-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--acad-gold-ink)}
+
+.sectionHead{position:relative;color:var(--acad-navy-deep);font-weight:600;font-family:Fraunces,Georgia,serif}
+.sectionHead::after{content:'';position:absolute;left:0;bottom:-6px;width:34px;height:3px;background:var(--acad-gold)}
+
+/* ---------- Buttons ---------- */
+.ops-btn{border:1px solid var(--acad-line-2);background:#fff;color:var(--acad-ink)}
+.ops-btn:hover{border-color:var(--acad-gold);color:var(--acad-gold-ink)}
+.ops-btn.primary{
+  background:var(--acad-gold);
+  border-color:var(--acad-gold);
+  color:var(--acad-navy-deep);
+  font-family:var(--ops-mono);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.ops-btn.primary:hover{background:var(--acad-gold-bright);border-color:var(--acad-gold-bright);color:var(--acad-navy-deep)}
+.ops-btn.ghost,.ops-btn.secondary{background:transparent;border-color:var(--acad-line-2);color:var(--acad-ink)}
+.ops-btn.ghost:hover,.ops-btn.secondary:hover{border-color:var(--acad-gold);color:var(--acad-gold-ink);background:#fff}
+.ops-btn.mini{background:var(--acad-ivory);border-color:var(--acad-line-2)}
+.ops-btn.mini:hover{border-color:var(--acad-gold)}
+.ops-btn:disabled{opacity:.45;cursor:not-allowed}
+
+.iconButton{color:var(--acad-muted);border:1px solid transparent}
+.iconButton:hover{color:var(--acad-gold-ink);border-color:var(--acad-line-2);background:#fff}
+.trash:hover{color:var(--acad-red) !important;border-color:rgba(180,56,46,.4) !important;background:#fdf3f2 !important}
+
+.pill{border:1px solid var(--acad-line-2);background:var(--acad-ivory);color:var(--acad-muted)}
+.pill.on,.pill.active{background:var(--acad-gold);border-color:var(--acad-gold);color:var(--acad-navy-deep);font-weight:600}
+
+/* ---------- Forms ---------- */
+.compactInput,.controlInput,.form input,.form select,.form textarea,
+.authModalForm input,.alertForm input,.alertForm select,.bulkForm input,.bulkForm select,
+.groupCreate input,.subscriptionCreate input,.webhookField input,.webhookField select,
+.premiumForm input,.premiumForm select,.keyList input,.controlList input{
+  background:#fff;
+  border:1px solid var(--acad-line-2);
+  color:var(--acad-ink);
+}
+.compactInput:focus,.controlInput:focus,.form input:focus,.form select:focus,.form textarea:focus,
+.authModalForm input:focus,.alertForm input:focus,.alertForm select:focus,.bulkForm input:focus,
+.groupCreate input:focus,.subscriptionCreate input:focus,.webhookField input:focus,.premiumForm input:focus{
+  border-color:var(--acad-gold);
+  box-shadow:0 0 0 3px rgba(201,162,39,.18);
+  outline:none;
+}
+.compactInput::placeholder,.form input::placeholder,.authModalForm input::placeholder{color:var(--acad-dim)}
+.roleSelect,.filterLabel select{background:#fff;border:1px solid var(--acad-line-2);color:var(--acad-ink)}
+
+.authHint{color:var(--acad-muted)}
+.authError{color:var(--acad-red)}
+.authSuccess{color:var(--acad-green)}
+
+/* ---------- Device rows ---------- */
+.devList{background:#fff}
+.devRow{border-bottom:1px solid var(--acad-line)}
+.devRow:hover{background:var(--acad-ivory)}
+.devRow.online .dico{background:rgba(201,162,39,.14);color:var(--acad-gold-ink);border:1px solid rgba(201,162,39,.35)}
+.devRow .dico{background:var(--acad-inset);color:var(--acad-dim);border:1px solid var(--acad-line)}
+.devRow .dname{color:var(--acad-ink);font-weight:600}
+.devRow .dmetric{color:var(--acad-muted);font-family:var(--ops-mono);font-size:10px}
+.meterbar{background:var(--acad-inset);border:1px solid var(--acad-line)}
+.meterbar>i{background:var(--acad-green)}
+.meterbar>i.mid{background:var(--acad-amber)}
+.meterbar>i.low{background:var(--acad-red)}
+.chip{border:1px solid var(--acad-line-2);background:var(--acad-ivory);color:var(--acad-muted);font-family:var(--ops-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
+.chip.ok{color:var(--acad-green);border-color:rgba(62,124,79,.45);background:rgba(62,124,79,.08)}
+.chip.bad{color:var(--acad-red);border-color:rgba(180,56,46,.45);background:rgba(180,56,46,.07)}
+.chip.dim{color:var(--acad-dim)}
+
+/* ---------- Command palette: navy panel, gold highlights ---------- */
+.ops-palette-overlay{background:rgba(12,24,48,.55);backdrop-filter:blur(3px)}
+.ops-palette{
+  background:
+    radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px) 0 0/22px 22px,
+    linear-gradient(180deg,var(--acad-navy) 0%,var(--acad-navy-deep) 100%);
+  border:1px solid rgba(232,199,102,.4);
+  box-shadow:0 30px 70px -20px rgba(12,24,48,.7);
+}
+.ops-palette .pinput{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.2);
+  border-bottom:1px solid rgba(232,199,102,.35);
+  color:var(--acad-ivory);
+}
+.ops-palette .pinput::placeholder{color:rgba(246,244,236,.45)}
+.ops-palette .pinput:focus{border-color:var(--acad-gold);box-shadow:0 0 0 3px rgba(201,162,39,.25);outline:none}
+.ops-palette .pgroup{
+  font-family:var(--ops-mono);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--acad-gold-bright);
+}
+.ops-pitem{color:var(--acad-ivory);border-bottom:1px solid rgba(255,255,255,.06)}
+.ops-pitem:hover,.ops-pitem.active{background:rgba(232,199,102,.14);color:#fff}
+.ops-pempty{color:rgba(246,244,236,.55)}
+
+/* ---------- Status bar: navy-deep footer with gold hairline ---------- */
+.ops-statusbar{
+  background:var(--acad-navy-deep);
+  border-top:2px solid var(--acad-gold);
+  color:rgba(246,244,236,.72);
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.sb-item{color:rgba(246,244,236,.72)}
+.sb-item strong{color:#fff}
+.sb-dot{background:var(--acad-dim)}
+.sb-dot.ok{background:var(--acad-green-bright);box-shadow:0 0 6px rgba(127,199,155,.7)}
+.sb-dot.warn{background:var(--acad-amber-bright);box-shadow:0 0 6px rgba(229,188,95,.7)}
+
+/* ---------- Toast ---------- */
+.toast{
+  background:var(--acad-navy-deep);
+  color:var(--acad-ivory);
+  border:1px solid rgba(232,199,102,.5);
+  border-left:3px solid var(--acad-gold);
+  box-shadow:0 16px 40px -12px rgba(12,24,48,.5);
+}
+
+/* ============================================================================
+   LEGACY TAB SURFACES — restyled unscoped so they win on cascade order
+   ============================================================================ */
+
+/* Generic panels, cards, stats, sections */
+main.console-shell .panel,
+main.console-shell .card,
+main.console-shell .stat{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.panel .cardTop{color:var(--acad-navy-deep);font-weight:600}
+.card .value,.stat .value,.stat strong{color:var(--acad-navy-deep);font-family:Fraunces,Georgia,serif;font-weight:600}
+.card .label,.stat span,.stat small{color:var(--acad-muted);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.stats{gap:10px}
+.rule{border-bottom:1px solid var(--acad-line)}
+.ruleList .rule{border-bottom:1px solid var(--acad-line)}
+.ruleNum{font-family:var(--ops-mono);color:var(--acad-gold-ink);font-weight:600}
+.ruleMain{color:var(--acad-ink)}
+.mono{font-family:var(--ops-mono)}
+.muted{color:var(--acad-muted)}
+.subtle{color:var(--acad-dim)}
+
+/* Section heroes inside tabs */
+main.console-shell .hero{
+  background:
+    radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px) 0 0/22px 22px,
+    linear-gradient(135deg,var(--acad-navy) 0%,var(--acad-navy-deep) 100%);
+  border:1px solid rgba(232,199,102,.35);
+  color:var(--acad-ivory);
+  position:relative;
+}
+main.console-shell .hero h1,.main .hero h2,.hero h1,.hero h2{color:#fff}
+main.console-shell .hero p,.hero p{color:rgba(246,244,236,.75)}
+.heroActions .primary{background:var(--acad-gold);border-color:var(--acad-gold);color:var(--acad-navy-deep);font-family:var(--ops-mono);letter-spacing:.12em;text-transform:uppercase;font-size:10px;font-weight:600}
+.heroActions .primary:hover{background:var(--acad-gold-bright);color:var(--acad-navy-deep)}
+.heroActions .secondary{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--acad-ivory)}
+.heroActions .secondary:hover{border-color:var(--acad-gold-bright);color:var(--acad-gold-bright)}
+
+/* Telemetry / charts */
+.chartFrame,.chartWidget,.telemetryChartCard,.telemetryTableWrap,.fleetTableWrap{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.chartMeta span,.telemetryCardTitle{color:var(--acad-muted);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.chartEmpty,.telemetryEmpty,.empty,.emptyDeviceState,.emptyLive,.emptyMini,.groupEmpty,.widgetMissing,.dashboardEmpty,.eventEmpty,.notificationEmpty{
+  color:var(--acad-dim);
+  background:var(--acad-inset);
+  border:1px dashed var(--acad-line-2);
+}
+.bar{background:var(--acad-inset);border:1px solid var(--acad-line)}
+.bar>i{background:var(--acad-gold)}
+.telemetryBars .telemetryBarWrap{background:var(--acad-inset)}
+.telemetryBar{background:var(--acad-navy) !important}
+.telemetryBar:hover{background:var(--acad-gold) !important}
+.telemetryControls,.telemetryToolbar,.notificationToolbar,.eventToolbar,.alertEvents,.eventTop{color:var(--acad-muted)}
+.telemetryControls .ops-btn,.telemetryToolbar .ops-btn{background:#fff}
+
+/* Device control center */
+.deviceControlHeader{border-bottom:1px solid var(--acad-line)}
+.deviceControlHeader h2{color:var(--acad-navy-deep);font-family:Fraunces,Georgia,serif}
+.deviceTabs{border-bottom:1px solid var(--acad-line)}
+.deviceTabs .active{color:var(--acad-gold-ink);box-shadow:inset 0 -2px 0 var(--acad-gold);font-weight:600}
+.deviceGrid,.controlList,.controlPanel,.schedulePanel,.settingsPanel,.stateReportBox,.provisionBox{
+  background:#fff;
+  border:1px solid var(--acad-line);
+}
+.provisionBox{border-left:3px solid var(--acad-gold)}
+.detailGrid{background:var(--acad-ivory);border:1px solid var(--acad-line)}
+.detailGrid>div{border-bottom:1px solid var(--acad-line)}
+.controlRow{border-bottom:1px solid var(--acad-line)}
+.controlRow:hover{background:var(--acad-ivory)}
+.stateSyncBadge{background:rgba(62,124,79,.1);border:1px solid rgba(62,124,79,.4);color:var(--acad-green)}
+.stateSyncBadge.offline,.stateSyncBadge.dim{color:var(--acad-muted);border-color:var(--acad-line-2);background:var(--acad-inset)}
+.verificationSteps,.connectionSteps{background:var(--acad-ivory);border:1px solid var(--acad-line)}
+.verificationSteps li,.connectionSteps li{border-bottom:1px solid var(--acad-line);color:var(--acad-muted)}
+.conditionRow{background:var(--acad-ivory);border:1px solid var(--acad-line)}
+.power.on{background:var(--acad-green);color:#fff}
+.power{background:var(--acad-inset);color:var(--acad-muted);border:1px solid var(--acad-line-2)}
+.statusGood{color:var(--acad-green)}
+.statusDim{color:var(--acad-dim)}
+.switch,.switchBig{background:var(--acad-line-2)}
+.switch.on,.switchBig.on{background:var(--acad-gold)}
+.switchBig.on{color:var(--acad-navy-deep)}
+.gaugeRing{background:conic-gradient(var(--acad-gold) calc(var(--p,0)*1%),var(--acad-inset) 0)}
+.gaugeRing::after{background:#fff}
+.enabled{color:var(--acad-green)}
+.disabled{color:var(--acad-dim)}
+
+/* API reference */
+.apiPage{background:var(--acad-paper)}
+.apiTitle{color:var(--acad-navy-deep)}
+.apiGrid,.endpointList{background:#fff;border:1px solid var(--acad-line)}
+.endpoint{border-bottom:1px solid var(--acad-line)}
+.endpointDot{background:var(--acad-green)}
+.endpoint code,.keyRow code,.resultBox code{background:var(--acad-inset);border:1px solid var(--acad-line);color:var(--acad-navy);font-family:var(--ops-mono)}
+.keyRow{border-bottom:1px solid var(--acad-line)}
+.resultBox{background:var(--acad-navy-deep);color:var(--acad-green-bright);border:1px solid var(--acad-navy-soft);font-family:var(--ops-mono)}
+
+/* Fleet dashboard */
+.fleetDashboard{background:var(--acad-paper)}
+.fleetHeader h1{color:var(--acad-navy-deep)}
+.fleetHeader p,.groupsHeader p,.bulkSubtitle,.telemetryAnalyticsHeader p,.alertsPage .muted{color:var(--acad-muted)}
+.fleetRefresh,.telemetryRefresh{background:#fff;border:1px solid var(--acad-line-2);color:var(--acad-ink)}
+.fleetRefresh:hover,.telemetryRefresh:hover{border-color:var(--acad-gold);color:var(--acad-gold-ink)}
+.fleetStats,.telemetryMetricGrid{gap:10px}
+.fleetStat,.telemetryMetricGrid>div{background:#fff;border:1px solid var(--acad-line);box-shadow:0 1px 0 rgba(22,33,59,.04)}
+.fleetStat:hover{border-color:var(--acad-gold)}
+.fleetStat.active{border-color:var(--acad-gold);box-shadow:inset 0 -2px 0 var(--acad-gold)}
+.fleetStat span{color:var(--acad-muted);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.fleetTableWrap{padding:0}
+.fleetTable th{
+  background:var(--acad-navy);
+  color:var(--acad-gold-bright);
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  border-bottom:2px solid var(--acad-gold);
+}
+.fleetTable td{border-bottom:1px solid var(--acad-line);color:var(--acad-ink)}
+.fleetTable tr:hover td{background:var(--acad-ivory)}
+.fleetTable code{background:var(--acad-inset);border:1px solid var(--acad-line);color:var(--acad-navy)}
+.fleetDeviceName{color:var(--acad-ink);font-weight:600}
+.fleetBadge{font-family:var(--ops-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid}
+.fleetBadge.online{color:var(--acad-green);border-color:rgba(62,124,79,.45);background:rgba(62,124,79,.08)}
+.fleetBadge.offline{color:var(--acad-red);border-color:rgba(180,56,46,.45);background:rgba(180,56,46,.07)}
+.fleetBadge.provisioning{color:var(--acad-amber);border-color:rgba(176,122,24,.45);background:rgba(176,122,24,.08)}
+.fleetBadge.disabled{color:var(--acad-dim);border-color:var(--acad-line-2);background:var(--acad-inset)}
+.fleetError{color:var(--acad-red);background:rgba(180,56,46,.06);border:1px solid rgba(180,56,46,.3)}
+
+/* Groups / bulk / templates */
+.groupGrid,.templateGrid,.settingsGrid,.alertsGrid,.notificationGrid,.studioGrid{gap:10px}
+.groupCard,.bulkCard,.templateCard,.scheduleRow{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.groupCard:hover,.bulkCard:hover,.templateCard:hover{border-color:var(--acad-gold)}
+.groupIcon,.templateIcon,.notificationIcon,.eventIcon,.subscriptionIcon,.scheduleIcon,.deviceIcon,.integrationIcon{
+  background:rgba(201,162,39,.12);
+  color:var(--acad-gold-ink);
+  border:1px solid rgba(201,162,39,.35);
+}
+.groupCard p,.bulkCard span,.bulkCard small,.templateMeta,.scheduleMain p{color:var(--acad-muted)}
+
+/* Event & notification centers */
+.eventCenter,.notificationCenter,.alertsPage,.notificationPanel,.alertPanel,.eventPanel{background:var(--acad-paper)}
+.eventStats,.eventMeta,.notificationMeta,.alertMain small,.subscriptionMain small{color:var(--acad-muted)}
+.eventTimeline{border-left:2px solid var(--acad-line)}
+.eventBody{color:var(--acad-ink)}
+.eventLive,.eventSync,.liveStatus,.liveDot{font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.liveDot{background:var(--acad-green)}
+.liveDot.offline{background:var(--acad-dim)}
+.notificationList>div,.alertList>div,.subscriptionRow,.eventList>div{border-bottom:1px solid var(--acad-line)}
+.notificationList>div:hover,.alertList>div:hover{background:var(--acad-ivory)}
+.notificationUnread{background:rgba(201,162,39,.1);border-left:3px solid var(--acad-gold) !important}
+.notificationToggle,.notificationPrefs label{color:var(--acad-muted)}
+.subscriptionMsg{color:var(--acad-ink)}
+.alertCount{background:var(--acad-gold);color:var(--acad-navy-deep);font-family:var(--ops-mono);font-weight:600}
+
+/* Dashboard studio / builder */
+.dashboardBuilderHeader{border-bottom:1px solid var(--acad-line)}
+.dashboardBuilderHeader h2,.widgetEditor h3{color:var(--acad-navy-deep);font-family:Fraunces,Georgia,serif}
+.studioWidget,.widgetEditor,.integrationCard{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.studioWidget:hover{border-color:var(--acad-gold)}
+.studioWidgetHead{border-bottom:1px solid var(--acad-line);color:var(--acad-navy-deep);font-weight:600}
+.widgetKicker{font-family:var(--ops-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--acad-gold-ink)}
+.widgetValue,.widgetGauge{color:var(--acad-navy-deep);font-family:Fraunces,Georgia,serif}
+.widgetSwitch small{color:var(--acad-dim)}
+.editorPreview{background:var(--acad-ivory);border:1px dashed var(--acad-line-2)}
+.widgetActions .ops-btn{background:var(--acad-ivory)}
+
+/* Live command console */
+.commandPanel,.liveCard{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  box-shadow:0 1px 0 rgba(22,33,59,.04);
+}
+.commandInput{background:#fff;border:1px solid var(--acad-line-2);color:var(--acad-ink)}
+.commandInput:focus{border-color:var(--acad-gold);box-shadow:0 0 0 3px rgba(201,162,39,.18);outline:none}
+.commandPreset{background:var(--acad-ivory);border:1px solid var(--acad-line-2);color:var(--acad-muted)}
+.commandPreset:hover{border-color:var(--acad-gold);color:var(--acad-gold-ink)}
+.liveGrid,.liveMetric{color:var(--acad-ink)}
+.liveMetric b,.liveMetric strong{color:var(--acad-navy-deep);font-family:var(--ops-mono)}
+.liveFoot{color:var(--acad-dim);border-top:1px solid var(--acad-line)}
+.cdot{background:var(--acad-green)}
+.sample{background:var(--acad-inset);border:1px solid var(--acad-line)}
+
+/* Schedules / state */
+.scheduleRow:hover{border-color:var(--acad-gold)}
+.scheduleMain{color:var(--acad-ink)}
+.stateConfirmation{background:var(--acad-ivory);border:1px solid var(--acad-line)}
+.stateConfirmation small{color:var(--acad-muted)}
+
+/* ============================================================================
+   OVERLAYS & MODALS — white cards with gold rules (navy overlay)
+   ============================================================================ */
+.overlay,.releaseOverlay{background:rgba(12,24,48,.55);backdrop-filter:blur(3px)}
+.modal,.releaseModal{
+  background:#fff;
+  border:1px solid var(--acad-line);
+  border-top:3px solid var(--acad-gold);
+  box-shadow:0 30px 70px -20px rgba(12,24,48,.5);
+  color:var(--acad-ink);
+}
+.modalHead,.releaseHeader{border-bottom:1px solid var(--acad-line)}
+.modalHead h2,.modalHead h3{color:var(--acad-navy-deep);font-family:Fraunces,Georgia,serif}
+.modalHint{color:var(--acad-muted)}
+.releaseBody{color:var(--acad-ink)}
+.releaseGrid{gap:10px}
+.releaseCard{background:var(--acad-ivory);border:1px solid var(--acad-line)}
+.releaseCardTitle{color:var(--acad-navy-deep)}
+.releaseItems li{border-bottom:1px solid var(--acad-line);color:var(--acad-muted)}
+.releaseItems li::marker{color:var(--acad-gold-ink)}
+.releaseFooter{border-top:1px solid var(--acad-line)}
+.settingsPanel h3,.alertCreate h3,.groupCreate h3,.subscriptionCreate h3,.notificationNew h3{color:var(--acad-navy-deep)}
+
+/* ============================================================================
+   OLDER-LAYER NEUTRALIZATION — premium/console layers hardcode dark hexes
+   and use !important; retarget every escaping surface to the academy palette.
+   ============================================================================ */
+
+/* Modal has !important in sylvia-premium.css — match with !important here */
+.modal{background:#ffffff !important;border:1px solid var(--acad-line) !important;border-top:3px solid var(--acad-gold) !important;border-radius:12px !important;box-shadow:0 30px 70px -20px rgba(12,24,48,.5) !important;color:var(--acad-ink) !important}
+.modal .detailGrid>div,.modal .conditionRow{background:var(--acad-inset) !important;border-color:var(--acad-line) !important}
+.modal .detailGrid span{color:var(--acad-muted) !important}
+.modal .detailGrid b{color:var(--acad-ink) !important}
+
+/* Hardcoded dark hexes in premium/console, equal or lower specificity */
+.eventStats>div{background:#fff !important;border-color:var(--acad-line) !important}
+.eventStats strong{color:var(--acad-navy-deep)}
+.eventStats span{color:var(--acad-muted)}
+.eventEmpty b,.notificationEmpty b,.emptyLive b,.dashboardEmpty b{color:var(--acad-navy-deep) !important}
+.eventMeta span{background:var(--acad-inset) !important;color:var(--acad-muted) !important;border:1px solid var(--acad-line) !important}
+.notificationToolbar{background:var(--acad-ivory) !important;border-color:var(--acad-line) !important}
+.notificationToolbar button{color:var(--acad-muted) !important}
+.notificationToolbar button.selected{background:rgba(201,162,39,.15) !important;color:var(--acad-gold-ink) !important}
+.notificationToggle{background:#fff !important;border-color:var(--acad-line) !important}
+.notificationToggle small{color:var(--acad-muted) !important}
+.detailGrid>div{background:var(--acad-inset) !important;border-color:var(--acad-line) !important}
+.deviceControlHeader{background:#fff !important;border-color:var(--acad-line) !important}
+.deviceControlHeader span{color:var(--acad-muted) !important}
+.deviceIcon.big{background:var(--acad-inset) !important;border-color:var(--acad-line) !important;color:var(--acad-gold-ink) !important}
+.deviceTabs{background:var(--acad-ivory) !important;border-color:var(--acad-line) !important}
+.deviceTabs button{color:var(--acad-muted) !important}
+.deviceTabs button.active{background:rgba(201,162,39,.15) !important;color:var(--acad-gold-ink) !important;box-shadow:inset 0 -2px 0 var(--acad-gold) !important}
+.stateSyncBadge{background:#fff !important;border-color:var(--acad-line) !important}
+.stateSyncBadge small{color:var(--acad-dim) !important}
+.provisionBox{background:#fff !important;border-color:var(--acad-line) !important}
+.provisionBox b{color:var(--acad-muted) !important}
+.provisionBox .mono{color:var(--acad-navy) !important}
+.controlRow{background:#fff !important;border-color:var(--acad-line) !important}
+.controlRow>div:first-child span{color:var(--acad-muted) !important}
+.commandHint{background:var(--acad-inset) !important;border-color:var(--acad-line) !important;color:var(--acad-muted) !important}
+.connectionSteps>div{background:#fff !important;border-color:var(--acad-line) !important}
+.connectionSteps>div>small{color:var(--acad-muted) !important}
+.connectionSteps>div>span{color:var(--acad-gold-ink) !important}
+.power{background:var(--acad-inset) !important;color:var(--acad-muted) !important;border-color:var(--acad-line) !important}
+.power.on{color:var(--acad-green) !important;border-color:rgba(62,124,79,.4) !important;background:rgba(62,124,79,.08) !important}
+.liveDot{box-shadow:none !important}
+.liveDot.offline{background:var(--acad-dim) !important}
+.sylviaOverviewExtras{background:linear-gradient(150deg,#fff,var(--acad-ivory)) !important;border-color:var(--acad-line) !important}
+.sylviaOverviewExtrasHead h2{color:var(--acad-navy-deep) !important}
+.sylviaOverviewExtrasHead p{color:var(--acad-muted) !important}
+.sylviaQuickCard{background:#fff !important;border-color:var(--acad-line) !important;color:var(--acad-ink) !important}
+.sylviaQuickCard:hover{border-color:var(--acad-gold) !important;background:var(--acad-ivory) !important}
+.sylviaQuickCard small{color:var(--acad-muted) !important}
+.sylviaQuickCard em{color:var(--acad-gold-ink) !important;font-style:italic}
+.sylviaQuickIcon{background:rgba(201,162,39,.12) !important;border-color:rgba(201,162,39,.35) !important;color:var(--acad-gold-ink) !important}
+.sylviaFabricCard{background:#fff !important;border-color:var(--acad-line) !important}
+.sylviaFabricIcon{color:var(--acad-gold-ink) !important}
+.sylviaFabricCard small{color:var(--acad-muted) !important}
+.sylviaFabricState{color:var(--acad-green) !important}
+.sylviaFabricState::before{background:var(--acad-green) !important;box-shadow:0 0 0 3px rgba(62,124,79,.12) !important}
+
+/* Layout wrappers & typography that older layers set on light defaults */
+.layout label>span,.layout label{color:var(--acad-muted) !important}
+.layout input,.layout select,.layout textarea{color-scheme:light}
+.layout select option{background:#fff;color:var(--acad-ink)}
+.layout .eyebrow{color:var(--acad-gold-ink) !important}
+body>.apiPage{background:var(--acad-paper) !important;color:var(--acad-ink) !important}
+body>.apiPage .panel,body>.apiPage .card{background:#fff !important;border-color:var(--acad-line) !important}
+body>.apiPage input,body>.apiPage select{background:#fff !important;color:var(--acad-ink) !important;border-color:var(--acad-line-2) !important}
+body>.apiPage .apiTitle{color:var(--acad-navy-deep) !important}
+
+/* ============================================================================
+   FOCUS / MOTION
+   ============================================================================ */
+.ops-btn:focus-visible,.railBtn:focus-visible,.ops-iconbtn:focus-visible,.kpi:focus-visible,
+.ops-pitem:focus-visible,.devRow:focus-visible,.pill:focus-visible,.iconButton:focus-visible{
+  outline:2px solid var(--acad-gold);
+  outline-offset:2px;
+}

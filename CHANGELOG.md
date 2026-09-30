@@ -1,5 +1,29 @@
 # SYLVIA Changelog
 
+## v0.66.0 — Academy Re-theme (ECT Design Language)
+
+SYLVIA v0.66.0 re-themes the entire console in the ECT department-website design language: a complete colour, typography and element redesign with no behavior changes.
+
+### Design language
+- New `app/sylvia-academy.css` loads last and retargets the full `--ops-*` token system: navy `#152449`, navy-deep `#0C1830`, navy-soft `#1F3564`, gold `#C9A227`, gold-bright `#E8C766`, ivory `#F6F4EC`, paper `#FAF6EC`, ink `#16213B`, muted `#5B6478`, hairline `#DEDCD1`.
+- Typography: Fraunces for page titles, KPI numerals, section heads, modal headings and empty states; Inter body; IBM Plex Mono for micro-labels, table headers, status bar, codes and the command palette.
+- The top bar and command palette are navy gradient panels with the signature radial dot-grid texture and gold rules; the status bar is navy-deep with a 2px gold top border and mono uppercase labels.
+- Signature elements: gold underline bars under card and section heads, mono eyebrow micro-labels with wide tracking, inset 3px gold active markers on the nav rail, circular gold-bordered icon chips, and hover elevation on white cards.
+
+### Elements
+- Primary buttons are gold with navy-deep uppercase mono text; secondary/ghost are hairline outlines; focus rings are gold.
+- KPI tiles, cards, panels, stats and device rows are white on the ivory canvas with `#DEDCD1` hairlines; meters and chips keep green/amber/red tuned for light backgrounds.
+- The command palette is a navy hero panel with gold group headings and highlighted rows; toasts are navy with a gold left rule; modals are white cards with a gold top rule over a navy-deep overlay.
+- The older `--sylvia-*` and `--ui-*` token families and every hardcoded dark surface in the premium/console layers are retargeted to the academy palette; the API result box remains the single navy-deep code surface with green mono text.
+
+### Correctness and accessibility
+- Contrast rule: text-gold on light backgrounds uses `#A8861B`; gold-bright `#E8C766` is reserved for navy surfaces.
+- Gold `:focus-visible` rings on all interactive elements; `prefers-reduced-motion` honored; selection color and scrollbars themed.
+- Verified tab-by-tab with computed-style checks across all 18 console sections — zero unconverted dark surfaces.
+
+### Release
+- Platform version is now v0.66.0; Arduino SDK remains v0.53.8. The v0.65 ops shell, ⌘K palette, KPI overview and all v0.64 hardware-path behavior are unchanged.
+
 ## v0.65.0 — Ops Console Redesign
 
 SYLVIA v0.65.0 replaces the marketing-style console with a compact, interactive operations surface built around the way an IoT fleet is actually operated.

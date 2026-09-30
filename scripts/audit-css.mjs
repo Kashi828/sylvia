@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const cssFiles = ['app/globals.css','app/sylvia-theme.css','app/sylvia-ui-fix.css','app/sylvia-premium.css','app/sylvia-console.css','app/sylvia-redesign.css'];
+const cssFiles = ['app/globals.css','app/sylvia-theme.css','app/sylvia-ui-fix.css','app/sylvia-premium.css','app/sylvia-console.css','app/sylvia-redesign.css','app/sylvia-academy.css'];
 let css = '';
 cssFiles.forEach(f => css += fs.readFileSync(f, 'utf8'));
 const defined = new Set();
