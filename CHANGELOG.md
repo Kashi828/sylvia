@@ -1,5 +1,22 @@
 # SYLVIA Changelog
 
+## v0.67.1 — Blynk Layout Fixes (Hidden Labels, KPI Collapse, Empty States)
+SYLVIA v0.67.1 fixes the hidden-letters and widget-placement issues surfaced in the live preview.
+
+### Sidebar labels
+- Root cause: the v0.65 responsive rule hid `.railBtn .tip` (the label element) at ≤860px, so the Blynk labeled sidebar showed icons-only inside a wide column at typical laptop widths. Labels are now forced visible (`display:block !important`) in the sidebar context, and the collapse to an icon-only rail happens only at ≤640px.
+- All 19 rail rows fit without overflow (compact 31px rows, hidden scrollbar; the rail scrolls internally if the window is very short).
+
+### KPI tile collapse
+- Root cause: the first KPI tile carries `.pulse`, which `globals.css` defines as the 7px launch-page status dot — it collapsed the tile to 30×28px with hidden content. The Blynk layer neutralizes `.pulse` inside `.ops-kpis` so all four tiles render uniform 191×87 cards.
+
+### Empty states and controls
+- Empty-state titles and descriptions now stack on separate lines (previously rendered inline as "No devices yetRegister your first…").
+- Hero bands, page heads and selects get consistent spacing and the 40px Blynk control height; content padding tightened (20px 24px desktop, 14px 12px ≤860px).
+
+### Release
+- Platform version is now v0.67.1. Verified in the live preview: 19/19 sidebar labels visible, uniform KPI tiles, stacked empty-state text; build, tsc and CSS audit green.
+
 ## v0.67.0 — Blynk Re-theme (Light Green / Ash Console)
 
 SYLVIA v0.67.0 re-themes the entire console in the actual Blynk design language: ash canvas, light-green action color, white chrome with a labeled navigation sidebar, and interface patterns modeled on the Blynk web console. No behavior changes.

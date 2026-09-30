@@ -179,21 +179,24 @@ main.console-shell{background:var(--bln-ash)}
 }
 
 /* ---------- Sidebar: Blynk console labeled navigation ---------- */
-.ops-rail{background:#fff;border-right:1px solid var(--bln-line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.ops-rail{background:#fff;border-right:1px solid var(--bln-line);padding:8px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;scrollbar-width:none}
+.ops-rail::-webkit-scrollbar{display:none}
 .railBtn{
   width:100%;
   height:auto;
-  min-height:38px;
+  min-height:31px;
   display:flex;
   align-items:center;
   gap:10px;
-  padding:8px 12px;
-  border-radius:10px;
+  padding:5px 10px;
+  border-radius:9px;
   color:var(--bln-text-2);
   transition:background .15s,color .15s;
+  flex:0 0 auto;
 }
 .railBtn svg{flex:0 0 auto}
-.railBtn .tip{
+.ops-rail .railBtn .tip{
+  display:block !important;
   position:static;
   transform:none;
   opacity:1;
@@ -208,15 +211,16 @@ main.console-shell{background:var(--bln-ash)}
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  min-width:0;
 }
 .railBtn:hover{background:var(--bln-near-white);color:var(--bln-ink)}
-.railBtn.active{background:var(--bln-green-faded);color:var(--bln-green-deep);font-weight:700}
+.railBtn.active{background:var(--bln-green-faded);color:var(--bln-green-deep);font-weight:700;box-shadow:none}
 .railBtn.active::before{
   content:'';
   position:absolute;
   left:0;
-  top:9px;
-  bottom:9px;
+  top:8px;
+  bottom:8px;
   width:3px;
   border-radius:99px;
   background:var(--bln-green);
@@ -225,7 +229,59 @@ main.console-shell{background:var(--bln-ash)}
 .railDivider{background:var(--bln-line);margin:8px 4px}
 
 /* ---------- Content canvas ---------- */
-.ops-content{background:var(--bln-ash)}
+main.console-shell .ops-content{background:var(--bln-ash);padding:20px 24px 44px}
+.ops-content .ops-grid{gap:12px}
+.ops-kpis{gap:12px}
+
+/* Hero bands, page heads and toolbars: tighten placement, remove dead space */
+main.console-shell .hero{padding:22px 24px;margin:0 0 18px}
+main.console-shell .hero h1{margin:10px 0 6px}
+main.console-shell .hero p{margin:0 0 14px}
+.heroActions,.buttonRow,.toolbar,.headActions{align-items:center;gap:10px}
+.ops-pagehead{margin-bottom:6px}
+
+/* Selects and inputs: consistent Blynk control look everywhere */
+.ops-content select,.filterLabel select,.roleSelect{
+  min-height:40px;
+  border:1px solid var(--bln-line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--bln-ink);
+  padding:8px 34px 8px 12px;
+}
+.ops-content select:focus{border-color:var(--bln-green);box-shadow:0 0 0 3px rgba(0,202,134,.18);outline:none}
+
+/* Empty-state boxes: centered, generous height, no orphan whitespace below,
+   and title/body stacked on separate lines instead of running together */
+.chartEmpty,.telemetryEmpty,.empty,.emptyDeviceState,.emptyLive,.emptyMini,.groupEmpty,.widgetMissing,.dashboardEmpty,.eventEmpty,.notificationEmpty{
+  min-height:200px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:6px;
+  text-align:center;
+}
+.emptyDeviceState b,.emptyDeviceState span,.chartEmpty b,.chartEmpty span,.telemetryEmpty b,.telemetryEmpty span,.dashboardEmpty b,.dashboardEmpty span,.emptyLive b,.emptyLive span,.groupEmpty b,.groupEmpty span,.widgetMissing b,.widgetMissing span{
+  display:block;
+}
+.emptyDeviceState span,.chartEmpty span,.telemetryEmpty span,.dashboardEmpty span,.emptyLive span,.groupEmpty span,.widgetMissing span{
+  margin-top:2px;
+}
+
+/* Responsive: labeled sidebar stays until 640px; only truly narrow widths collapse */
+@media(max-width:1100px){
+  main.console-shell .ops-content{padding:18px 18px 40px}
+}
+@media(max-width:860px){
+  .ops-body{grid-template-columns:170px minmax(0,1fr)}
+  main.console-shell .ops-content{padding:14px 12px 34px}
+}
+@media(max-width:640px){
+  .ops-body{grid-template-columns:52px minmax(0,1fr)}
+  .ops-rail{padding:8px 6px}
+  .ops-rail .railBtn{justify-content:center;padding:8px 0}
+  .ops-rail .railBtn .tip{display:none !important}
+}
 
 .ops-pagehead h1{color:var(--bln-ink);font-weight:700}
 .ops-pagehead h1 .sub{color:var(--bln-green-deep);font-style:italic;font-weight:500}
@@ -245,6 +301,9 @@ main.console-shell{background:var(--bln-ash)}
   border-radius:var(--ops-r-lg);
   box-shadow:0 1px 2px rgba(33,34,39,.04);
 }
+/* The first KPI carries .pulse, which globals.css defines as a 7px launch-page dot —
+   neutralize it so the tile renders full-size instead of collapsing */
+.ops-kpis .kpi.pulse{width:auto;height:auto;border-radius:var(--ops-r-lg);background:#fff;box-shadow:0 1px 2px rgba(33,34,39,.04)}
 .ops-kpis .kpi:hover{border-color:var(--bln-green);box-shadow:0 10px 28px -14px rgba(33,34,39,.25);transform:translateY(-1px)}
 .ops-kpis .kpi .k-value{color:var(--bln-ink);font-weight:700}
 .ops-kpis .kpi .k-label{
