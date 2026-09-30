@@ -1,0 +1,706 @@
+/* ============================================================================
+   SYLVIA BLYNK THEME — v0.67.0
+   Design language extracted from the actual blynk.io site + web console:
+   light green  #00CA86 (faded #00CA8633, deep #00873E)
+   charcoal ink #212227 / #252729
+   ash surfaces #F2F5F5 / #FAFAFA / #F6F6F6   hairlines #E2E6EB / #ADADAD
+   semantic     red #D3435C · amber #ED9D00 · blue #2E62DC · cyan #14C2FC
+   Fonts: Ubuntu (Blynk UI stack) · IBM Plex Mono (for their Suisse Intl Mono)
+   Radii: 16px cards / 12px controls / 100px pills — everything light chrome,
+   green accents, labeled sidebar like the Blynk web console.
+   Imported LAST in layout.tsx — every rule here wins on order ties.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  /* Blynk palette */
+  --bln-green:#00CA86;
+  --bln-green-hover:#00B87A;
+  --bln-green-faded:rgba(0,202,134,.2);
+  --bln-green-deep:#00873E;
+  --bln-ink:#212227;
+  --bln-charcoal:#252729;
+  --bln-ash:#F2F5F5;
+  --bln-ash-2:#FAFAFA;
+  --bln-near-white:#F6F6F6;
+  --bln-line:#E2E6EB;
+  --bln-line-soft:#E6E6E6;
+  --bln-text-2:#5F6B76;
+  --bln-text-3:#8B97A1;
+  --bln-blue:#2E62DC;
+  --bln-cyan:#14C2FC;
+  --bln-red:#D3435C;
+  --bln-amber:#ED9D00;
+
+  /* ops tokens retargeted to the Blynk palette */
+  --ops-bg:var(--bln-ash);
+  --ops-panel:#ffffff;
+  --ops-panel-2:var(--bln-ash-2);
+  --ops-panel-3:var(--bln-near-white);
+  --ops-inset:var(--bln-ash-2);
+  --ops-border:var(--bln-line);
+  --ops-border-2:#D3DAE0;
+  --ops-text:var(--bln-ink);
+  --ops-muted:var(--bln-text-2);
+  --ops-dim:var(--bln-text-3);
+  --ops-accent:var(--bln-green);
+  --ops-accent-2:var(--bln-green-deep);
+  --ops-green:var(--bln-green-deep);
+  --ops-red:var(--bln-red);
+  --ops-amber:var(--bln-amber);
+  --ops-cyan:var(--bln-cyan);
+  --ops-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ops-sans:'Ubuntu',Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --ops-r-sm:8px;
+  --ops-r-md:12px;
+  --ops-r-lg:16px;
+
+  /* Older token families retargeted so legacy rules resolve light */
+  --acad-paper:var(--bln-ash);
+  --acad-ivory:var(--bln-ash-2);
+  --acad-inset:var(--bln-near-white);
+  --acad-line:var(--bln-line);
+  --acad-line-2:#D3DAE0;
+  --acad-ink:var(--bln-ink);
+  --acad-muted:var(--bln-text-2);
+  --acad-dim:var(--bln-text-3);
+  --acad-navy:var(--bln-charcoal);
+  --acad-navy-deep:var(--bln-ink);
+  --acad-navy-soft:#3A3B40;
+  --acad-gold:var(--bln-green);
+  --acad-gold-ink:var(--bln-green-deep);
+  --acad-green:var(--bln-green-deep);
+  --acad-red:var(--bln-red);
+  --acad-amber:var(--bln-amber);
+  --sylvia-bg:var(--bln-ash);
+  --sylvia-surface:#ffffff;
+  --sylvia-surface-2:var(--bln-ash-2);
+  --sylvia-surface-3:var(--bln-near-white);
+  --sylvia-border:var(--bln-line);
+  --sylvia-border-strong:#D3DAE0;
+  --sylvia-text:var(--bln-ink);
+  --sylvia-muted:var(--bln-text-2);
+  --sylvia-blue:var(--bln-blue);
+  --sylvia-blue-strong:var(--bln-green-deep);
+  --sylvia-green:var(--bln-green);
+  --sylvia-radius:16px;
+  --ui-bg:var(--bln-ash);
+  --ui-surface:#ffffff;
+  --ui-surface-2:var(--bln-ash-2);
+  --ui-border:var(--bln-line);
+  --ui-border-soft:var(--bln-near-white);
+  --ui-text:var(--bln-ink);
+  --ui-muted:var(--bln-text-2);
+  --ui-dim:var(--bln-text-3);
+  --ui-accent:var(--bln-green-deep);
+  --ui-radius:16px;
+}
+
+/* ---------- Base ---------- */
+html{background:var(--bln-ash)}
+body{background:var(--bln-ash);color:var(--bln-ink);font-family:var(--ops-sans)}
+body:has(main.console-shell){background:var(--bln-ash);color:var(--bln-ink);color-scheme:light}
+::selection{background:rgba(0,202,134,.3);color:var(--bln-ink)}
+*{scrollbar-width:thin;scrollbar-color:#ADADAD transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#C9D0D6;border:2px solid transparent;background-clip:padding-box;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:var(--bln-green);background-clip:padding-box}
+
+h1,h2,h3,.k-value,.fleetHeader h1,.groupsHeader h1,.eventCenter h1,.notificationCenter h1,.alertsPage h1,.apiTitle,.releaseCardTitle{
+  font-family:'Ubuntu',Inter,ui-sans-serif,system-ui,sans-serif;
+  letter-spacing:-.01em;
+}
+
+:focus-visible{outline:2px solid var(--bln-green);outline-offset:2px;border-radius:3px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001s !important;transition-duration:.001s !important}
+}
+
+/* ============================================================================
+   SHELL — light chrome, white top bar, labeled sidebar (Blynk console layout)
+   ============================================================================ */
+main.console-shell{background:var(--bln-ash)}
+.ops-body{grid-template-columns:198px minmax(0,1fr)}
+
+/* ---------- Top bar: plain white like blynk.cloud ---------- */
+.ops-top{
+  background:#fff;
+  border-bottom:1px solid var(--bln-line);
+  color:var(--bln-ink);
+  padding:0 16px;
+}
+.ops-logo{
+  border:0;
+  border-radius:10px;
+  background:var(--bln-green);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(0,202,134,.35);
+  font-family:var(--ops-mono);
+  font-weight:600;
+}
+.ops-brand{color:var(--bln-ink)}
+.ops-brand strong{color:var(--bln-ink);font-weight:700}
+
+.ops-search{background:var(--bln-ash-2);border:1px solid var(--bln-line);color:var(--bln-ink)}
+.ops-search:hover{border-color:var(--bln-green);background:#fff}
+.ops-search .commandHint{color:var(--bln-text-3);border:1px solid var(--bln-line);background:#fff}
+
+.ops-project{background:var(--bln-ash-2);border:1px solid var(--bln-line);color:var(--bln-ink)}
+.ops-project option{color:var(--bln-ink);background:#fff}
+.ops-project:hover{border-color:var(--bln-green)}
+
+.ops-iconbtn{color:var(--bln-text-2);border:1px solid transparent;background:transparent}
+.ops-iconbtn:hover{background:var(--bln-near-white);border-color:var(--bln-line);color:var(--bln-ink)}
+
+.ops-signin{
+  background:var(--bln-green);
+  color:#fff;
+  border:1px solid var(--bln-green);
+  border-radius:10px;
+  font-family:var(--ops-mono);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.ops-signin:hover{background:var(--bln-green-hover);border-color:var(--bln-green-hover);color:#fff}
+.ops-userchip{border:1px solid var(--bln-line);background:var(--bln-ash-2);color:var(--bln-ink)}
+.ops-userchip .roletag{
+  background:var(--bln-green-faded);
+  border:0;
+  color:var(--bln-green-deep);
+  font-family:var(--ops-mono);
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+/* ---------- Sidebar: Blynk console labeled navigation ---------- */
+.ops-rail{background:#fff;border-right:1px solid var(--bln-line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.railBtn{
+  width:100%;
+  height:auto;
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-radius:10px;
+  color:var(--bln-text-2);
+  transition:background .15s,color .15s;
+}
+.railBtn svg{flex:0 0 auto}
+.railBtn .tip{
+  position:static;
+  transform:none;
+  opacity:1;
+  pointer-events:auto;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  color:inherit;
+  font:500 12px/1.2 'Ubuntu',Inter,sans-serif;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.railBtn:hover{background:var(--bln-near-white);color:var(--bln-ink)}
+.railBtn.active{background:var(--bln-green-faded);color:var(--bln-green-deep);font-weight:700}
+.railBtn.active::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:9px;
+  bottom:9px;
+  width:3px;
+  border-radius:99px;
+  background:var(--bln-green);
+  box-shadow:none;
+}
+.railDivider{background:var(--bln-line);margin:8px 4px}
+
+/* ---------- Content canvas ---------- */
+.ops-content{background:var(--bln-ash)}
+
+.ops-pagehead h1{color:var(--bln-ink);font-weight:700}
+.ops-pagehead h1 .sub{color:var(--bln-green-deep);font-style:italic;font-weight:500}
+.eyebrow{
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--bln-green-deep);
+}
+
+/* ---------- KPIs: white rounded cards, green hover ---------- */
+.ops-kpis .kpi{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.ops-kpis .kpi:hover{border-color:var(--bln-green);box-shadow:0 10px 28px -14px rgba(33,34,39,.25);transform:translateY(-1px)}
+.ops-kpis .kpi .k-value{color:var(--bln-ink);font-weight:700}
+.ops-kpis .kpi .k-label{
+  font-family:var(--ops-mono);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--bln-text-2);
+}
+.ops-kpis .kpi .k-sub{color:var(--bln-text-3)}
+
+/* ---------- Cards: white, 16px radius, green underline head ---------- */
+.ops-card{background:#fff;border:1px solid var(--bln-line);border-radius:var(--ops-r-lg);box-shadow:0 1px 2px rgba(33,34,39,.04)}
+.ops-cardhead{border-bottom:1px solid var(--bln-line);padding-bottom:8px;position:relative}
+.ops-cardhead .t{color:var(--bln-ink);font-weight:700;position:relative;padding-bottom:7px}
+.ops-cardhead .t::after{
+  content:'';
+  position:absolute;
+  left:0;bottom:-9px;
+  width:26px;height:3px;
+  border-radius:99px;
+  background:var(--bln-green);
+}
+.ops-cardhead .m{font-family:var(--ops-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--bln-green-deep)}
+
+.sectionHead{position:relative;color:var(--bln-ink);font-weight:700;font-family:'Ubuntu',Inter,sans-serif}
+.sectionHead::after{content:'';position:absolute;left:0;bottom:-6px;width:26px;height:3px;border-radius:99px;background:var(--bln-green)}
+
+/* ---------- Buttons: green solid, gray outline, 100px pills ---------- */
+.ops-btn{border:1px solid var(--bln-line);background:#fff;color:var(--bln-ink);border-radius:10px}
+.ops-btn:hover{border-color:var(--bln-green);color:var(--bln-green-deep)}
+.ops-btn.primary{
+  background:var(--bln-green);
+  border-color:var(--bln-green);
+  color:#fff;
+  font-family:var(--ops-mono);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.ops-btn.primary:hover{background:var(--bln-green-hover);border-color:var(--bln-green-hover);color:#fff}
+.ops-btn.ghost,.ops-btn.secondary{background:transparent;border-color:var(--bln-line);color:var(--bln-ink)}
+.ops-btn.ghost:hover,.ops-btn.secondary:hover{border-color:var(--bln-green);color:var(--bln-green-deep);background:#fff}
+.ops-btn.mini{background:var(--bln-ash-2);border-color:var(--bln-line)}
+.ops-btn.mini:hover{border-color:var(--bln-green)}
+.ops-btn:disabled{opacity:.45;cursor:not-allowed}
+
+.iconButton{color:var(--bln-text-2);border:1px solid transparent}
+.iconButton:hover{color:var(--bln-green-deep);border-color:var(--bln-line);background:#fff}
+.trash:hover{color:var(--bln-red) !important;border-color:rgba(211,67,92,.4) !important;background:#FBF1F3 !important}
+
+.pill{border:1px solid var(--bln-line);background:var(--bln-ash-2);color:var(--bln-text-2);border-radius:100px}
+.pill.on,.pill.active{background:var(--bln-green-faded);border-color:rgba(0,202,134,.45);color:var(--bln-green-deep);font-weight:600}
+
+/* ---------- Forms ---------- */
+.compactInput,.controlInput,.form input,.form select,.form textarea,
+.authModalForm input,.alertForm input,.alertForm select,.bulkForm input,.bulkForm select,
+.groupCreate input,.subscriptionCreate input,.webhookField input,.webhookField select,
+.premiumForm input,.premiumForm select,.keyList input,.controlList input{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  color:var(--bln-ink);
+  border-radius:10px;
+}
+.compactInput:focus,.controlInput:focus,.form input:focus,.form select:focus,.form textarea:focus,
+.authModalForm input:focus,.alertForm input:focus,.alertForm select:focus,.bulkForm input:focus,
+.groupCreate input:focus,.subscriptionCreate input:focus,.webhookField input:focus,.premiumForm input:focus{
+  border-color:var(--bln-green);
+  box-shadow:0 0 0 3px rgba(0,202,134,.18);
+  outline:none;
+}
+.compactInput::placeholder,.form input::placeholder,.authModalForm input::placeholder{color:var(--bln-text-3)}
+.roleSelect,.filterLabel select{background:#fff;border:1px solid var(--bln-line);color:var(--bln-ink)}
+
+.authHint{color:var(--bln-text-2)}
+.authError{color:var(--bln-red)}
+.authSuccess{color:var(--bln-green-deep)}
+
+/* ---------- Device rows ---------- */
+.devList{background:#fff;border-radius:var(--ops-r-lg)}
+.devRow{border-bottom:1px solid var(--bln-line)}
+.devRow:hover{background:var(--bln-near-white)}
+.devRow.online .dico{background:var(--bln-green-faded);color:var(--bln-green-deep);border:1px solid rgba(0,202,134,.4)}
+.devRow .dico{background:var(--bln-ash-2);color:var(--bln-text-3);border:1px solid var(--bln-line)}
+.devRow .dname{color:var(--bln-ink);font-weight:500}
+.devRow .dmetric{color:var(--bln-text-2);font-family:var(--ops-mono);font-size:10px}
+.meterbar{background:var(--bln-ash-2);border:1px solid var(--bln-line)}
+.meterbar>i{background:var(--bln-green)}
+.meterbar>i.mid{background:var(--bln-amber)}
+.meterbar>i.low{background:var(--bln-red)}
+.chip{border:1px solid var(--bln-line);background:var(--bln-ash-2);color:var(--bln-text-2);font-family:var(--ops-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:100px}
+.chip.ok{color:var(--bln-green-deep);border-color:rgba(0,202,134,.45);background:var(--bln-green-faded)}
+.chip.bad{color:var(--bln-red);border-color:rgba(211,67,92,.45);background:rgba(211,67,92,.07)}
+.chip.dim{color:var(--bln-text-3)}
+
+/* ---------- Command palette: white Blynk search panel ---------- */
+.ops-palette-overlay{background:rgba(33,34,39,.45);backdrop-filter:blur(3px)}
+.ops-palette{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 30px 70px -20px rgba(33,34,39,.45);
+}
+.ops-palette .pinput{
+  background:var(--bln-ash-2);
+  border:1px solid var(--bln-line);
+  color:var(--bln-ink);
+  border-radius:10px;
+}
+.ops-palette .pinput::placeholder{color:var(--bln-text-3)}
+.ops-palette .pinput:focus{border-color:var(--bln-green);box-shadow:0 0 0 3px rgba(0,202,134,.18);outline:none}
+.ops-palette .pgroup{
+  font-family:var(--ops-mono);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--bln-text-3);
+}
+.ops-pitem{color:var(--bln-ink);border-bottom:1px solid var(--bln-near-white)}
+.ops-pitem:hover{background:var(--bln-near-white)}
+.ops-pitem.active{background:var(--bln-green-faded);color:var(--bln-green-deep)}
+.ops-pempty{color:var(--bln-text-3)}
+
+/* ---------- Status bar: white footer strip, hairline top ---------- */
+.ops-statusbar{
+  background:#fff;
+  border-top:1px solid var(--bln-line);
+  color:var(--bln-text-2);
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.sb-item{color:var(--bln-text-2)}
+.sb-item strong{color:var(--bln-ink)}
+.sb-dot{background:#ADADAD}
+.sb-dot.ok{background:var(--bln-green)}
+.sb-dot.warn{background:var(--bln-amber)}
+
+/* ---------- Toast ---------- */
+.toast{
+  background:#fff;
+  color:var(--bln-ink);
+  border:1px solid var(--bln-line);
+  border-left:3px solid var(--bln-green);
+  border-radius:12px;
+  box-shadow:0 16px 40px -12px rgba(33,34,39,.3);
+}
+
+/* ============================================================================
+   LEGACY TAB SURFACES — restyled unscoped so they win on cascade order
+   ============================================================================ */
+
+/* Generic panels, cards, stats, sections */
+main.console-shell .panel,
+main.console-shell .card,
+main.console-shell .stat{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.panel .cardTop{color:var(--bln-ink);font-weight:700}
+.card .value,.stat .value,.stat strong{color:var(--bln-ink);font-family:'Ubuntu',Inter,sans-serif;font-weight:700}
+.card .label,.stat span,.stat small{color:var(--bln-text-2);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.rule{border-bottom:1px solid var(--bln-line)}
+.ruleList .rule{border-bottom:1px solid var(--bln-line)}
+.ruleNum{font-family:var(--ops-mono);color:var(--bln-green-deep);font-weight:600}
+.ruleMain{color:var(--bln-ink)}
+.mono{font-family:var(--ops-mono)}
+.muted{color:var(--bln-text-2)}
+.subtle{color:var(--bln-text-3)}
+
+/* Section heroes inside tabs — Blynk light band with green accents */
+main.console-shell .hero{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  color:var(--bln-ink);
+  position:relative;
+}
+main.console-shell .hero h1,.main .hero h2,.hero h1,.hero h2{color:var(--bln-ink)}
+main.console-shell .hero p,.hero p{color:var(--bln-text-2)}
+.heroActions .primary{background:var(--bln-green);border:1px solid var(--bln-green);color:#fff;font-family:var(--ops-mono);letter-spacing:.12em;text-transform:uppercase;font-size:10px;font-weight:600;border-radius:10px}
+.heroActions .primary:hover{background:var(--bln-green-hover);color:#fff}
+.heroActions .secondary{background:transparent;border:1px solid var(--bln-line);color:var(--bln-ink)}
+.heroActions .secondary:hover{border-color:var(--bln-green);color:var(--bln-green-deep)}
+
+/* Telemetry / charts */
+.chartFrame,.chartWidget,.telemetryChartCard,.telemetryTableWrap,.fleetTableWrap{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.chartMeta span,.telemetryCardTitle{color:var(--bln-text-2);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.chartEmpty,.telemetryEmpty,.empty,.emptyDeviceState,.emptyLive,.emptyMini,.groupEmpty,.widgetMissing,.dashboardEmpty,.eventEmpty,.notificationEmpty{
+  color:var(--bln-text-3);
+  background:var(--bln-ash-2);
+  border:1px dashed var(--bln-line);
+  border-radius:var(--ops-r-md);
+}
+.bar{background:var(--bln-ash-2);border:1px solid var(--bln-line)}
+.bar>i{background:var(--bln-green)}
+.telemetryBars .telemetryBarWrap{background:var(--bln-ash-2)}
+.telemetryBar{background:var(--bln-green) !important}
+.telemetryBar:hover{background:var(--bln-green-deep) !important}
+.telemetryControls,.telemetryToolbar,.notificationToolbar,.eventToolbar,.alertEvents,.eventTop{color:var(--bln-text-2)}
+.telemetryControls .ops-btn,.telemetryToolbar .ops-btn{background:#fff}
+
+/* Device control center */
+.deviceControlHeader{border-bottom:1px solid var(--bln-line)}
+.deviceControlHeader h2{color:var(--bln-ink);font-family:'Ubuntu',Inter,sans-serif}
+.deviceTabs{border-bottom:1px solid var(--bln-line)}
+.deviceTabs .active{color:var(--bln-green-deep);box-shadow:inset 0 -2px 0 var(--bln-green);font-weight:700}
+.deviceGrid,.controlList,.controlPanel,.schedulePanel,.settingsPanel,.stateReportBox,.provisionBox{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-md);
+}
+.provisionBox{border-left:3px solid var(--bln-green)}
+.detailGrid{background:var(--bln-ash-2);border:1px solid var(--bln-line);border-radius:var(--ops-r-md)}
+.detailGrid>div{border-bottom:1px solid var(--bln-line)}
+.controlRow{border-bottom:1px solid var(--bln-line)}
+.controlRow:hover{background:var(--bln-near-white)}
+.stateSyncBadge{background:#fff;border:1px solid var(--bln-line);border-radius:var(--ops-r-md)}
+.stateSyncBadge.offline,.stateSyncBadge.dim{color:var(--bln-text-2);border-color:var(--bln-line);background:var(--bln-ash-2)}
+.verificationSteps,.connectionSteps{background:var(--bln-ash-2);border:1px solid var(--bln-line);border-radius:var(--ops-r-md)}
+.verificationSteps li,.connectionSteps li{border-bottom:1px solid var(--bln-line);color:var(--bln-text-2)}
+.conditionRow{background:var(--bln-ash-2);border:1px solid var(--bln-line)}
+.power.on{background:var(--bln-green);color:#fff}
+.power{background:var(--bln-ash-2);color:var(--bln-text-2);border:1px solid var(--bln-line)}
+.statusGood{color:var(--bln-green-deep)}
+.statusDim{color:var(--bln-text-3)}
+.switch,.switchBig{background:#D3DAE0}
+.switch.on,.switchBig.on{background:var(--bln-green)}
+.switchBig.on{color:#fff}
+.gaugeRing{background:conic-gradient(var(--bln-green) calc(var(--p,0)*1%),var(--bln-ash-2) 0)}
+.gaugeRing::after{background:#fff}
+.enabled{color:var(--bln-green-deep)}
+.disabled{color:var(--bln-text-3)}
+
+/* API reference */
+.apiPage{background:var(--bln-ash)}
+.apiTitle{color:var(--bln-ink)}
+.apiGrid,.endpointList{background:#fff;border:1px solid var(--bln-line);border-radius:var(--ops-r-lg)}
+.endpoint{border-bottom:1px solid var(--bln-line)}
+.endpointDot{background:var(--bln-green)}
+.endpoint code,.keyRow code,.resultBox code{background:var(--bln-ash-2);border:1px solid var(--bln-line);color:var(--bln-ink);font-family:var(--ops-mono)}
+.keyRow{border-bottom:1px solid var(--bln-line)}
+.resultBox{background:var(--bln-ink);color:#7EE2B8;border:1px solid var(--bln-charcoal);border-radius:var(--ops-r-md);font-family:var(--ops-mono)}
+
+/* Fleet dashboard */
+.fleetDashboard{background:var(--bln-ash)}
+.fleetHeader h1{color:var(--bln-ink)}
+.fleetHeader p,.groupsHeader p,.bulkSubtitle,.telemetryAnalyticsHeader p,.alertsPage .muted{color:var(--bln-text-2)}
+.fleetRefresh,.telemetryRefresh{background:#fff;border:1px solid var(--bln-line);color:var(--bln-ink)}
+.fleetRefresh:hover,.telemetryRefresh:hover{border-color:var(--bln-green);color:var(--bln-green-deep)}
+.fleetStats,.telemetryMetricGrid{gap:10px}
+.fleetStat,.telemetryMetricGrid>div{background:#fff;border:1px solid var(--bln-line);border-radius:var(--ops-r-md);box-shadow:0 1px 2px rgba(33,34,39,.04)}
+.fleetStat:hover{border-color:var(--bln-green)}
+.fleetStat.active{border-color:var(--bln-green);box-shadow:inset 0 -2px 0 var(--bln-green)}
+.fleetStat span{color:var(--bln-text-2);font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.fleetTableWrap{padding:0}
+.fleetTable th{
+  background:var(--bln-ash-2);
+  color:var(--bln-text-2);
+  font-family:var(--ops-mono);
+  font-size:9.5px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--bln-line);
+}
+.fleetTable td{border-bottom:1px solid var(--bln-line);color:var(--bln-ink)}
+.fleetTable tr:hover td{background:var(--bln-near-white)}
+.fleetTable code{background:var(--bln-ash-2);border:1px solid var(--bln-line);color:var(--bln-ink)}
+.fleetDeviceName{color:var(--bln-ink);font-weight:500}
+.fleetBadge{font-family:var(--ops-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid;border-radius:100px}
+.fleetBadge.online{color:var(--bln-green-deep);border-color:rgba(0,202,134,.45);background:var(--bln-green-faded)}
+.fleetBadge.offline{color:var(--bln-red);border-color:rgba(211,67,92,.45);background:rgba(211,67,92,.07)}
+.fleetBadge.provisioning{color:var(--bln-amber);border-color:rgba(237,157,0,.45);background:rgba(237,157,0,.08)}
+.fleetBadge.disabled{color:var(--bln-text-3);border-color:var(--bln-line);background:var(--bln-ash-2)}
+.fleetError{color:var(--bln-red);background:rgba(211,67,92,.06);border:1px solid rgba(211,67,92,.3);border-radius:var(--ops-r-md)}
+
+/* Groups / bulk / templates */
+.groupGrid,.templateGrid,.settingsGrid,.alertsGrid,.notificationGrid,.studioGrid{gap:10px}
+.groupCard,.bulkCard,.templateCard,.scheduleRow{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.groupCard:hover,.bulkCard:hover,.templateCard:hover{border-color:var(--bln-green)}
+.groupIcon,.templateIcon,.notificationIcon,.eventIcon,.subscriptionIcon,.scheduleIcon,.deviceIcon,.integrationIcon{
+  background:var(--bln-green-faded);
+  color:var(--bln-green-deep);
+  border:1px solid rgba(0,202,134,.4);
+}
+.groupCard p,.bulkCard span,.bulkCard small,.templateMeta,.scheduleMain p{color:var(--bln-text-2)}
+
+/* Event & notification centers */
+.eventCenter,.notificationCenter,.alertsPage,.notificationPanel,.alertPanel,.eventPanel{background:var(--bln-ash)}
+.eventStats,.eventMeta,.notificationMeta,.alertMain small,.subscriptionMain small{color:var(--bln-text-2)}
+.eventTimeline{border-left:2px solid var(--bln-line)}
+.eventBody{color:var(--bln-ink)}
+.eventLive,.eventSync,.liveStatus,.liveDot{font-family:var(--ops-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.liveDot{background:var(--bln-green)}
+.liveDot.offline{background:#ADADAD}
+.notificationList>div,.alertList>div,.subscriptionRow,.eventList>div{border-bottom:1px solid var(--bln-line)}
+.notificationList>div:hover,.alertList>div:hover{background:var(--bln-near-white)}
+.notificationUnread{background:var(--bln-green-faded);border-left:3px solid var(--bln-green) !important}
+.notificationToggle,.notificationPrefs label{color:var(--bln-text-2)}
+.subscriptionMsg{color:var(--bln-ink)}
+.alertCount{background:var(--bln-green);color:#fff;font-family:var(--ops-mono);font-weight:600;border-radius:100px}
+
+/* Dashboard studio / builder */
+.dashboardBuilderHeader{border-bottom:1px solid var(--bln-line)}
+.dashboardBuilderHeader h2,.widgetEditor h3{color:var(--bln-ink);font-family:'Ubuntu',Inter,sans-serif}
+.studioWidget,.widgetEditor,.integrationCard{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.studioWidget:hover{border-color:var(--bln-green)}
+.studioWidgetHead{border-bottom:1px solid var(--bln-line);color:var(--bln-ink);font-weight:700}
+.widgetKicker{font-family:var(--ops-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--bln-green-deep)}
+.widgetValue,.widgetGauge{color:var(--bln-ink);font-family:'Ubuntu',Inter,sans-serif;font-weight:700}
+.widgetSwitch small{color:var(--bln-text-3)}
+.editorPreview{background:var(--bln-ash-2);border:1px dashed var(--bln-line);border-radius:var(--ops-r-md)}
+.widgetActions .ops-btn{background:var(--bln-ash-2)}
+
+/* Live command console */
+.commandPanel,.liveCard{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 1px 2px rgba(33,34,39,.04);
+}
+.commandInput{background:#fff;border:1px solid var(--bln-line);color:var(--bln-ink)}
+.commandInput:focus{border-color:var(--bln-green);box-shadow:0 0 0 3px rgba(0,202,134,.18);outline:none}
+.commandPreset{background:var(--bln-ash-2);border:1px solid var(--bln-line);color:var(--bln-text-2)}
+.commandPreset:hover{border-color:var(--bln-green);color:var(--bln-green-deep)}
+.liveGrid,.liveMetric{color:var(--bln-ink)}
+.liveMetric b,.liveMetric strong{color:var(--bln-ink);font-family:var(--ops-mono)}
+.liveFoot{color:var(--bln-text-3);border-top:1px solid var(--bln-line)}
+.cdot{background:var(--bln-green)}
+.sample{background:var(--bln-ash-2);border:1px solid var(--bln-line)}
+
+/* Schedules / state */
+.scheduleRow:hover{border-color:var(--bln-green)}
+.scheduleMain{color:var(--bln-ink)}
+.stateConfirmation{background:var(--bln-ash-2);border:1px solid var(--bln-line)}
+.stateConfirmation small{color:var(--bln-text-2)}
+
+/* ============================================================================
+   OVERLAYS & MODALS — white cards, green top rule
+   ============================================================================ */
+.overlay,.releaseOverlay{background:rgba(33,34,39,.5);backdrop-filter:blur(3px)}
+.modal,.releaseModal{
+  background:#fff;
+  border:1px solid var(--bln-line);
+  border-top:3px solid var(--bln-green);
+  border-radius:var(--ops-r-lg);
+  box-shadow:0 30px 70px -20px rgba(33,34,39,.45);
+  color:var(--bln-ink);
+}
+.modalHead,.releaseHeader{border-bottom:1px solid var(--bln-line)}
+.modalHead h2,.modalHead h3{color:var(--bln-ink);font-family:'Ubuntu',Inter,sans-serif}
+.modalHint{color:var(--bln-text-2)}
+.releaseBody{color:var(--bln-ink)}
+.releaseGrid{gap:10px}
+.releaseCard{background:var(--bln-ash-2);border:1px solid var(--bln-line);border-radius:var(--ops-r-md)}
+.releaseCardTitle{color:var(--bln-ink)}
+.releaseItems li{border-bottom:1px solid var(--bln-line);color:var(--bln-text-2)}
+.releaseItems li::marker{color:var(--bln-green-deep)}
+.releaseFooter{border-top:1px solid var(--bln-line)}
+.settingsPanel h3,.alertCreate h3,.groupCreate h3,.subscriptionCreate h3,.notificationNew h3{color:var(--bln-ink)}
+
+/* ============================================================================
+   OLDER-LAYER NEUTRALIZATION — premium/console layers hardcode dark hexes
+   and use !important; retarget every escaping surface to the Blynk palette.
+   ============================================================================ */
+
+/* Modal has !important in sylvia-premium.css — match with !important here */
+.modal{background:#ffffff !important;border:1px solid var(--bln-line) !important;border-top:3px solid var(--bln-green) !important;border-radius:16px !important;box-shadow:0 30px 70px -20px rgba(33,34,39,.45) !important;color:var(--bln-ink) !important}
+.modal .detailGrid>div,.modal .conditionRow{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important}
+.modal .detailGrid span{color:var(--bln-text-2) !important}
+.modal .detailGrid b{color:var(--bln-ink) !important}
+
+/* Hardcoded dark hexes in premium/console, equal or lower specificity */
+.eventStats>div{background:#fff !important;border-color:var(--bln-line) !important}
+.eventStats strong{color:var(--bln-ink)}
+.eventStats span{color:var(--bln-text-2)}
+.eventEmpty b,.notificationEmpty b,.emptyLive b,.dashboardEmpty b{color:var(--bln-ink) !important}
+.eventMeta span{background:var(--bln-ash-2) !important;color:var(--bln-text-2) !important;border:1px solid var(--bln-line) !important;border-radius:100px}
+.notificationToolbar{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important}
+.notificationToolbar button{color:var(--bln-text-2) !important}
+.notificationToolbar button.selected{background:var(--bln-green-faded) !important;color:var(--bln-green-deep) !important}
+.notificationToggle{background:#fff !important;border-color:var(--bln-line) !important}
+.notificationToggle small{color:var(--bln-text-2) !important}
+.detailGrid>div{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important}
+.deviceControlHeader{background:#fff !important;border-color:var(--bln-line) !important}
+.deviceControlHeader span{color:var(--bln-text-2) !important}
+.deviceIcon.big{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important;color:var(--bln-green-deep) !important}
+.deviceTabs{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important}
+.deviceTabs button{color:var(--bln-text-2) !important}
+.deviceTabs button.active{background:var(--bln-green-faded) !important;color:var(--bln-green-deep) !important;box-shadow:none !important;font-weight:700 !important}
+.stateSyncBadge{background:#fff !important;border-color:var(--bln-line) !important}
+.stateSyncBadge small{color:var(--bln-text-3) !important}
+.provisionBox{background:#fff !important;border-color:var(--bln-line) !important;border-left:3px solid var(--bln-green) !important}
+.provisionBox b{color:var(--bln-text-2) !important}
+.provisionBox .mono{color:var(--bln-ink) !important}
+.controlRow{background:#fff !important;border-color:var(--bln-line) !important}
+.controlRow>div:first-child span{color:var(--bln-text-2) !important}
+.commandHint{background:var(--bln-ash-2) !important;border-color:var(--bln-line) !important;color:var(--bln-text-2) !important}
+.connectionSteps>div{background:#fff !important;border-color:var(--bln-line) !important}
+.connectionSteps>div>small{color:var(--bln-text-2) !important}
+.connectionSteps>div>span{color:var(--bln-green-deep) !important}
+.power{background:var(--bln-ash-2) !important;color:var(--bln-text-2) !important;border-color:var(--bln-line) !important}
+.power.on{color:var(--bln-green-deep) !important;border-color:rgba(0,202,134,.4) !important;background:var(--bln-green-faded) !important}
+.liveDot{box-shadow:none !important}
+.liveDot.offline{background:#ADADAD !important}
+.sylviaOverviewExtras{background:#fff !important;border-color:var(--bln-line) !important}
+.sylviaOverviewExtrasHead h2{color:var(--bln-ink) !important}
+.sylviaOverviewExtrasHead p{color:var(--bln-text-2) !important}
+.sylviaQuickCard{background:#fff !important;border-color:var(--bln-line) !important;color:var(--bln-ink) !important}
+.sylviaQuickCard:hover{border-color:var(--bln-green) !important;background:var(--bln-near-white) !important}
+.sylviaQuickCard small{color:var(--bln-text-2) !important}
+.sylviaQuickCard em{color:var(--bln-green-deep) !important;font-style:normal}
+.sylviaQuickIcon{background:var(--bln-green-faded) !important;border-color:rgba(0,202,134,.4) !important;color:var(--bln-green-deep) !important}
+.sylviaFabricCard{background:#fff !important;border-color:var(--bln-line) !important}
+.sylviaFabricIcon{color:var(--bln-green-deep) !important}
+.sylviaFabricCard small{color:var(--bln-text-2) !important}
+.sylviaFabricState{color:var(--bln-green-deep) !important}
+.sylviaFabricState::before{background:var(--bln-green) !important;box-shadow:0 0 0 3px rgba(0,202,134,.15) !important}
+
+/* Layout wrappers & typography that older layers set on light defaults */
+.layout label>span,.layout label{color:var(--bln-text-2) !important}
+.layout input,.layout select,.layout textarea{color-scheme:light}
+.layout select option{background:#fff;color:var(--bln-ink)}
+.layout .eyebrow{color:var(--bln-green-deep) !important}
+body>.apiPage{background:var(--bln-ash) !important;color:var(--bln-ink) !important}
+body>.apiPage .panel,body>.apiPage .card{background:#fff !important;border-color:var(--bln-line) !important}
+body>.apiPage input,body>.apiPage select{background:#fff !important;color:var(--bln-ink) !important;border-color:var(--bln-line) !important}
+body>.apiPage .apiTitle{color:var(--bln-ink) !important}
+
+/* ============================================================================
+   FOCUS / MOTION
+   ============================================================================ */
+.ops-btn:focus-visible,.railBtn:focus-visible,.ops-iconbtn:focus-visible,.kpi:focus-visible,
+.ops-pitem:focus-visible,.devRow:focus-visible,.pill:focus-visible,.iconButton:focus-visible{
+  outline:2px solid var(--bln-green);
+  outline-offset:2px;
+}

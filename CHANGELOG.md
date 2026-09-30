@@ -1,5 +1,28 @@
 # SYLVIA Changelog
 
+## v0.67.0 — Blynk Re-theme (Light Green / Ash Console)
+
+SYLVIA v0.67.0 re-themes the entire console in the actual Blynk design language: ash canvas, light-green action color, white chrome with a labeled navigation sidebar, and interface patterns modeled on the Blynk web console. No behavior changes.
+
+### Design language (extracted from blynk.io)
+- New `app/sylvia-blynk.css` loads last and retargets every token family (`--ops-*`, `--sylvia-*`, `--ui-*`, `--acad-*`) to the palette pulled from the live blynk.io stylesheet: light green `#00CA86` (faded `#00CA8633`, deep `#00873E`), charcoal ink `#212227` / `#252729`, ash surfaces `#F2F5F5` / `#FAFAFA` / `#F6F6F6`, hairlines `#E2E6EB` / `#ADADAD`.
+- Typography follows the Blynk stack: **Ubuntu** for headings and body (from their official font list; their custom Teg is not freely available), **IBM Plex Mono** for micro-labels, table headers, status bar and code (standing in for their Suisse Intl Mono).
+- Radii follow the Blynk system: 16px cards, 12px controls, 100px pills.
+- Semantic tokens: red `#D3435C`, amber `#ED9D00`, blue `#2E62DC`, cyan `#14C2FC`.
+
+### Interface (Blynk web console patterns)
+- The 56px icon rail becomes a **198px white labeled sidebar**: nav rows show icon + always-visible label with green-faded active ground, deep-green label, and a green leading bar; hover tooltips are retired because labels are always visible.
+- Plain white top bar with the green `S` logo tile, white status bar, light hero bands, and the ⌘K palette as a white rounded search panel with green-faded highlights.
+- Primary buttons are solid `#00CA86` with white uppercase mono text; chips, role tags and fleet badges become 100px pills; icon chips use the faded-green ground.
+- The API result box is the single dark surface: charcoal `#212227` with mint mono text.
+
+### Correctness
+- The full-tab dark-leak sweep was re-run against the Blynk palette: zero unconverted surfaces across all 18 console sections.
+- Deep green `#00873E` is used for green text on light grounds; solid `#00CA86` is reserved for surfaces and accents.
+
+### Release
+- Platform version is now v0.67.0; Arduino SDK remains v0.53.8. The ops shell, ⌘K palette, KPI overview and all hardware-path behavior are unchanged.
+
 ## v0.66.0 — Academy Re-theme (ECT Design Language)
 
 SYLVIA v0.66.0 re-themes the entire console in the ECT department-website design language: a complete colour, typography and element redesign with no behavior changes.

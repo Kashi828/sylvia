@@ -5,6 +5,7 @@ import './sylvia-premium.css';
 import './sylvia-console.css';
 import './sylvia-redesign.css';
 import './sylvia-academy.css';
+import './sylvia-blynk.css';
 import type {Metadata} from 'next';
 import ClientUIEnhancer from '@/components/ClientUIEnhancer';
 

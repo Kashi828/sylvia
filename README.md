@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.66.0 — Academy Re-theme (ECT design language)**
+**v0.67.0 — Blynk Re-theme (light green / ash console)**
 
 SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The console is a compact operations surface — fixed shell with icon rail, ⌘K command palette, live status bar and dense device/fabric panels — backed by the persistent sign-in flow (`SYLVIA_DEMO_PASSWORD` owner account). Production identity secrets are required for `/api/v1/health` to report `ready: true`. Real ESP8266/NodeMCU validation remains the v1.0 acceptance gate.
 
