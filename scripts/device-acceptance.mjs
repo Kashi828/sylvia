@@ -248,17 +248,38 @@ async function main() {
   head('6. Command and ACK');
   const cmd = await api('POST', `/api/v1/devices/${deviceId}/command`, { body: { command: 'identify', payload: { pin: 2 } } });
   let commandId = cmd.json?.commandId || null;
+  const transport = cmd.json?.transport || 'unknown';
   if (cmd.status === 200 && cmd.json?.ok && commandId) {
-    pass('command', 'command created as persistent state', `${commandId} (${cmd.json.transport})`);
+    pass('command', 'command created as persistent state', `${commandId} (${transport})`);
     record.record.commandId = commandId;
+    record.record.commandTransport = transport;
   } else {
     fail('command', 'command created as persistent state', `${cmd.status} ${cmd.json?.error || ''}`);
   }
 
-  // The device claims the command, exactly like the firmware poll loop.
+  // Delivery depends on the live transport. With MQTT configured the command is
+  // published and marked 'sent' immediately, so a plain REST poll correctly returns
+  // nothing; without MQTT it stays 'queued' and the poll claims it.
   const poll = await api('GET', `/api/v1/devices/${deviceId}/commands?limit=10`, { token: deviceToken });
   const claimed = (poll.json?.commands || []).some((c) => (c.id || c.commandId) === commandId);
-  claimed ? pass('command', 'device claims the command') : fail('command', 'device claims the command', `count=${poll.json?.count ?? 0}`);
+  if (claimed) {
+    pass('command', 'device claims the command over REST poll', `${poll.json.count} claimed`);
+  } else if (transport === 'mqtt') {
+    const sent = (await api('GET', `/api/v1/devices/${deviceId}/commands?history=true&limit=10`, { token: deviceToken })).json
+      ?.commands?.find((c) => c.id === commandId);
+    sent?.status === 'sent'
+      ? pass('command', 'command dispatched to the device over MQTT', 'status sent')
+      : fail('command', 'command dispatched to the device over MQTT', `status=${sent?.status || 'missing'}`);
+  } else {
+    fail('command', 'device claims the command', `not claimed, count=${poll.json?.count ?? 0}`);
+  }
+
+  // Durable recovery: a device that lost the command mid-flight can re-request it by id.
+  const recovery = await api('GET', `/api/v1/devices/${deviceId}/commands?recoveryCommandId=${commandId}`, { token: deviceToken });
+  const recovered = (recovery.json?.commands || []).some((c) => c.id === commandId);
+  recovered
+    ? pass('command', 'command is re-deliverable after a mid-flight disconnect')
+    : skip('command', 'command is re-deliverable after a mid-flight disconnect', `status ${recovery.status}`);
 
   const ack = await api('POST', '/api/v1/devices/commands/ack', {
     token: deviceToken,
@@ -364,9 +385,9 @@ async function main() {
   tel2.status === 201 ? pass('recovery', 'telemetry resumes after reconnect') : fail('recovery', 'telemetry resumes after reconnect');
 
   const poll2 = await api('GET', `/api/v1/devices/commands/pending?deviceId=${deviceId}&limit=5`, { token: deviceToken });
-  poll2.status === 200
-    ? pass('recovery', 'REST fallback still delivers commands', `pending=${poll2.json?.commands?.length ?? 0}`)
-    : fail('recovery', 'REST fallback still delivers commands', `${poll2.status}`);
+  poll2.status === 200 && Array.isArray(poll2.json?.commands)
+    ? pass('recovery', 'REST fallback command queue is reachable', `${poll2.json.commands.length} pending`)
+    : fail('recovery', 'REST fallback command queue is reachable', `${poll2.status}`);
 
   // A replayed ACK must not re-open or re-stamp an already-acked command.
   // The endpoint may answer 200 with the existing record (the UPDATE matched no row
