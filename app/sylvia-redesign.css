@@ -70,7 +70,12 @@ main.console-shell{display:grid;grid-template-rows:48px minmax(0,1fr) 26px;heigh
 .ops-userchip .roletag{font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:99px;background:rgba(79,125,255,.16);color:var(--ops-accent-2)}
 
 /* ---------- Body: rail + content ---------- */
-.ops-body{display:grid;grid-template-columns:56px minmax(0,1fr);min-height:0;overflow:hidden}
+/* The rail width is a single token so theme layers can restyle the grid
+   (grid-template-columns: var(--ops-rail-w) ...) without re-declaring every
+   breakpoint. Breakpoint overrides below are scoped to main.console-shell so
+   they outrank a theme's unscoped .ops-body rule (media queries add no
+   specificity, so equal-specificity rules would just resolve on source order). */
+.ops-body{display:grid;--ops-rail-w:56px;grid-template-columns:var(--ops-rail-w) minmax(0,1fr);min-height:0;overflow:hidden}
 .ops-rail{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;background:var(--ops-panel);border-right:1px solid var(--ops-border);overflow-y:auto;overflow-x:hidden}
 .ops-rail::-webkit-scrollbar{width:0}
 .railBtn{position:relative;width:40px;height:36px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:var(--ops-dim);cursor:pointer;transition:.14s;flex:0 0 auto}
@@ -109,7 +114,17 @@ main.console-shell{display:grid;grid-template-rows:48px minmax(0,1fr) 26px;heigh
 .ops-statusbar .sb-dot.ok{background:var(--ops-green);box-shadow:0 0 6px rgba(61,220,151,.7)}
 .ops-statusbar .sb-dot.warn{background:var(--ops-amber)}
 .ops-statusbar .sb-dot.bad{background:var(--ops-red);box-shadow:0 0 6px rgba(255,92,114,.7)}
-.ops-statusbar .sb-spacer{flex:1}
+.ops-statusbar .sb-spacer{flex:1;min-width:0}
+/* Status telemetry is secondary to the content area: drop the lower-value items
+   instead of letting them run off the right edge of narrow viewports. */
+@media(max-width:860px){
+  .ops-statusbar{gap:10px;font-size:9px}
+  .ops-statusbar .sb-item:nth-child(3),
+  .ops-statusbar .sb-item:nth-child(4){display:none}
+}
+@media(max-width:560px){
+  .ops-statusbar .sb-item:nth-child(6){display:none}
+}
 
 /* ============================================================
    DENSE SURFACES
@@ -477,9 +492,10 @@ body>.apiPage input,body>.apiPage select,body>.apiPage .premiumField{background:
 }
 @media(max-width:860px){
   main.console-shell{grid-template-rows:48px minmax(0,1fr) 24px;height:100dvh}
-  .ops-body{grid-template-columns:48px minmax(0,1fr)}
-  .railBtn{width:36px;height:34px}
-  .railBtn .tip{display:none}
+  /* The rail keeps its labels at tablet width — it only collapses to an icon
+     rail at 640px. Collapsing at 860px used to strand the labels with nowhere
+     to render, which is why every theme had to re-forced them. */
+  main.console-shell .ops-body{--ops-rail-w:170px}
   .ops-search{max-width:none}
   .ops-brand small{display:none}
   .ops-content{padding:12px 12px 32px}
@@ -488,6 +504,13 @@ body>.apiPage input,body>.apiPage select,body>.apiPage .premiumField{background:
   .ops-pagehead .headActions .ops-btn{flex:1}
   .devRow{grid-template-columns:auto minmax(0,1fr) auto}
   .devRow .spark,.devRow .dmetric{display:none}
+}
+@media(max-width:640px){
+  /* Icon-only rail: this is the one width where labels cannot be shown.
+     Scoped to outrank the themes' static .ops-rail .railBtn .tip label rule. */
+  main.console-shell .ops-body{--ops-rail-w:52px}
+  main.console-shell .railBtn{width:36px;height:34px}
+  main.console-shell .railBtn .tip{display:none}
 }
 @media(max-width:560px){
   .ops-top{gap:6px;padding:0 8px}

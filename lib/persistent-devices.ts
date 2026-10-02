@@ -35,9 +35,11 @@ export async function registerPersistentDevice(name: string, type: string, owner
 
   const result = await query(
     `INSERT INTO device_registry
-      (device_id, name, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview,owner_id,project_id,token_generation,token_revoked)
-     VALUES ($1,$2,'provisioning',NULL,NULL,'unknown',$3,$3,$4,$5,$6,$7,$8,$9,$10)
+      (device_id, name, type, lifecycle, last_seen, firmware, transport, created_at, updated_at, token_hash, token_preview, owner_id, project_id, token_generation, token_revoked)
+     VALUES ($1,$2,$3,'provisioning',NULL,NULL,'unknown',$4,$4,$5,$6,$7,$8,$9,$10)
      RETURNING device_id,name,type,lifecycle,last_seen,firmware,transport,created_at,updated_at,token_hash,token_preview,state,owner_id,token_generation,token_revoked,token_rotated_at,token_last_authenticated_at`,
+    // $1 device_id, $2 name, $3 type, $4 created/updated_at, $5 token_hash,
+    // $6 token_preview, $7 owner_id, $8 project_id, $9 generation, $10 revoked
     [deviceId, name.trim(), type.trim() || "ESP32 Device", now, hashDeviceToken(token), tokenFingerprint(token), ownerId ?? null, projectId, 1, false],
   );
 
@@ -152,6 +154,33 @@ export async function markPersistentDeviceOnline(
     [id],
   );
   return refreshed.rows[0] ? normalize(refreshed.rows[0] as Record<string, unknown>) : null;
+}
+
+/**
+ * Decommission a device. Scoped by owner and project so one workspace can never
+ * delete another's hardware. Datastreams and the durable command queue are removed
+ * with it; telemetry history is retained for reporting.
+ */
+export async function deletePersistentDevice(deviceId: string | number, ownerId: string, projectId = DEFAULT_PROJECT_ID) {
+  if (!databaseConfigured()) return false;
+  const owned = await query(
+    `SELECT 1 FROM device_registry WHERE device_id=$1 AND owner_id=$2 AND project_id=$3 LIMIT 1`,
+    [String(deviceId), ownerId, projectId],
+  );
+  if (!owned.rows[0]) return false;
+  try {
+    // Order matters: children first so no FK/FK-less orphan rows are left behind.
+    await query(`DELETE FROM device_commands WHERE device_id=$1`, [String(deviceId)]);
+    await query(`DELETE FROM datastream_registry WHERE device_id=$1`, [String(deviceId)]);
+    const removed = await query(`DELETE FROM device_registry WHERE device_id=$1 AND owner_id=$2 AND project_id=$3`, [
+      String(deviceId),
+      ownerId,
+      projectId,
+    ]);
+    return removed.rowCount === 1;
+  } catch {
+    return false;
+  }
 }
 
 export async function listPersistentDevices(ownerId?: string, projectId?: string) {

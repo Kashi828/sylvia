@@ -4,7 +4,7 @@ import { ensureMqtt, mqttStatus } from '@/lib/mqtt-transport';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'v0.67.1-blynk-theme';
+const DEPLOYMENT_MARKER = 'v0.68.0-acceptance';
 
 function present(name: string): boolean {
   const value = process.env[name];
@@ -96,7 +96,7 @@ export async function GET() {
     restReady,
     realtimeReady,
     service: 'sylvia',
-    version: '0.67.1',
+    version: '0.68.0',
     deployment: DEPLOYMENT_MARKER,
     checks: { database: db, runtimeSchema, mqtt },
     diagnostics: {

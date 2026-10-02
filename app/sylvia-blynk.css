@@ -123,7 +123,9 @@ h1,h2,h3,.k-value,.fleetHeader h1,.groupsHeader h1,.eventCenter h1,.notification
    SHELL — light chrome, white top bar, labeled sidebar (Blynk console layout)
    ============================================================================ */
 main.console-shell{background:var(--bln-ash)}
-.ops-body{grid-template-columns:198px minmax(0,1fr)}
+/* Uses the --ops-rail-w token so sylvia-redesign.css owns every breakpoint
+   (a bare 198px here would win on source order and defeat its media queries). */
+.ops-body{--ops-rail-w:198px;grid-template-columns:var(--ops-rail-w) minmax(0,1fr)}
 
 /* ---------- Top bar: plain white like blynk.cloud ---------- */
 .ops-top{
@@ -196,7 +198,7 @@ main.console-shell{background:var(--bln-ash)}
 }
 .railBtn svg{flex:0 0 auto}
 .ops-rail .railBtn .tip{
-  display:block !important;
+  display:block;
   position:static;
   transform:none;
   opacity:1;
@@ -268,19 +270,17 @@ main.console-shell .hero p{margin:0 0 14px}
   margin-top:2px;
 }
 
-/* Responsive: labeled sidebar stays until 640px; only truly narrow widths collapse */
+/* Responsive: sylvia-redesign.css now owns the rail breakpoints (170px at
+   860px, icon-only at 640px), so this layer only tunes spacing. */
 @media(max-width:1100px){
   main.console-shell .ops-content{padding:18px 18px 40px}
 }
 @media(max-width:860px){
-  .ops-body{grid-template-columns:170px minmax(0,1fr)}
   main.console-shell .ops-content{padding:14px 12px 34px}
 }
 @media(max-width:640px){
-  .ops-body{grid-template-columns:52px minmax(0,1fr)}
   .ops-rail{padding:8px 6px}
   .ops-rail .railBtn{justify-content:center;padding:8px 0}
-  .ops-rail .railBtn .tip{display:none !important}
 }
 
 .ops-pagehead h1{color:var(--bln-ink);font-weight:700}
@@ -301,9 +301,9 @@ main.console-shell .hero p{margin:0 0 14px}
   border-radius:var(--ops-r-lg);
   box-shadow:0 1px 2px rgba(33,34,39,.04);
 }
-/* The first KPI carries .pulse, which globals.css defines as a 7px launch-page dot —
-   neutralize it so the tile renders full-size instead of collapsing */
-.ops-kpis .kpi.pulse{width:auto;height:auto;border-radius:var(--ops-r-lg);background:#fff;box-shadow:0 1px 2px rgba(33,34,39,.04)}
+/* `.pulse` on the lead KPI is now unambiguous: globals.css ships the launch-page
+   dot as `.launchDot`, so this tile is never hit by the 7px-dot rule again. */
+.ops-kpis .kpi.pulse .k-value{color:var(--kc,var(--bln-green-deep))}
 .ops-kpis .kpi:hover{border-color:var(--bln-green);box-shadow:0 10px 28px -14px rgba(33,34,39,.25);transform:translateY(-1px)}
 .ops-kpis .kpi .k-value{color:var(--bln-ink);font-weight:700}
 .ops-kpis .kpi .k-label{

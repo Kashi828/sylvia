@@ -1,5 +1,41 @@
 # SYLVIA Changelog
 
+## v0.68.0 — Acceptance Harness & Hardware-Path Fixes
+
+v0.68.0 adds an automated pre-hardware acceptance harness and fixes three blocking defects it immediately uncovered. Two of them meant the hardware acceptance path had never actually worked end to end.
+
+### Cloud-to-device commands never worked (critical)
+- Root cause: `public.device_commands` was never part of the v0.54+ text-ID reconciliation and was still the legacy **UUID** schema — `id`/`device_id` were `uuid` with a foreign key into an unused, empty `devices` table, and its status check used a different vocabulary.
+- Every command insert failed with `invalid input syntax for type uuid`. `lib/persistent-commands.ts` swallowed the error in a bare `catch` and returned `null`, so `POST /api/v1/devices/{id}/command` answered **503** and no command could ever reach a device.
+- `20260928000000_device_commands_text_reconciliation.sql` rebuilds the table with text ids and the `queued`/`sent`/`acked`/`failed` statuses the runtime writes. The rebuild asserts the table is empty and refuses to run otherwise.
+- Impact: acceptance runbook section 6 requires a command to reach `acked`, which was unreachable for every device.
+
+### Device registration was rejected (critical)
+- The `device_registry` insert listed 14 columns but supplied 15 values — the device `type` never had a column slot, so registering any device failed with `INSERT has more expressions than target columns`.
+- Step 2 of the acceptance runbook was impossible: no ESP8266 could be onboarded.
+
+### Devices can now be decommissioned
+- There was no way to remove a device from the cloud at all; the API exposed only `GET`.
+- `DELETE /api/v1/devices/{id}` removes a device, scoped to the owning project and requiring a Builder-or-above session. Datastreams and the durable command queue are removed with it; telemetry history is retained. Every deletion is audited.
+
+### Automated pre-hardware acceptance harness
+- `npm run acceptance` (`scripts/device-acceptance.mjs`) drives the full acceptance runbook against a deployed instance using only the public REST API — exactly the calls a real ESP8266 makes — across all nine runbook sections plus cloud prerequisites.
+- Covers registration, handshake, capability advertisement, heartbeat, telemetry persistence, command claim → ACK → `acked`, automation runs, alert events, power-cycle recovery, REST fallback and project isolation.
+- Also asserts negative paths a hardware test would miss: forged tokens, telemetry type mismatches, unregistered datastreams, and replayed-ACK idempotency.
+- Exits non-zero on failure so it can gate CI; `--json` writes a machine-readable acceptance record, `--keep` retains the probe device.
+- `npm run migrate -- <file.sql>` applies a migration statement-by-statement, naming the exact statement on failure.
+
+### Console layout defects fixed at the source
+- Sidebar labels disappeared at tablet width because the 860px breakpoint collapsed the rail to 48px *and* hid the labels. The rail now keeps labels down to 640px.
+- The lead KPI collapsed to a 7px dot because `globals.css` defined an unscoped `.pulse` for the launch-page dot that collided with the console KPI modifier. The launch dot is now `.launchDot`, so the collision cannot recur in any theme.
+- Rail width is a single `--ops-rail-w` token in `sylvia-redesign.css`; breakpoint overrides are scoped to `main.console-shell` because media queries add no specificity.
+- Status bar telemetry no longer overflows on narrow viewports.
+- Verified by computed-style probes at 1512px (198px labeled rail, 19 labels), 820px (170px rail) and 390px (52px icon rail, no labels, no horizontal scroll).
+
+### Release
+- Platform version is now v0.68.0; Arduino SDK remains v0.53.8. `CURRENT_RELEASE` was still reporting 0.67.0 after v0.67.1 and is now correct.
+- Result: **40 passed · 0 failed · 1 skipped** against a live deployment. The remaining v1.0 gate item is physical ESP8266 actuation.
+
 ## v0.67.1 — Blynk Layout Fixes (Hidden Labels, KPI Collapse, Empty States)
 SYLVIA v0.67.1 fixes the hidden-letters and widget-placement issues surfaced in the live preview.
 

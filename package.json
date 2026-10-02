@@ -1,12 +1,15 @@
 {
   "name": "sylvia-iot",
   "private": true,
-  "version": "0.67.1",
+  "version": "0.68.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "audit:css": "node scripts/audit-css.mjs",
+    "acceptance": "node scripts/device-acceptance.mjs",
+    "migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "lucide-react": "0.468.0",

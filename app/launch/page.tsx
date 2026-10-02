@@ -30,7 +30,7 @@ export default function LaunchPage() {
       <section className="launchHero" id="platform">
         <div className="heroGlow" />
         <div className="heroCopy">
-          <div className="launchEyebrow"><span className="pulse"/> OPEN IOT PLATFORM · HOSTED BETA</div>
+          <div className="launchEyebrow"><span className="launchDot"/> OPEN IOT PLATFORM · HOSTED BETA</div>
           <h1>Build the connected world.<br/><em>Without the complexity.</em></h1>
           <p>SYLVIA gives developers one clean platform to connect devices, stream telemetry, build dashboards and automate real-world systems.</p>
           <div className="heroActions">

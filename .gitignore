@@ -4,3 +4,6 @@ out
 .env*
 !.env.example
 npm-debug.log*
+.vercel
+tsconfig.tsbuildinfo
+acceptance-record*.json

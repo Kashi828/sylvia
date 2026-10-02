@@ -194,13 +194,22 @@ main.console-shell{background:var(--acad-paper)}
   box-shadow:inset 3px 0 0 var(--acad-gold);
 }
 .railDivider{background:rgba(255,255,255,.14)}
+/* Sidebar labels are static text in this theme, not hover tooltips: sylvia-redesign.css
+   positions .tip absolutely and fades it out, which would leave the rail unlabeled. */
 .railBtn .tip{
-  background:var(--acad-navy-soft);
-  border:1px solid rgba(232,199,102,.5);
-  color:var(--acad-ivory);
+  position:static;
+  transform:none;
+  opacity:1;
+  pointer-events:auto;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  color:inherit;
   font-family:var(--ops-mono);
   font-size:10px;
   letter-spacing:.08em;
+  white-space:nowrap;
 }
 
 /* ---------- Content canvas ---------- */
@@ -223,6 +232,7 @@ main.console-shell{background:var(--acad-paper)}
   border:1px solid var(--acad-line);
   box-shadow:0 1px 0 rgba(22,33,59,.04);
 }
+.ops-kpis .kpi.pulse .k-value{color:var(--acad-navy-deep)}
 .ops-kpis .kpi:hover{border-color:var(--acad-gold);box-shadow:0 6px 18px -8px rgba(21,36,73,.25);transform:translateY(-1px)}
 .ops-kpis .kpi .k-value{color:var(--acad-navy-deep);font-weight:600}
 .ops-kpis .kpi .k-label{
