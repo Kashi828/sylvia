@@ -4,7 +4,7 @@ SYLVIA — open IoT platform and Blynk alternative.
 
 ## Current baseline
 
-**v0.68.0 — Acceptance harness & hardware-path fixes**
+**v0.69.0 — Project isolation & acceptance integrity**
 
 SYLVIA has a persistent multi-project control plane: projects, membership, devices, datastreams, telemetry, automations, alerts, API keys, notifications and audit history are scoped to the active workspace project. The console is a compact operations surface — fixed shell with icon rail, ⌘K command palette, live status bar and dense device/fabric panels — backed by the persistent sign-in flow (`SYLVIA_DEMO_PASSWORD` owner account). Production identity secrets are required for `/api/v1/health` to report `ready: true`. Real ESP8266/NodeMCU validation remains the v1.0 acceptance gate.
 
@@ -27,7 +27,7 @@ SYLVIA_BASE_URL=https://sylvia-orcin.vercel.app npm run acceptance
 npm run acceptance -- --keep --json acceptance-record.json
 ```
 
-The harness provisions its own device and datastream, drives the protocol exactly as the firmware does (handshake → heartbeat → telemetry → command → ACK → automation → alert → recovery), probes project isolation with negative credentials, and cleans up after itself. It exits non-zero when any gate fails, so it can gate CI or a release. Credentials come from `SYLVIA_OWNER_EMAIL` / `SYLVIA_DEMO_PASSWORD`.
+The harness provisions its own device and datastream, drives the protocol through handshake → heartbeat → telemetry → command → ACK → automation → alert → recovery, checks project-scoped Fleet visibility, and cleans up after itself. It exits non-zero when any gate fails, so it can gate CI or a release. Credentials come from `SYLVIA_OWNER_EMAIL` / `SYLVIA_DEMO_PASSWORD`.
 
 **The remaining v1.0 gate item is physical hardware**: flash a board and confirm the pin moves. Everything else is machine-checked.
 
@@ -57,7 +57,7 @@ The application connects server-side through PostgreSQL. SYLVIA now persists app
 3. For a fresh SYLVIA database, apply the core/runtime migrations through `20260923173759_sylvia_runtime_compatibility.sql`, then apply the v0.54–v0.62 migrations in timestamp order.
 4. For the current hybrid database layout created by earlier SYLVIA releases, apply `20260927000000_legacy_runtime_schema_reconciliation.sql` before the v0.58/v0.62 migrations. This migration reconciles the empty legacy UUID-based alert/notification tables with the text-ID runtime schema.
 5. Apply `20260927000001_runtime_index_hardening.sql` for the runtime foreign-key indexes.
-6. Apply `20260928000000_device_commands_text_reconciliation.sql`. This rebuilds `public.device_commands` as a text-id table. It is required — without it every cloud-to-device command fails with `503`, because the table was still the legacy UUID schema. The migration refuses to run if the table is not empty.
+6. Apply `20260928000000_device_commands_text_reconciliation.sql`. The migration is idempotent: it preserves an already-correct text-ID command table, rebuilds only an empty incompatible legacy table, and refuses destructive reconciliation when incompatible rows already exist.
 7. Set the production secrets required by the current identity/device security model: `SYLVIA_DEMO_PASSWORD`, `SYLVIA_API_KEY_SECRET`, and `SYLVIA_DEVICE_TOKEN_SECRET`. `/api/v1/health` reports `identityReady: false` until all three are present.
 8. Redeploy SYLVIA after any Vercel environment-variable change.
 9. Open `/api/v1/health` and require `ready: true`, `restReady: true`, a connected database, and an empty `runtimeSchema.missingTables` list before hardware acceptance.
