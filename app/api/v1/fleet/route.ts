@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requestOwnerId } from "@/lib/request-auth";
+import { requestPrincipal } from "@/lib/request-auth";
 import { databaseConfigured, query } from "@/lib/db";
 import { listPersistentFleetDevices } from "@/lib/persistent-devices";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const auth = await requestOwnerId(request);
+  const auth = await requestPrincipal(request);
   if (!auth) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
 
   if (!databaseConfigured()) {
@@ -23,13 +23,14 @@ export async function GET(request: Request) {
       `UPDATE public.device_registry
        SET lifecycle='offline', online=false, updated_at=now()
        WHERE owner_id=$1
+         AND project_id=$2
          AND lifecycle='online'
          AND last_seen IS NOT NULL
          AND last_seen < now() - ($2::text || ' seconds')::interval`,
-      [auth.ownerId, staleAfterSeconds],
+      [auth.ownerId, auth.projectId, staleAfterSeconds],
     );
 
-    const devices = await listPersistentFleetDevices(auth.ownerId);
+    const devices = await listPersistentFleetDevices(auth.ownerId, auth.projectId);
     const counts = devices.reduce((acc: Record<string, number>, device: { lifecycle: string }) => {
       acc[device.lifecycle] = (acc[device.lifecycle] || 0) + 1;
       return acc;
