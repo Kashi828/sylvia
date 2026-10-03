@@ -281,9 +281,9 @@ async function main() {
     ? pass('command', 'command is re-deliverable after a mid-flight disconnect')
     : skip('command', 'command is re-deliverable after a mid-flight disconnect', `status ${recovery.status}`);
 
-  const ack = await api('POST', '/api/v1/devices/commands/ack', {
+  const ack = await api('POST', `/api/v1/devices/${deviceId}/commands`, {
     token: deviceToken,
-    body: { commandId, result: { executed: true, pin: 2 } },
+    body: { commandId, result: { ok: true, executed: true, pin: 2 } },
   });
   if (ack.status === 200 && ack.json?.ok) {
     pass('command', 'device posts ACK', ack.json.acknowledgedAt || '');
