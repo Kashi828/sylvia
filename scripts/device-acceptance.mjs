@@ -405,6 +405,12 @@ async function main() {
 
   /* ---------- 9. Project isolation ---------- */
   head('9. Project isolation');
+  const fleetInProject = await api('GET', '/api/v1/fleet');
+  const fleetOwnDevice = (fleetInProject.json?.devices || []).some((d) => String(d.deviceId) === deviceId);
+  fleetOwnDevice
+    ? pass('isolation', 'fleet lists the device only through its selected project')
+    : fail('isolation', 'fleet lists the device only through its selected project', `got ${fleetInProject.status}`);
+
   const devicesInProject = await api('GET', '/api/v1/devices');
   const listed = (devicesInProject.json?.devices || []).some((d) => String(d.id) === deviceId);
   listed ? pass('isolation', 'project can list its own device') : fail('isolation', 'project can list its own device');
